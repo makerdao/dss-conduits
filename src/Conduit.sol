@@ -117,10 +117,8 @@ contract Conduit is IConduit {
 
     function isCancelable(uint256 fundRequestId) external view returns (bool isCancelable_) {}
 
-    // TODO: Rename to initiateFundRequest
-    function initiateWithdraw(uint256 amount) external returns (uint256 fundRequestId) {}
+    function requestFunds(uint256 amount, bytes memory data) external returns (uint256 fundRequestId) {}
 
-    // TODO: Rename to cancelFundRequest
     function cancelWithdraw(uint256 fundRequestId) external {}
 
     function withdraw(uint256 fundRequestId) external returns (uint256 resultingFundRequestId) {}

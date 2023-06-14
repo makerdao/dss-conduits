@@ -30,9 +30,10 @@ interface IConduit {
     /**
      *  @dev    Initiate a withdrawal request from a Fund Manager.
      *  @param  amount       The amount of tokens to withdraw.
+     *  @param  data         Arbitrary encoded data to provide additional info to the Fund Manager.
      *  @return withdrawalId The ID of the withdrawal request.
      */
-    function initiateWithdraw(uint256 amount) external returns (uint256 withdrawalId);
+    function requestFunds(uint256 amount, bytes memory data) external returns (uint256 withdrawalId);
 
     /**
      *  @dev   Cancel a withdrawal request from a Fund Manager.
