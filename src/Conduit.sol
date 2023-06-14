@@ -4,20 +4,18 @@ pragma solidity ^0.8.13;
 import { IConduit } from "./IConduit.sol";
 
 interface ERC20Like {
+    function transfer(address dst, uint wad) external returns (bool);
     function transferFrom(address src, address dst, uint wad) external returns (bool);
 }
 
 contract Conduit is IConduit {
 
-    struct {
-        uint256 cash;
-        uint256 outstanding;
-    }
-
     address public admin;
     address public fundManager;
 
     uint256 public latestWithdrawalId;
+    uint256 public outstandingPrincipal;
+    uint256 public totalInterestEarned;
 
     mapping(address => bool) public isValidRouter;
 
@@ -111,9 +109,11 @@ contract Conduit is IConduit {
 
     function isCancelable(uint256 fundRequestId) external view returns (bool isCancelable_) {}
 
-    function requestFunds(uint256 amount) external returns (uint256 fundRequestId) {}
+    // TODO: Rename to initiateFundRequest
+    function initiateWithdraw(uint256 amount) external returns (uint256 fundRequestId) {}
 
-    function cancelFundRequest(uint256 fundRequestId) external {}
+    // TODO: Rename to cancelFundRequest
+    function cancelWithdraw(uint256 fundRequestId) external {}
 
     function withdraw(uint256 fundRequestId) external returns (uint256 resultingFundRequestId) {}
 

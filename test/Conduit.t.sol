@@ -15,7 +15,7 @@ contract ConduitTestBase is Test {
     Conduit conduit;
 
     function setUp() public {
-        conduit = new Conduit(fundManager, fundSource);
+        conduit = new Conduit(admin, fundManager);
     }
 
 }

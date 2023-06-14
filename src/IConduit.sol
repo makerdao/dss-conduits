@@ -15,9 +15,10 @@ interface IConduit {
 
     /**
      *  @dev   Deposit tokens into a Fund Manager.
+     *  @dev   asset  The asset to deposit.
      *  @param amount The amount of tokens to deposit.
      */
-    function deposit(uint256 amount) external;
+    function deposit(address asset, uint256 amount) external;
 
     /**
      *  @dev    Check if a withdrawal request can be cancelled.
