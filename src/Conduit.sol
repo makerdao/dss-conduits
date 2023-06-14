@@ -19,18 +19,20 @@ contract Conduit is IConduit {
 
     mapping(address => bool) public isValidRouter;
 
+    mapping(address => bytes32) public routerOwner;
+
     mapping(address => uint256) public totalPositions;
 
-    mapping(address => mapping(address => uint256)) public positions;
+    mapping(bytes32 => mapping(address => uint256)) public positions;
 
     constructor(address admin_, address fundManager_) {
         admin       = admin_;
         fundManager = fundManager_;
     }
 
-    /***************************************************************************************************/
-    /*** Modifiers                                                                                   ***/
-    /***************************************************************************************************/
+    /***********************************************************************************************/
+    /*** Modifiers                                                                               ***/
+    /***********************************************************************************************/
 
     modifier isAdmin {
         require(msg.sender == admin, "Conduit/not-admin");
@@ -47,17 +49,23 @@ contract Conduit is IConduit {
         _;
     }
 
-    /***************************************************************************************************/
-    /*** Admin Functions                                                                             ***/
-    /***************************************************************************************************/
+    /***********************************************************************************************/
+    /*** Admin Functions                                                                         ***/
+    /***********************************************************************************************/
 
     function setIsValidRouter(address router, bool isValid) external isAdmin {
         isValidRouter[router] = isValid;
     }
 
-    /***************************************************************************************************/
-    /*** Fund Manager Functions                                                                      ***/
-    /***************************************************************************************************/
+    function setRouterOwner(address router, bytes32 owner) external isAdmin {
+        require(isValidRouter[router], "Conduit/no-router");
+
+        routerOwner[router] = owner;
+    }
+
+    /***********************************************************************************************/
+    /*** Fund Manager Functions                                                                  ***/
+    /***********************************************************************************************/
 
     function drawFunds(address asset, uint256 amount) external isFundManager {
         outstandingPrincipal += amount;
@@ -83,9 +91,9 @@ contract Conduit is IConduit {
         );
     }
 
-    /***************************************************************************************************/
-    /*** Router Functions                                                                            ***/
-    /***************************************************************************************************/
+    /***********************************************************************************************/
+    /*** Router Functions                                                                        ***/
+    /***********************************************************************************************/
 
     function deposit(address asset, uint256 amount) external isRouter {
         require(
@@ -93,8 +101,8 @@ contract Conduit is IConduit {
             "Conduit/transfer-failed"
         );
 
-        positions[msg.sender][asset] += amount;
-        totalPositions[asset]        += amount;
+        positions[routerOwner[msg.sender]][asset] += amount;
+        totalPositions[asset]                     += amount;
     }
 
     function withdraw(address asset, uint256 amount) external isRouter {
@@ -103,8 +111,8 @@ contract Conduit is IConduit {
             "Conduit/transfer-failed"
         );
 
-        positions[msg.sender][asset] -= amount;
-        totalPositions[asset]        -= amount;
+        positions[routerOwner[msg.sender]][asset] -= amount;
+        totalPositions[asset]                     -= amount;
     }
 
     function isCancelable(uint256 fundRequestId) external view returns (bool isCancelable_) {}
