@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { Test } from "../lib/forge-std/src/Test.sol";
 
-import { Token } from "../lib/ds-token/src/Token.sol";
+import { MockERC20 } from "../lib/mock-erc20/src/MockERC20.sol";
 
 import { IConduit } from "../src/IConduit.sol";
 import { Conduit }  from "../src/Conduit.sol";
@@ -32,7 +32,7 @@ contract Conduit_ConstructorTest is ConduitTestBase {
 contract Conduit_SetIsValidRouterTest is ConduitTestBase {
 
     function test_setIsValidRouter_notAdmin() public {
-        vm.expectRevert("Conduit/not-admin")
+        vm.expectRevert("Conduit/not-admin");
         conduit.setIsValidRouter(address(1), true);
     }
 
@@ -53,19 +53,15 @@ contract Conduit_SetIsValidRouterTest is ConduitTestBase {
 contract Conduit_SetRouterOwnerTest is ConduitTestBase {
 
     function test_setRouterOwner_notAdmin() public {
-        vm.expectRevert("Conduit/not-admin")
-        conduit.setRouterOwner(address(1), true);
+        vm.expectRevert("Conduit/not-admin");
+        conduit.setRouterOwner(address(1), "SUBDAO_ONE");
     }
 
     function test_setRouterOwner_notValidRouter() public {
         vm.startPrank(admin);
 
-        address router = makeAddr("router");
-
-        conduit.setIsValidRouter(router, true);
-
         vm.expectRevert("Conduit/not-router");
-        conduit.setRouterOwner(router, true);
+        conduit.setRouterOwner(address(1), "SUBDAO_ONE");
     }
 
     function test_setRouterOwner() public {
@@ -77,11 +73,11 @@ contract Conduit_SetRouterOwnerTest is ConduitTestBase {
 
         assertEq(conduit.routerOwner(router), bytes32(0));
 
-        conduit.setRouterOwner(router, bytes32(1));
-        assertEq(conduit.routerOwner(router), bytes32(1));
+        conduit.setRouterOwner(router, "SUBDAO_ONE");
+        assertEq(conduit.routerOwner(router), "SUBDAO_ONE");
 
-        conduit.setRouterOwner(router, bytes32(2));
-        assertEq(conduit.routerOwner(router), bytes32(2));
+        conduit.setRouterOwner(router, "SUBDAO_TWO");
+        assertEq(conduit.routerOwner(router), "SUBDAO_TWO");
     }
 
 }

@@ -58,7 +58,7 @@ contract Conduit is IConduit {
     }
 
     function setRouterOwner(address router, bytes32 owner) external isAdmin {
-        require(isValidRouter[router], "Conduit/no-router");
+        require(isValidRouter[router], "Conduit/not-router");
 
         routerOwner[router] = owner;
     }
