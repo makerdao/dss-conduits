@@ -3,9 +3,10 @@ pragma solidity ^0.8.13;
 
 import { Test } from "../lib/forge-std/src/Test.sol";
 
-import { IConduit } from "../src/IConduit.sol";
+import { Token } from "../lib/ds-token/src/Token.sol";
 
-import { Conduit } from "../src/Conduit.sol";
+import { IConduit } from "../src/IConduit.sol";
+import { Conduit }  from "../src/Conduit.sol";
 
 contract ConduitTestBase is Test {
 
@@ -14,8 +15,73 @@ contract ConduitTestBase is Test {
 
     Conduit conduit;
 
-    function setUp() public {
+    function setUp() public virtual {
         conduit = new Conduit(admin, fundManager);
+    }
+
+}
+
+contract Conduit_ConstructorTest is ConduitTestBase {
+
+    function test_constructor() public {
+        assertEq(conduit.admin(),       admin);
+        assertEq(conduit.fundManager(), fundManager);
+    }
+}
+
+contract Conduit_SetIsValidRouterTest is ConduitTestBase {
+
+    function test_setIsValidRouter_notAdmin() public {
+        vm.expectRevert("Conduit/not-admin")
+        conduit.setIsValidRouter(address(1), true);
+    }
+
+    function test_setIsValidRouter() public {
+        vm.startPrank(admin);
+
+        assertTrue(!conduit.isValidRouter(address(1)));
+
+        conduit.setIsValidRouter(address(1), true);
+        assertTrue(conduit.isValidRouter(address(1)));
+
+        conduit.setIsValidRouter(address(1), false);
+        assertTrue(!conduit.isValidRouter(address(1)));
+    }
+
+}
+
+contract Conduit_SetRouterOwnerTest is ConduitTestBase {
+
+    function test_setRouterOwner_notAdmin() public {
+        vm.expectRevert("Conduit/not-admin")
+        conduit.setRouterOwner(address(1), true);
+    }
+
+    function test_setRouterOwner_notValidRouter() public {
+        vm.startPrank(admin);
+
+        address router = makeAddr("router");
+
+        conduit.setIsValidRouter(router, true);
+
+        vm.expectRevert("Conduit/not-router");
+        conduit.setRouterOwner(router, true);
+    }
+
+    function test_setRouterOwner() public {
+        vm.startPrank(admin);
+
+        address router = makeAddr("router");
+
+        conduit.setIsValidRouter(router, true);
+
+        assertEq(conduit.routerOwner(router), bytes32(0));
+
+        conduit.setRouterOwner(router, bytes32(1));
+        assertEq(conduit.routerOwner(router), bytes32(1));
+
+        conduit.setRouterOwner(router, bytes32(2));
+        assertEq(conduit.routerOwner(router), bytes32(2));
     }
 
 }

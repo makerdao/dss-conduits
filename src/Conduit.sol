@@ -40,7 +40,7 @@ contract Conduit is IConduit {
     }
 
     modifier isFundManager {
-        require(msg.sender == fundManager, "Conduit/not-router");
+        require(msg.sender == fundManager, "Conduit/not-fund-manager");
         _;
     }
 
