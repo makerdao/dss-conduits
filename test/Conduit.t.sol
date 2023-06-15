@@ -81,3 +81,46 @@ contract Conduit_SetRouterOwnerTest is ConduitTestBase {
     }
 
 }
+
+contract Conduit_DrawFundsTest is ConduitTestBase {
+
+    MockERC20 asset1;
+    MockERC20 asset2;
+
+    function setUp() public override {
+        super.setUp();
+        asset1 = new MockERC20("asset1", "A1", 18);
+        asset2 = new MockERC20("asset2", "A2", 18);
+    }
+
+    function test_drawFunds_notFundManager() public {
+        vm.expectRevert("Conduit/not-fund-manager");
+        conduit.drawFunds(add(address(1), "SUBDAO_ONE");
+    }
+
+    function test_drawFunds_insufficientFundsBoundary() public {
+        vm.startPrank(fundManager);
+
+        asset1.mint(conduit, 99);
+
+        vm.expectRevert("Conduit/insufficient-funds");
+        conduit.drawFunds(asset1, 100);
+    }
+
+    function test_setRouterOwner() public {
+        vm.startPrank(admin);
+
+        address router = makeAddr("router");
+
+        conduit.setIsValidRouter(router, true);
+
+        assertEq(conduit.routerOwner(router), bytes32(0));
+
+        conduit.setRouterOwner(router, "SUBDAO_ONE");
+        assertEq(conduit.routerOwner(router), "SUBDAO_ONE");
+
+        conduit.setRouterOwner(router, "SUBDAO_TWO");
+        assertEq(conduit.routerOwner(router), "SUBDAO_TWO");
+    }
+
+}

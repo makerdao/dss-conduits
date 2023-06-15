@@ -8,19 +8,28 @@ interface ERC20Like {
     function transferFrom(address src, address dst, uint wad) external returns (bool);
 }
 
+
+/**
+ * IConduit moves to dss-allocator
+ * dss-conduits imports dss-allocator as a library
+ * IArrangerConduit is IConduit
+ * FIFOConduitBase is IArrangerConduit
+ *
+ */
+
 contract Conduit is IConduit {
 
     address public admin;
     address public fundManager;
 
     uint256 public latestWithdrawalId;
-    uint256 public outstandingPrincipal;
-    uint256 public totalInterestEarned;
 
     mapping(address => bool) public isValidRouter;
 
     mapping(address => bytes32) public routerOwner;
 
+    mapping(address => uint256) public outstandingPrincipal;
+    mapping(address => uint256) public totalInterestEarned;
     mapping(address => uint256) public totalPositions;
 
     mapping(bytes32 => mapping(address => uint256)) public positions;
@@ -68,13 +77,13 @@ contract Conduit is IConduit {
     /***********************************************************************************************/
 
     function drawFunds(address asset, uint256 amount) external isFundManager {
-        outstandingPrincipal += amount;
+        outstandingPrincipal[asset] += amount;
 
         require(ERC20Like(asset).transfer(fundManager, amount), "Conduit/transfer-failed");
     }
 
     function returnFunds(address asset, uint256 amount) external isFundManager {
-        outstandingPrincipal -= amount;
+        outstandingPrincipal[asset] -= amount;
 
         require(
             ERC20Like(asset).transferFrom(fundManager, address(this), amount),
@@ -83,7 +92,7 @@ contract Conduit is IConduit {
     }
 
     function payInterest(address asset, uint256 amount) external isFundManager {
-        totalInterestEarned += amount;
+        totalInterestEarned[asset] += amount;
 
         require(
             ERC20Like(asset).transferFrom(fundManager, admin, amount),
@@ -130,3 +139,5 @@ contract Conduit is IConduit {
     function totalActiveWithdraws() external returns (uint256 totalAmount) {}
 
 }
+
+// TODO: Add FIFO logic for requests
