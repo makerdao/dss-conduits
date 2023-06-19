@@ -10,6 +10,8 @@ interface ERC20Like {
 
 contract ArrangerConduit is IArrangerConduit {
 
+    // TODO: Add and test Router ACL
+
     /**********************************************************************************************/
     /*** Declarations and Constructor                                                           ***/
     /**********************************************************************************************/
