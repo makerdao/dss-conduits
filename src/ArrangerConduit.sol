@@ -1,50 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { IAllocatorConduit } from "../lib/dss-allocator/src/interfaces/IAllocatorConduit.sol";
+import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
 interface ERC20Like {
     function transfer(address dst, uint wad) external returns (bool);
     function transferFrom(address src, address dst, uint wad) external returns (bool);
 }
 
-contract ArrangerConduit is IAllocatorConduit {
-
-    /**
-     *  @dev   Struct representing a fund request.
-     *  @param status          The current status of the fund request.
-     *  @param ilk             The unique identifier of the ilk.
-     *  @param amountAvailable The amount of asset available for withdrawal.
-     *  @param amountRequested The amount of asset requested in the fund request.
-     *  @param amountFilled    The amount of asset filled in the fund request.
-     *  @param fundRequestId   The ID of the fund request.
-     */
-    struct FundRequest {
-        StatusEnum status;
-        bytes32    ilk;
-        uint256    amountAvailable;
-        uint256    amountRequested;
-        uint256    amountFilled;
-        uint256    fundRequestId;  // NOTE: Investigate usage
-    }
-
-    /**
-     *  @dev Enum representing the status of a fund request.
-     *
-     *  @notice PENDING   - The fund request has been made, but not yet processed.
-     *  @notice PARTIAL   - The fund request has been partially filled, but not yet completed.
-     *  @notice CANCELLED - The fund request has been cancelled by the ilk..
-     *  @notice COMPLETED - The fund request has been fully processed and completed.
-     */
-    enum StatusEnum {
-        PENDING,
-        PARTIAL,
-        CANCELLED,
-        COMPLETED
-    }
+contract ArrangerConduit is IArrangerConduit {
 
     /**********************************************************************************************/
-    /***TODO:  Move Above to interface                                                          ***/
+    /*** Declarations and Constructor                                                           ***/
     /**********************************************************************************************/
 
     address public admin;
@@ -86,7 +53,7 @@ contract ArrangerConduit is IAllocatorConduit {
     /*** Router Functions                                                                       ***/
     /**********************************************************************************************/
 
-    function deposit(bytes32 ilk, address asset, uint256 amount) external {
+    function deposit(bytes32 ilk, address asset, uint256 amount) external override {
         // TODO: Use ERC20Helper
         require(
             ERC20Like(asset).transferFrom(msg.sender, address(this), amount),
@@ -97,7 +64,9 @@ contract ArrangerConduit is IAllocatorConduit {
         totalPositions[asset] += amount;
     }
 
-    function withdraw(bytes32 ilk, address asset, address destination, uint256 amount) external {
+    function withdraw(bytes32 ilk, address asset, address destination, uint256 amount)
+        external override
+    {
         require(
             ERC20Like(asset).transfer(destination, amount),
             "Conduit/withdraw-transfer-failed"
@@ -108,7 +77,7 @@ contract ArrangerConduit is IAllocatorConduit {
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, bytes memory data)
-        external returns (uint256 fundRequestId)
+        external override returns (uint256 fundRequestId)
     {
         lastFundRequestId[asset] = fundRequestId = latestFundRequestId[asset]++;
 
@@ -122,19 +91,19 @@ contract ArrangerConduit is IAllocatorConduit {
         }));
     }
 
-    function cancelFundRequest(uint256 fundRequestId) external {}
+    function cancelFundRequest(address asset, uint256 fundRequestId) external override {}
 
-    /***********************************************************************************************/
-    /*** Fund Manager Functions                                                                  ***/
-    /***********************************************************************************************/
+    /**********************************************************************************************/
+    /*** Fund Manager Functions                                                                 ***/
+    /**********************************************************************************************/
 
-    function drawFunds(address asset, uint256 amount) external isFundManager {
+    function drawFunds(address asset, uint256 amount) external override isFundManager {
         outstandingPrincipal[asset] += amount;
 
         require(ERC20Like(asset).transfer(fundManager, amount), "Conduit/transfer-failed");
     }
 
-    function returnFunds(address asset, uint256 amount) external isFundManager {
+    function returnFunds(address asset, uint256 amount) external override isFundManager {
         outstandingPrincipal[asset] -= amount;
 
         require(
@@ -143,7 +112,7 @@ contract ArrangerConduit is IAllocatorConduit {
         );
     }
 
-    function payInterest(address asset, uint256 amount) external isFundManager {
+    function payInterest(address asset, uint256 amount) external override isFundManager {
         totalInterestEarned[asset] += amount;
 
         require(
@@ -156,17 +125,23 @@ contract ArrangerConduit is IAllocatorConduit {
     /*** View Functions                                                                         ***/
     /**********************************************************************************************/
 
-    function maxDeposit(bytes32 ilk, address asset) external view returns (uint256 maxDeposit_) {}
+    function maxDeposit(bytes32 ilk, address asset)
+        external override view returns (uint256 maxDeposit_) {}
 
-    function maxWithdraw(bytes32 ilk, address asset) external view returns (uint256 maxWithdraw_) {}
+    function maxWithdraw(bytes32 ilk, address asset)
+        external override view returns (uint256 maxWithdraw_) {}
 
-    function isCancelable(uint256 fundRequestId) external view returns (bool isCancelable_) {}
+    function isCancelable(address asset, uint256 fundRequestId)
+        external override view returns (bool isCancelable_) {}
 
-    function fundRequestStatus(uint256 fundRequestId) external returns (bytes32 ilk, FundRequest memory fundRequest) {}
+    function fundRequestStatus(address asset, uint256 fundRequestId)
+        external override view returns (bytes32 ilk, FundRequest memory fundRequest) {}
 
-    function activeFundRequests(bytes32 ilk) external returns (uint256[] memory fundRequestIds, uint256 totalAmount) {}
+    function activeFundRequests(address asset, bytes32 ilk)
+        external override view returns (uint256[] memory fundRequestIds, uint256 totalAmount) {}
 
-    function totalActiveFundRequests() external returns (uint256 totalAmount) {}
+    function totalActiveFundRequests(address asset)
+        external override view returns (uint256 totalAmount) {}
 
 }
 
