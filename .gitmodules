@@ -4,3 +4,6 @@
 [submodule "lib/mock-erc20"]
 	path = lib/mock-erc20
 	url = https://github.com/marsfoundation/mock-erc20
+[submodule "lib/dss-allocator"]
+	path = lib/dss-allocator
+	url = https://github.com/makerdao/dss-allocator
