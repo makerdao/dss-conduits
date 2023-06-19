@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-// import { IConduitBase } from "./IConduitBase.sol";
+import { IAllocatorConduit } from "../lib/dss-allocator/src/interfaces/IAllocatorConduit.sol";
 
 interface ERC20Like {
     function transfer(address dst, uint wad) external returns (bool);
     function transferFrom(address src, address dst, uint wad) external returns (bool);
 }
 
-contract ArrangerConduit {
+contract ArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev   Struct representing a fund request.
