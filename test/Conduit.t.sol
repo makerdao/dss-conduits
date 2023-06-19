@@ -1,3 +1,51 @@
+// function withdraw_OLD(
+//     bytes32 ilk,
+//     address asset,
+//     address destination,
+//     uint256 withdrawAmount
+// )
+//     external
+// {
+//     // Will underflow if aggregate of positions is less than withdrawAmount
+//     positions[ilk][asset] -= withdrawAmount;
+//     totalPositions[asset]       -= withdrawAmount;
+
+//     uint256 fundsRemaining = withdrawAmount;
+
+//     uint256[] memory fundRequestIds = new uint256[](latestFundRequestId[asset] - startingFundRequestId[asset]);
+
+//     // For all of an ilk's fund requests, fill as much as possible
+//     // Maintain the order of the fund requests array and update after all fills are complete.
+//     for (uint256 i = startingFundRequestId[asset]; i < fundRequests[asset].length; i++) {
+//         FundRequest storage fundRequest = fundRequests[asset][i];
+
+//         if (fundRequest.ilk != ilk) continue;
+
+//         if (
+//             fundRequest.status == StatusEnum.CANCELLED ||
+//             fundRequest.status == StatusEnum.COMPLETED
+//         ) continue;
+
+//         uint256 fillAmount = fundRequest.amountRequested - fundRequest.amountFilled;
+
+//         if (fillAmount > fundsRemaining) {
+//             fillAmount = fundsRemaining;
+//         }
+
+//         fundsRemaining           -= fillAmount;
+//         fundRequest.amountFilled += fillAmount;
+
+//         if (fundsRemaining == 0) break;
+//     }
+
+//     emit Withdraw(ilk, asset, destination, withdrawAmount);
+
+//     require(
+//         ERC20Like(asset).transfer(destination, withdrawAmount),
+//         "Conduit/transfer-failed"
+//     );
+// }
+
 // // SPDX-License-Identifier: AGPL-3.0-or-later
 // pragma solidity ^0.8.13;
 

@@ -25,6 +25,7 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(address => uint256) public outstandingPrincipal;
     mapping(address => uint256) public totalInterestEarned;
     mapping(address => uint256) public totalPositions;
+    mapping(address => uint256) public totalWithdrawable;
 
     mapping(address => FundRequest[]) fundRequests;
 
@@ -64,23 +65,47 @@ contract ArrangerConduit is IArrangerConduit {
         totalPositions[asset] += amount;
     }
 
-    function withdraw(bytes32 ilk, address asset, address destination, uint256 amount)
+    function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
         external override
     {
+        positions[ilk][asset] -= withdrawAmount;
+        totalPositions[asset] -= withdrawAmount;
+
+        uint256 fundsRemaining = withdrawAmount;
+
+        // For all of an ilk's fund requests, fill as much as possible
+        // Maintain the order of the fund requests array and update after all fills are complete.
+        for (uint256 i = startingFundRequestId[asset]; i < fundRequests[asset].length; i++) {
+            FundRequest storage fundRequest = fundRequests[asset][i];
+
+            if (fundRequest.ilk != ilk) continue;
+
+            if (
+                fundRequest.status == StatusEnum.CANCELLED ||
+                fundRequest.status == StatusEnum.COMPLETED
+            ) continue;
+
+            uint256 fillAmount = fundRequest.amountAvailable - fundRequest.amountFilled;
+
+            if (fillAmount > fundsRemaining) {
+                fillAmount = fundsRemaining;
+            }
+
+            fundsRemaining           -= fillAmount;
+            fundRequest.amountFilled += fillAmount;
+
+            if (fundsRemaining == 0) break;
+        }
+
         require(
-            ERC20Like(asset).transfer(destination, amount),
+            ERC20Like(asset).transfer(destination, withdrawAmount),
             "Conduit/withdraw-transfer-failed"
         );
-
-        positions[ilk][asset] -= amount;
-        totalPositions[asset] -= amount;
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, bytes memory data)
         external override returns (uint256 fundRequestId)
     {
-        lastFundRequestId[asset] = fundRequestId = latestFundRequestId[asset]++;
-
         fundRequests[asset].push(FundRequest({
             status:          StatusEnum.PENDING,
             ilk:             ilk,
@@ -89,9 +114,13 @@ contract ArrangerConduit is IArrangerConduit {
             amountFilled:    0,
             fundRequestId:   fundRequestId
         }));
+
+        fundRequestId = fundRequests[asset].length - 1;
     }
 
-    function cancelFundRequest(address asset, uint256 fundRequestId) external override {}
+    function cancelFundRequest(address asset, uint256 fundRequestId) external override {
+        // TODO: What is permissioning for this?
+    }
 
     /**********************************************************************************************/
     /*** Fund Manager Functions                                                                 ***/
@@ -100,14 +129,41 @@ contract ArrangerConduit is IArrangerConduit {
     function drawFunds(address asset, uint256 amount) external override isFundManager {
         outstandingPrincipal[asset] += amount;
 
+        // TODO: Introduce reservedCash mapping? Use totalPositions - outstandingPrincipal?
+
         require(ERC20Like(asset).transfer(fundManager, amount), "Conduit/transfer-failed");
     }
 
-    function returnFunds(address asset, uint256 amount) external override isFundManager {
-        outstandingPrincipal[asset] -= amount;
+    function returnFunds(address asset, uint256 returnAmount) external override isFundManager {
+        outstandingPrincipal[asset] -= returnAmount;
+        totalWithdrawable[asset]    += returnAmount;
+
+        uint256 fundsRemaining = returnAmount;
+
+        // For all of the assets fund requests, fill as much as possible
+        // Maintain the order of the fund requests array and update after all fills are complete.
+        for (uint256 i = startingFundRequestId[asset]; i < fundRequests[asset].length; i++) {
+            FundRequest storage fundRequest = fundRequests[asset][i];
+
+            if (
+                fundRequest.status == StatusEnum.CANCELLED ||
+                fundRequest.status == StatusEnum.COMPLETED
+            ) continue;
+
+            uint256 fillAmount = fundRequest.amountRequested - fundRequest.amountAvailable;
+
+            if (fillAmount > fundsRemaining) {
+                fillAmount = fundsRemaining;
+            }
+
+            fundsRemaining              -= fillAmount;
+            fundRequest.amountAvailable += fillAmount;
+
+            if (fundsRemaining == 0) break;
+        }
 
         require(
-            ERC20Like(asset).transferFrom(fundManager, address(this), amount),
+            ERC20Like(asset).transferFrom(fundManager, address(this), returnAmount),
             "Conduit/transfer-failed"
         );
     }
@@ -144,5 +200,3 @@ contract ArrangerConduit is IArrangerConduit {
         external override view returns (uint256 totalAmount) {}
 
 }
-
-// TODO: Add FIFO logic for requests
