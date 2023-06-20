@@ -149,12 +149,13 @@ contract ArrangerConduit is IArrangerConduit {
         for (uint256 i = newStartingFundRequestId; i < fundRequests[asset].length; i++) {
             FundRequest storage fundRequest = fundRequests[asset][i];
 
-            newStartingFundRequestId++;  // TODO: Don't think this is right
-
             if (
                 fundRequest.status == StatusEnum.CANCELLED ||
                 fundRequest.status == StatusEnum.COMPLETED
-            ) continue;
+            ) {
+                newStartingFundRequestId++;
+                continue;
+            }
 
             uint256 fillAmount = fundRequest.amountRequested - fundRequest.amountAvailable;
 
@@ -163,6 +164,7 @@ contract ArrangerConduit is IArrangerConduit {
                 fundRequest.status = StatusEnum.PARTIAL;
             } else {
                 fundRequest.status = StatusEnum.COMPLETED;
+                newStartingFundRequestId++;
             }
 
             fundsRemaining              -= fillAmount;

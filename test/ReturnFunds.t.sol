@@ -177,6 +177,76 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(conduit.outstandingPrincipal(address(asset)),      60);
         assertEq(conduit.totalWithdrawable(address(asset)),         40);
         assertEq(conduit.availableWithdrawals(ilk, address(asset)), 40);
+        assertEq(conduit.startingFundRequestId(address(asset)),     0);
+    }
+
+    function test_returnFunds_oneIlk_twoRequests_complete_partial() external {
+        asset.mint(address(this), 100);
+        asset.approve(address(conduit), 100);
+
+        conduit.deposit(ilk, address(asset), 100);
+
+        vm.startPrank(fundManager);
+
+        conduit.drawFunds(address(asset), 100);
+
+        conduit.requestFunds(ilk, address(asset), 20, new bytes(0));
+        conduit.requestFunds(ilk, address(asset), 80, new bytes(0));
+
+        asset.approve(address(conduit), 100);
+
+        // Removing "constant" assertions from this test to save space and complexity
+        (
+            IArrangerConduit.StatusEnum status,
+            ,
+            uint256 amountAvailable,
+            uint256 amountRequested,
+            ,
+
+        ) = conduit.fundRequests(address(asset), 0);
+
+        assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
+
+        assertEq(amountAvailable, 0);
+        assertEq(amountRequested, 20);
+
+        ( status, , amountAvailable, amountRequested, , ) = conduit.fundRequests(address(asset), 1);
+
+        assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
+
+        assertEq(amountAvailable, 0);
+        assertEq(amountRequested, 80);
+
+        assertEq(asset.balanceOf(fundManager),      100);
+        assertEq(asset.balanceOf(address(conduit)), 0);
+
+        assertEq(conduit.outstandingPrincipal(address(asset)),      100);
+        assertEq(conduit.totalWithdrawable(address(asset)),         0);
+        assertEq(conduit.availableWithdrawals(ilk, address(asset)), 0);
+        assertEq(conduit.startingFundRequestId(address(asset)),     0);
+
+        conduit.returnFunds(address(asset), 60);
+
+        ( status, , amountAvailable, amountRequested, , ) = conduit.fundRequests(address(asset), 0);
+
+        assertTrue(status == IArrangerConduit.StatusEnum.COMPLETED);
+
+        assertEq(amountAvailable, 20);
+        assertEq(amountRequested, 20);
+
+        ( status, , amountAvailable, amountRequested, , ) = conduit.fundRequests(address(asset), 1);
+
+        assertTrue(status == IArrangerConduit.StatusEnum.PARTIAL);
+
+        assertEq(amountAvailable, 40);
+        assertEq(amountRequested, 80);
+
+        assertEq(asset.balanceOf(fundManager),      40);
+        assertEq(asset.balanceOf(address(conduit)), 60);
+
+        assertEq(conduit.outstandingPrincipal(address(asset)),      40);
+        assertEq(conduit.totalWithdrawable(address(asset)),         60);
+        assertEq(conduit.availableWithdrawals(ilk, address(asset)), 60);
         assertEq(conduit.startingFundRequestId(address(asset)),     1);
     }
 
