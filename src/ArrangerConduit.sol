@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
+import { console2 as console } from "../lib/forge-std/src/console2.sol";
+
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
 interface ERC20Like {
@@ -29,8 +31,9 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(address => uint256) public totalPositions;
     mapping(address => uint256) public totalWithdrawable;
 
-    mapping(address => FundRequest[]) fundRequests;
+    mapping(address => FundRequest[]) public fundRequests;
 
+    mapping(bytes32 => mapping(address => uint256)) public pendingWithdrawals;
     mapping(bytes32 => mapping(address => uint256)) public positions;
 
     constructor(address admin_, address fundManager_) {
@@ -108,6 +111,8 @@ contract ArrangerConduit is IArrangerConduit {
     function requestFunds(bytes32 ilk, address asset, uint256 amount, bytes memory data)
         external override returns (uint256 fundRequestId)
     {
+        fundRequestId = fundRequests[asset].length;  // Current length will be the next index
+
         fundRequests[asset].push(FundRequest({
             status:          StatusEnum.PENDING,
             ilk:             ilk,
@@ -117,7 +122,14 @@ contract ArrangerConduit is IArrangerConduit {
             fundRequestId:   fundRequestId
         }));
 
-        fundRequestId = fundRequests[asset].length - 1;
+        pendingWithdrawals[ilk][asset] += amount;
+
+        require(
+            pendingWithdrawals[ilk][asset] <= positions[ilk][asset],
+            "Conduit/insufficient-position"
+        );
+
+
     }
 
     function cancelFundRequest(address asset, uint256 fundRequestId) external override {
