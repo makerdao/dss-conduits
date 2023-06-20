@@ -331,8 +331,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 1);
 
-        ( , actualIlk, , amountRequested, , fundRequestId ) =
-            conduit.fundRequests(address(asset1), 1);
+        ( , actualIlk, , amountRequested, , fundRequestId )
+            = conduit.fundRequests(address(asset1), 1);
 
         assertEq(actualIlk,       ilk2);
         assertEq(amountRequested, 60);
@@ -349,8 +349,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 0);
 
-        ( , actualIlk, , amountRequested, , fundRequestId ) =
-            conduit.fundRequests(address(asset2), 0);
+        ( , actualIlk, , amountRequested, , fundRequestId )
+            = conduit.fundRequests(address(asset2), 0);
 
         assertEq(actualIlk,       ilk1);
         assertEq(amountRequested, 100);
@@ -367,8 +367,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 1);
 
-        ( , actualIlk, , amountRequested, , fundRequestId ) =
-            conduit.fundRequests(address(asset2), 1);
+        ( , actualIlk, , amountRequested, , fundRequestId )
+            = conduit.fundRequests(address(asset2), 1);
 
         assertEq(actualIlk,       ilk2);
         assertEq(amountRequested, 300);
@@ -401,8 +401,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(returnFundRequestId, 2);
 
         // Removing "constant" assertions from this test to save space and complexity
-        ( , actualIlk, , amountRequested, , fundRequestId ) =
-            conduit.fundRequests(address(asset1), 2);
+        ( , actualIlk, , amountRequested, , fundRequestId )
+            = conduit.fundRequests(address(asset1), 2);
 
         assertEq(actualIlk,       ilk1);
         assertEq(amountRequested, 40);
@@ -437,8 +437,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 2);
 
-        ( , actualIlk, , amountRequested, , fundRequestId ) =
-            conduit.fundRequests(address(asset2), 2);
+        ( , actualIlk, , amountRequested, , fundRequestId )
+            = conduit.fundRequests(address(asset2), 2);
 
         assertEq(actualIlk,       ilk1);
         assertEq(amountRequested, 100);
@@ -455,8 +455,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 3);
 
-        ( , actualIlk, , amountRequested, , fundRequestId ) =
-            conduit.fundRequests(address(asset2), 3);
+        ( , actualIlk, , amountRequested, , fundRequestId )
+            = conduit.fundRequests(address(asset2), 3);
 
         assertEq(actualIlk,       ilk2);
         assertEq(amountRequested, 300);
