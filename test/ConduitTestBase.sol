@@ -34,4 +34,20 @@ contract ConduitAssetTestBase is ConduitTestBase {
         asset = new MockERC20("asset", "ASSET", 18);
     }
 
+    function _depositAndDrawFunds(MockERC20 asset_, bytes32 ilk_, uint256 amount) internal {
+        asset_.mint(address(this), amount);
+        asset_.approve(address(conduit), amount);
+
+        conduit.deposit(ilk_, address(asset_), amount);
+
+        vm.startPrank(fundManager);
+        conduit.drawFunds(address(asset_), amount);
+
+        uint256 allowance = asset.allowance(address(this), address(conduit));
+
+        asset_.approve(address(conduit), allowance + amount);
+
+        vm.stopPrank();
+    }
+
 }

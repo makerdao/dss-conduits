@@ -11,8 +11,7 @@ import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
 
-
-contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
+contract Conduit_WithdrawTest is ConduitAssetTestBase {
 
     function test_withdraw_insufficientAvailableWithdrawalBoundary() external {
         asset.mint(address(this), 100);
@@ -38,22 +37,6 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
     }
 
     // TODO: Determine if failure from insufficient balance is possible
-
-    function _depositAndDrawFunds(MockERC20 asset_, bytes32 ilk_, uint256 amount) internal {
-        asset_.mint(address(this), amount);
-        asset_.approve(address(conduit), amount);
-
-        conduit.deposit(ilk_, address(asset_), amount);
-
-        vm.startPrank(fundManager);
-        conduit.drawFunds(address(asset_), amount);
-
-        uint256 allowance = asset.allowance(address(this), address(conduit));
-
-        asset_.approve(address(conduit), allowance + amount);
-
-        vm.stopPrank();
-    }
 
     function test_withdraw_oneRequest_complete() external {
         _depositAndDrawFunds(asset, ilk, 100);
@@ -186,6 +169,173 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(conduit.positions(ilk2, address(asset)),            190);
         assertEq(conduit.totalPositions(address(asset)),             190);
         assertEq(conduit.totalWithdrawable(address(asset)),          0);
+    }
+
+}
+
+contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
+
+    bytes32 ilk1 = "ilk1";
+    bytes32 ilk2 = "ilk2";
+
+    address dest1 = makeAddr("destination1");
+    address dest2 = makeAddr("destination2");
+
+    uint256 ilk1DepositSum;
+    uint256 ilk2DepositSum;
+
+    uint256 ilk1RequestSum;
+    uint256 ilk2RequestSum;
+
+    uint256 ilk1WithdrawSum;
+    uint256 ilk2WithdrawSum;
+
+    function testFuzz_withdraw(
+        // uint256[1] memory ilk1Amounts,
+        // uint256[1] memory ilk2Amounts,
+        // uint256 returnAmount
+    )
+        external
+    {
+        uint256[1] memory ilk1Amounts = [uint256(100)];
+        uint256[1] memory ilk2Amounts = [uint256(300)];
+
+        uint256 returnAmount = 200;
+
+        for(uint256 i; i < ilk1Amounts.length; i++) {
+            _depositAndDrawFunds(asset, ilk1, ilk1Amounts[i]);
+            _depositAndDrawFunds(asset, ilk2, ilk2Amounts[i]);
+
+            ilk1DepositSum += ilk1Amounts[i];
+            ilk2DepositSum += ilk2Amounts[i];
+
+            assertEq(asset.balanceOf(fundManager),      ilk1DepositSum + ilk2DepositSum);
+            assertEq(asset.balanceOf(address(conduit)), 0);
+
+            assertEq(conduit.positions(ilk1, address(asset)), ilk1DepositSum);
+            assertEq(conduit.positions(ilk2, address(asset)), ilk2DepositSum);
+            assertEq(conduit.totalPositions(address(asset)),  ilk1DepositSum + ilk2DepositSum);
+        }
+
+        for (uint256 i; i < ilk1Amounts.length; i++) {
+            uint256 amount1 = bound(uint256(keccak256(abi.encode(ilk1Amounts[i]))), 0, ilk1Amounts[i]);
+            uint256 amount2 = bound(uint256(keccak256(abi.encode(ilk2Amounts[i]))), 0, ilk2Amounts[i]);
+
+            conduit.requestFunds(ilk1, address(asset), amount1, new bytes(0));
+            conduit.requestFunds(ilk2, address(asset), amount2, new bytes(0));
+
+            ilk1RequestSum += amount1;
+            ilk2RequestSum += amount2;
+
+            assertEq(conduit.pendingWithdrawals(ilk1, address(asset)), ilk1RequestSum);
+            assertEq(conduit.pendingWithdrawals(ilk2, address(asset)), ilk2RequestSum);
+
+            // Ilk 1 fund request
+
+            ( IArrangerConduit.StatusEnum status, , , uint256 amountRequested , , )
+                = conduit.fundRequests(address(asset), i * 2);
+
+            assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
+            assertEq(amountRequested, amount1);
+
+            // Ilk 2 fund request
+
+            ( status, , , amountRequested , , )
+                = conduit.fundRequests(address(asset), i * 2 + 1);
+
+            assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
+            assertEq(amountRequested, amount2);
+        }
+
+        vm.startPrank(fundManager);
+        asset.approve(address(conduit), returnAmount);
+        conduit.returnFunds(address(asset), returnAmount);
+
+        uint256 filledSum;
+
+        for (uint256 i; i < ilk1Amounts.length * 2; i++) {
+            (
+                IArrangerConduit.StatusEnum status,
+                ,
+                uint256 amountAvailable,
+                uint256 amountRequested,
+                uint256 amountFilled
+                ,
+            ) = conduit.fundRequests(address(asset), i);
+
+            uint256 amount = i % 2 == 0 ? ilk1Amounts[i / 2] : ilk2Amounts[i / 2];
+
+            uint256 requestedAmount = bound(uint256(keccak256(abi.encode(amount))), 0, amount);
+
+            console.log("requested", requestedAmount);
+
+            uint256 filledAmount
+                = requestedAmount <= (returnAmount - filledSum)
+                ? requestedAmount
+                : (returnAmount - filledSum);
+
+            assertEq(amountAvailable, filledAmount);
+            assertEq(amountRequested, requestedAmount);
+            assertEq(amountFilled,    0);  // TODO: Change amount filled to be amountAvailable, remove ID
+
+            filledSum += filledAmount;
+
+            IArrangerConduit.StatusEnum expectedStatus;
+
+            if (filledAmount == 0) expectedStatus = IArrangerConduit.StatusEnum.PENDING;
+
+            else if (filledAmount == requestedAmount) {
+                expectedStatus = IArrangerConduit.StatusEnum.COMPLETED;
+            }
+
+            else if (filledAmount < requestedAmount) {
+                expectedStatus = IArrangerConduit.StatusEnum.PARTIAL;
+            }
+
+            else if (filledAmount > requestedAmount) revert("filledAmount > requestedAmount");
+
+            assertTrue(status == expectedStatus);
+        }
+
+        for (uint256 i; i < ilk1Amounts.length * 2; i++) {
+            ( , , uint256 amountAvailable, uint256 amountRequested, , )
+                = conduit.fundRequests(address(asset), i);
+
+            uint256 withdrawAmount
+                = bound(uint256(keccak256(abi.encode(amountAvailable))), 0, amountAvailable);
+
+            address dest = i % 2 == 0 ? dest1 : dest2;
+            bytes32 ilk  = i % 2 == 0 ? ilk1  : ilk2;
+
+            conduit.withdraw(ilk, address(asset), dest, withdrawAmount);
+
+            ilk1WithdrawSum += i % 2 == 0 ? withdrawAmount : 0;
+            ilk2WithdrawSum += i % 2 == 1 ? withdrawAmount : 0;
+
+            assertEq(
+                conduit.availableWithdrawals(ilk1, address(asset)) +
+                conduit.availableWithdrawals(ilk2, address(asset)),
+                conduit.totalWithdrawable(address(asset))
+            );
+
+            assertEq(
+                conduit.positions(ilk1, address(asset)) +
+                conduit.positions(ilk2, address(asset)),
+                conduit.totalPositions(address(asset))
+            );
+
+            assertEq(conduit.pendingWithdrawals(ilk1, address(asset)), ilk1RequestSum - ilk1WithdrawSum);
+            assertEq(conduit.pendingWithdrawals(ilk2, address(asset)), ilk2RequestSum - ilk2WithdrawSum);
+
+            assertEq(conduit.outstandingPrincipal(address(asset)), asset.balanceOf(fundManager));
+
+            assertEq(
+                conduit.outstandingPrincipal(address(asset)),
+                conduit.totalPositions(address(asset)) - conduit.totalWithdrawable(address(asset))
+            );
+
+            assertEq(conduit.availableWithdrawals(ilk, address(asset)), amountAvailable - withdrawAmount);
+        }
     }
 
 }
