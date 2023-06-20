@@ -9,4 +9,5 @@ contract Conduit_ConstructorTest is ConduitTestBase {
         assertEq(conduit.admin(),       admin);
         assertEq(conduit.fundManager(), fundManager);
     }
+
 }

@@ -11,15 +11,6 @@ import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
 
 contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
-    // bytes32 ilk = "ilk";
-
-    // MockERC20 asset;
-
-    // function setUp() public override {
-    //     super.setUp();
-    //     asset = new MockERC20("asset", "ASSET", 18);
-    // }
-
     function test_requestFunds_insufficientPositionBoundary() public {
         asset.mint(address(this), 100);
         asset.approve(address(conduit), 100);
