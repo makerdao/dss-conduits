@@ -108,7 +108,7 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 100);
 
         assertEq(conduit.outstandingPrincipal(address(asset)),      0);
-        assertEq(conduit.totalWithdrawable(address(asset)),         100);  // No requests, can draw funds again
+        assertEq(conduit.totalWithdrawable(address(asset)),         100);
         assertEq(conduit.availableWithdrawals(ilk, address(asset)), 100);
         assertEq(conduit.startingFundRequestId(address(asset)),     1);
     }
@@ -175,7 +175,7 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 40);
 
         assertEq(conduit.outstandingPrincipal(address(asset)),      60);
-        assertEq(conduit.totalWithdrawable(address(asset)),         40);  // No requests, can draw funds again
+        assertEq(conduit.totalWithdrawable(address(asset)),         40);
         assertEq(conduit.availableWithdrawals(ilk, address(asset)), 40);
         assertEq(conduit.startingFundRequestId(address(asset)),     1);
     }
