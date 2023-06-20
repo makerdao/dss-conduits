@@ -22,12 +22,8 @@ contract ArrangerConduit is IArrangerConduit {
     address public admin;
     address public fundManager;
 
-    // TODO: Remove unnecessary mappings
-    mapping(address => uint256) public startingFundRequestId;
-    mapping(address => uint256) public lastFundRequestId;
-    mapping(address => uint256) public latestFundRequestId;
-
     mapping(address => uint256) public outstandingPrincipal;
+    mapping(address => uint256) public startingFundRequestId;
     mapping(address => uint256) public totalInterestEarned;
     mapping(address => uint256) public totalPositions;
     mapping(address => uint256) public totalWithdrawable;
