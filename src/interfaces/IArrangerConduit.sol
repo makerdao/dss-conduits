@@ -28,7 +28,7 @@ interface IArrangerConduit is IAllocatorConduit {
         bytes32 indexed ilk,
         address indexed asset,
         uint256 amount,
-        bytes data,
+        bytes   data,
         uint256 fundRequestId
 );
 
@@ -44,7 +44,7 @@ interface IArrangerConduit is IAllocatorConduit {
         bytes32 indexed ilk,
         address indexed asset,
         uint256 amount,
-        bytes data,
+        bytes   data,
         uint256 fundRequestId
     );
 
@@ -65,18 +65,14 @@ interface IArrangerConduit is IAllocatorConduit {
      *  @dev   Struct representing a fund request.
      *  @param status          The current status of the fund request.
      *  @param ilk             The unique identifier of the ilk.
-     *  @param amountAvailable The amount of asset available for withdrawal.
      *  @param amountRequested The amount of asset requested in the fund request.
      *  @param amountFilled    The amount of asset filled in the fund request.
-     *  @param fundRequestId   The ID of the fund request.
      */
     struct FundRequest {
         StatusEnum status;
         bytes32    ilk;
-        uint256    amountAvailable;
         uint256    amountRequested;
         uint256    amountFilled;
-        uint256    fundRequestId;  // NOTE: Investigate usage
     }
 
     /**

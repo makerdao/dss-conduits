@@ -50,19 +50,15 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         (
             IArrangerConduit.StatusEnum status,
             bytes32 actualIlk,
-            uint256 amountAvailable,
             uint256 amountRequested,
-            uint256 amountFilled,
-            uint256 fundRequestId
+            uint256 amountFilled
         ) = conduit.fundRequests(address(asset), 0);
 
         assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
 
         assertEq(actualIlk,       ilk);
-        assertEq(amountAvailable, 0);
         assertEq(amountRequested, 100);
         assertEq(amountFilled,    0);
-        assertEq(fundRequestId,   0);
 
         assertEq(conduit.pendingWithdrawals(ilk, address(asset)), 100);
     }
@@ -124,19 +120,15 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         (
             IArrangerConduit.StatusEnum status,
             bytes32 actualIlk,
-            uint256 amountAvailable,
             uint256 amountRequested,
-            uint256 amountFilled,
-            uint256 fundRequestId
+            uint256 amountFilled
         ) = conduit.fundRequests(address(asset), 0);
 
         assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
 
         assertEq(actualIlk,       ilk1);
-        assertEq(amountAvailable, 0);
         assertEq(amountRequested, 40);
         assertEq(amountFilled,    0);
-        assertEq(fundRequestId,   0);
 
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset), 60, new bytes(0));
 
@@ -145,19 +137,15 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         (
             status,
             actualIlk,
-            amountAvailable,
             amountRequested,
-            amountFilled,
-            fundRequestId
+            amountFilled
         ) = conduit.fundRequests(address(asset), 1);
 
         assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
 
         assertEq(actualIlk,       ilk2);
-        assertEq(amountAvailable, 0);
         assertEq(amountRequested, 60);
         assertEq(amountFilled,    0);
-        assertEq(fundRequestId,   1);
     }
 
     function test_requestFunds_singleIlk_multiRequest_singleAsset() public {
@@ -175,19 +163,15 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         (
             IArrangerConduit.StatusEnum status,
             bytes32 actualIlk,
-            uint256 amountAvailable,
             uint256 amountRequested,
-            uint256 amountFilled,
-            uint256 fundRequestId
+            uint256 amountFilled
         ) = conduit.fundRequests(address(asset), 0);
 
         assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
 
         assertEq(actualIlk,       ilk);
-        assertEq(amountAvailable, 0);
         assertEq(amountRequested, 40);
         assertEq(amountFilled,    0);
-        assertEq(fundRequestId,   0);
 
         assertEq(conduit.pendingWithdrawals(ilk, address(asset)), 40);
 
@@ -198,19 +182,15 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         (
             status,
             actualIlk,
-            amountAvailable,
             amountRequested,
-            amountFilled,
-            fundRequestId
+            amountFilled
         ) = conduit.fundRequests(address(asset), 1);
 
         assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
 
         assertEq(actualIlk,       ilk);
-        assertEq(amountAvailable, 0);
         assertEq(amountRequested, 60);
         assertEq(amountFilled,    0);
-        assertEq(fundRequestId,   1);
 
         assertEq(conduit.pendingWithdrawals(ilk, address(asset)), 100);
     }
@@ -237,19 +217,15 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         (
             IArrangerConduit.StatusEnum status,
             bytes32 actualIlk,
-            uint256 amountAvailable,
             uint256 amountRequested,
-            uint256 amountFilled,
-            uint256 fundRequestId
+            uint256 amountFilled
         ) = conduit.fundRequests(address(asset1), 0);
 
         assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
 
         assertEq(actualIlk,       ilk);
-        assertEq(amountAvailable, 0);
         assertEq(amountRequested, 100);
         assertEq(amountFilled,    0);
-        assertEq(fundRequestId,   0);
 
         assertEq(conduit.pendingWithdrawals(ilk, address(asset1)), 100);
         assertEq(conduit.pendingWithdrawals(ilk, address(asset2)), 0);
@@ -261,19 +237,15 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         (
             status,
             actualIlk,
-            amountAvailable,
             amountRequested,
-            amountFilled,
-            fundRequestId
+            amountFilled
         ) = conduit.fundRequests(address(asset2), 0);
 
         assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
 
         assertEq(actualIlk,       ilk);
-        assertEq(amountAvailable, 0);
         assertEq(amountRequested, 300);
         assertEq(amountFilled,    0);
-        assertEq(fundRequestId,   0);
 
         assertEq(conduit.pendingWithdrawals(ilk, address(asset1)), 100);
         assertEq(conduit.pendingWithdrawals(ilk, address(asset2)), 300);
@@ -313,12 +285,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(returnFundRequestId, 0);
 
         // Removing "constant" assertions from this test to save space and complexity
-        ( , bytes32 actualIlk, , uint256 amountRequested, , uint256 fundRequestId ) =
+        ( , bytes32 actualIlk, uint256 amountRequested, ) =
             conduit.fundRequests(address(asset1), 0);
 
         assertEq(actualIlk,       ilk1);
         assertEq(amountRequested, 40);
-        assertEq(fundRequestId,   0);
 
         assertEq(conduit.pendingWithdrawals(ilk1, address(asset1)), 40);
         assertEq(conduit.pendingWithdrawals(ilk2, address(asset1)), 0);
@@ -331,12 +302,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 1);
 
-        ( , actualIlk, , amountRequested, , fundRequestId )
+        ( , actualIlk, amountRequested, )
             = conduit.fundRequests(address(asset1), 1);
 
         assertEq(actualIlk,       ilk2);
         assertEq(amountRequested, 60);
-        assertEq(fundRequestId,   1);
 
         assertEq(conduit.pendingWithdrawals(ilk1, address(asset1)), 40);
         assertEq(conduit.pendingWithdrawals(ilk2, address(asset1)), 60);
@@ -349,12 +319,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 0);
 
-        ( , actualIlk, , amountRequested, , fundRequestId )
+        ( , actualIlk, amountRequested, )
             = conduit.fundRequests(address(asset2), 0);
 
         assertEq(actualIlk,       ilk1);
         assertEq(amountRequested, 100);
-        assertEq(fundRequestId,   0);
 
         assertEq(conduit.pendingWithdrawals(ilk1, address(asset1)), 40);
         assertEq(conduit.pendingWithdrawals(ilk2, address(asset1)), 60);
@@ -367,12 +336,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 1);
 
-        ( , actualIlk, , amountRequested, , fundRequestId )
+        ( , actualIlk, amountRequested, )
             = conduit.fundRequests(address(asset2), 1);
 
         assertEq(actualIlk,       ilk2);
         assertEq(amountRequested, 300);
-        assertEq(fundRequestId,   1);
 
         assertEq(conduit.pendingWithdrawals(ilk1, address(asset1)), 40);
         assertEq(conduit.pendingWithdrawals(ilk2, address(asset1)), 60);
@@ -401,12 +369,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(returnFundRequestId, 2);
 
         // Removing "constant" assertions from this test to save space and complexity
-        ( , actualIlk, , amountRequested, , fundRequestId )
+        ( , actualIlk, amountRequested, )
             = conduit.fundRequests(address(asset1), 2);
 
         assertEq(actualIlk,       ilk1);
         assertEq(amountRequested, 40);
-        assertEq(fundRequestId,   2);
 
         assertEq(conduit.pendingWithdrawals(ilk1, address(asset1)), 80);
         assertEq(conduit.pendingWithdrawals(ilk2, address(asset1)), 60);
@@ -419,12 +386,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 3);
 
-        ( , actualIlk, , amountRequested, , fundRequestId ) =
+        ( , actualIlk, amountRequested, ) =
             conduit.fundRequests(address(asset1), 3);
 
         assertEq(actualIlk,       ilk2);
         assertEq(amountRequested, 60);
-        assertEq(fundRequestId,   3);
 
         assertEq(conduit.pendingWithdrawals(ilk1, address(asset1)), 80);
         assertEq(conduit.pendingWithdrawals(ilk2, address(asset1)), 120);
@@ -437,12 +403,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 2);
 
-        ( , actualIlk, , amountRequested, , fundRequestId )
+        ( , actualIlk, amountRequested, )
             = conduit.fundRequests(address(asset2), 2);
 
         assertEq(actualIlk,       ilk1);
         assertEq(amountRequested, 100);
-        assertEq(fundRequestId,   2);
 
         assertEq(conduit.pendingWithdrawals(ilk1, address(asset1)), 80);
         assertEq(conduit.pendingWithdrawals(ilk2, address(asset1)), 120);
@@ -455,12 +420,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 3);
 
-        ( , actualIlk, , amountRequested, , fundRequestId )
+        ( , actualIlk, amountRequested, )
             = conduit.fundRequests(address(asset2), 3);
 
         assertEq(actualIlk,       ilk2);
         assertEq(amountRequested, 300);
-        assertEq(fundRequestId,   3);
 
         assertEq(conduit.pendingWithdrawals(ilk1, address(asset1)), 80);
         assertEq(conduit.pendingWithdrawals(ilk2, address(asset1)), 120);

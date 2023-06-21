@@ -99,10 +99,8 @@ contract ArrangerConduit is IArrangerConduit {
         fundRequests[asset].push(FundRequest({
             status:          StatusEnum.PENDING,
             ilk:             ilk,
-            amountAvailable: 0,
             amountRequested: amount,
-            amountFilled:    0,
-            fundRequestId:   fundRequestId  // TODO: Necessary?
+            amountFilled:    0
         }));
 
         pendingWithdrawals[ilk][asset] += amount;
@@ -153,7 +151,7 @@ contract ArrangerConduit is IArrangerConduit {
                 continue;
             }
 
-            uint256 fillAmount = fundRequest.amountRequested - fundRequest.amountAvailable;
+            uint256 fillAmount = fundRequest.amountRequested - fundRequest.amountFilled;
 
             if (fillAmount > fundsRemaining) {
                 fillAmount = fundsRemaining;
@@ -163,9 +161,9 @@ contract ArrangerConduit is IArrangerConduit {
                 newStartingFundRequestId++;
             }
 
-            fundsRemaining              -= fillAmount;
-            fundRequest.amountAvailable += fillAmount;
-            totalWithdrawable[asset]    += fillAmount;
+            fundsRemaining           -= fillAmount;
+            fundRequest.amountFilled += fillAmount;
+            totalWithdrawable[asset] += fillAmount;
 
             availableWithdrawals[fundRequest.ilk][asset] += fillAmount;
 
@@ -225,7 +223,7 @@ contract ArrangerConduit is IArrangerConduit {
         external override view returns (
             uint256[] memory fundRequestIds,
             uint256 totalRequested,
-            uint256 totalAvailable
+            uint256 totalFilled
         )
     {
         uint256 i;
@@ -240,7 +238,7 @@ contract ArrangerConduit is IArrangerConduit {
                 fundRequestIds[i++] = j;
 
                 totalRequested += fundRequest.amountRequested;
-                totalAvailable += fundRequest.amountAvailable;
+                totalFilled    += fundRequest.amountFilled;
             }
         }
     }

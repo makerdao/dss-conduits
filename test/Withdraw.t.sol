@@ -232,7 +232,7 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
 
             // Ilk 1 fund request
 
-            ( IArrangerConduit.StatusEnum status, , , uint256 amountRequested , , )
+            ( IArrangerConduit.StatusEnum status, , uint256 amountRequested , )
                 = conduit.fundRequests(address(asset), i * 2);
 
             assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
@@ -240,7 +240,7 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
 
             // Ilk 2 fund request
 
-            ( status, , , amountRequested , , )
+            ( status, , amountRequested , )
                 = conduit.fundRequests(address(asset), i * 2 + 1);
 
             assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
@@ -257,26 +257,21 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
             (
                 IArrangerConduit.StatusEnum status,
                 ,
-                uint256 amountAvailable,
                 uint256 amountRequested,
                 uint256 amountFilled
-                ,
             ) = conduit.fundRequests(address(asset), i);
 
             uint256 amount = i % 2 == 0 ? ilk1Amounts[i / 2] : ilk2Amounts[i / 2];
 
             uint256 requestedAmount = bound(uint256(keccak256(abi.encode(amount))), 0, amount);
 
-            console.log("requested", requestedAmount);
-
             uint256 filledAmount
                 = requestedAmount <= (returnAmount - filledSum)
                 ? requestedAmount
                 : (returnAmount - filledSum);
 
-            assertEq(amountAvailable, filledAmount);
             assertEq(amountRequested, requestedAmount);
-            assertEq(amountFilled,    0);  // TODO: Change amount filled to be amountAvailable, remove ID
+            assertEq(amountFilled,    filledAmount);  // TODO: Change amount filled to be amountAvailable, remove ID
 
             filledSum += filledAmount;
 
@@ -298,11 +293,11 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
         }
 
         for (uint256 i; i < ilk1Amounts.length * 2; i++) {
-            ( , , uint256 amountAvailable, uint256 amountRequested, , )
+            ( , , uint256 amountRequested, uint256 amountFilled )  // TODO: Investigate unused var
                 = conduit.fundRequests(address(asset), i);
 
             uint256 withdrawAmount
-                = bound(uint256(keccak256(abi.encode(amountAvailable))), 0, amountAvailable);
+                = bound(uint256(keccak256(abi.encode(amountFilled))), 0, amountFilled);
 
             address dest = i % 2 == 0 ? dest1 : dest2;
             bytes32 ilk  = i % 2 == 0 ? ilk1  : ilk2;
@@ -334,7 +329,7 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
                 conduit.totalPositions(address(asset)) - conduit.totalWithdrawable(address(asset))
             );
 
-            assertEq(conduit.availableWithdrawals(ilk, address(asset)), amountAvailable - withdrawAmount);
+            assertEq(conduit.availableWithdrawals(ilk, address(asset)), amountFilled - withdrawAmount);
         }
     }
 
