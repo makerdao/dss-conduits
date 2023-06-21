@@ -169,12 +169,17 @@ interface IArrangerConduit is IAllocatorConduit {
     /**
      *  @dev    Function to get the active fund requests for a particular ilk.
      *  @param  asset          The address of the asset.
-     *  @param  ilk      The unique identifier of the ilk.
+     *  @param  ilk            The unique identifier of the ilk.
      *  @return fundRequestIds Array of the IDs of active fund requests.
-     *  @return totalAmount    The total amount of tokens requested in the active fund requests.
+     *  @return totalRequested The total amount of tokens requested in the active fund requests.
+     *  @return totalAvailable The total amount of tokens available in the active fund requests.
      */
     function activeFundRequests(address asset, bytes32 ilk)
-        external view returns (uint256[] memory fundRequestIds, uint256 totalAmount);
+        external view returns (
+            uint256[] memory fundRequestIds,
+            uint256 totalRequested,
+            uint256 totalAvailable
+        );
 
     /**
      *  @dev    Function to get the total amount of active withdrawal requests.

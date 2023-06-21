@@ -194,19 +194,56 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     function maxDeposit(bytes32 ilk, address asset)
-        external override view returns (uint256 maxDeposit_) {}
+        external override pure returns (uint256 maxDeposit_)
+    {
+        ilk; asset;  // Silence warnings
+        maxDeposit_ = type(uint256).max;
+    }
 
     function maxWithdraw(bytes32 ilk, address asset)
-        external override view returns (uint256 maxWithdraw_) {}
+        external override view returns (uint256 maxWithdraw_)
+    {
+        // TODO: Check if maxWithdraw should turn into a mapping
+        maxWithdraw_ = availableWithdrawals[ilk][asset];
+    }
 
     function isCancelable(address asset, uint256 fundRequestId)
-        external override view returns (bool isCancelable_) {}
+        external override view returns (bool isCancelable_)
+    {
+        isCancelable_ = fundRequests[asset][fundRequestId].status == StatusEnum.PENDING;
+    }
 
     function fundRequestStatus(address asset, uint256 fundRequestId)
-        external override view returns (bytes32 ilk, FundRequest memory fundRequest) {}
+        external override view returns (bytes32 ilk, FundRequest memory fundRequest)
+    {
+        // TODO: Change the interface to just return the struct?
+        ilk         = fundRequests[asset][fundRequestId].ilk;
+        fundRequest = fundRequests[asset][fundRequestId];
+    }
 
     function activeFundRequests(address asset, bytes32 ilk)
-        external override view returns (uint256[] memory fundRequestIds, uint256 totalAmount) {}
+        external override view returns (
+            uint256[] memory fundRequestIds,
+            uint256 totalRequested,
+            uint256 totalAvailable
+        )
+    {
+        uint256 i;
+
+        for (uint256 j = startingFundRequestId[asset]; j < fundRequests[asset].length; j++) {
+            FundRequest memory fundRequest = fundRequests[asset][j];
+
+            if (
+                fundRequest.status == StatusEnum.PENDING ||
+                fundRequest.status == StatusEnum.PARTIAL
+            ) {
+                fundRequestIds[i++] = j;
+
+                totalRequested += fundRequest.amountRequested;
+                totalAvailable += fundRequest.amountAvailable;
+            }
+        }
+    }
 
     function totalActiveFundRequests(address asset)
         external override view returns (uint256 totalAmount) {}
