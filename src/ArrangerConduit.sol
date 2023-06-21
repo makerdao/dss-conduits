@@ -203,14 +203,6 @@ contract ArrangerConduit is IArrangerConduit {
         isCancelable_ = fundRequests[asset][fundRequestId].status == StatusEnum.PENDING;
     }
 
-    function fundRequestStatus(address asset, uint256 fundRequestId)
-        external override view returns (bytes32 ilk, FundRequest memory fundRequest)
-    {
-        // TODO: Change the interface to just return the struct?
-        ilk         = fundRequests[asset][fundRequestId].ilk;
-        fundRequest = fundRequests[asset][fundRequestId];
-    }
-
     function activeFundRequests(address asset, bytes32 ilk)
         external override view returns (
             uint256[] memory fundRequestIds,

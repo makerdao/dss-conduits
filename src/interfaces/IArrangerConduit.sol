@@ -234,16 +234,6 @@ interface IArrangerConduit is IAllocatorConduit {
         external view returns (bool isCancelable_);
 
     /**
-     *  @dev    Function to get the status of a withdrawal request.
-     *  @param  asset         The asset to check.
-     *  @param  fundRequestId The ID of the withdrawal request.
-     *  @return ilk           The unique identifier of the for a particular ilk.
-     *  @return fundRequest   The FundRequest struct representing the withdrawal request.
-     */
-    function fundRequestStatus(address asset, uint256 fundRequestId)
-        external view returns (bytes32 ilk, FundRequest memory fundRequest);
-
-    /**
      *  @dev    Function to get the active fund requests for a particular ilk.
      *  @param  asset          The address of the asset.
      *  @param  ilk            The unique identifier of the for a particular ilk.
