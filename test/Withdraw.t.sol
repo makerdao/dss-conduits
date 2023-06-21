@@ -49,22 +49,22 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 100);
         assertEq(asset.balanceOf(address(this)),    0);
 
-        assertEq(conduit.availableWithdrawals(ilk, address(asset)), 100);
-        assertEq(conduit.pendingWithdrawals(ilk, address(asset)),   100);
-        assertEq(conduit.positions(ilk, address(asset)),            100);
-        assertEq(conduit.totalPositions(address(asset)),            100);
-        assertEq(conduit.totalWithdrawable(address(asset)),         100);
+        assertEq(conduit.maxWithdraw(ilk, address(asset)),        100);
+        assertEq(conduit.pendingWithdrawals(ilk, address(asset)), 100);
+        assertEq(conduit.positions(ilk, address(asset)),          100);
+        assertEq(conduit.totalPositions(address(asset)),          100);
+        assertEq(conduit.totalWithdrawable(address(asset)),       100);
 
         conduit.withdraw(ilk, address(asset), address(this), 100);
 
         assertEq(asset.balanceOf(address(conduit)), 0);
         assertEq(asset.balanceOf(address(this)),    100);
 
-        assertEq(conduit.availableWithdrawals(ilk, address(asset)), 0);
-        assertEq(conduit.pendingWithdrawals(ilk, address(asset)),   0);
-        assertEq(conduit.positions(ilk, address(asset)),            0);
-        assertEq(conduit.totalPositions(address(asset)),            0);
-        assertEq(conduit.totalWithdrawable(address(asset)),         0);
+        assertEq(conduit.maxWithdraw(ilk, address(asset)),        0);
+        assertEq(conduit.pendingWithdrawals(ilk, address(asset)), 0);
+        assertEq(conduit.positions(ilk, address(asset)),          0);
+        assertEq(conduit.totalPositions(address(asset)),          0);
+        assertEq(conduit.totalWithdrawable(address(asset)),       0);
     }
 
     function test_withdraw_twoRequests_complete_partial() external {
@@ -80,11 +80,11 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 70);
         assertEq(asset.balanceOf(address(this)),    0);
 
-        assertEq(conduit.availableWithdrawals(ilk, address(asset)), 70);
-        assertEq(conduit.pendingWithdrawals(ilk, address(asset)),   100);
-        assertEq(conduit.positions(ilk, address(asset)),            100);
-        assertEq(conduit.totalPositions(address(asset)),            100);
-        assertEq(conduit.totalWithdrawable(address(asset)),         70);
+        assertEq(conduit.maxWithdraw(ilk, address(asset)),        70);
+        assertEq(conduit.pendingWithdrawals(ilk, address(asset)), 100);
+        assertEq(conduit.positions(ilk, address(asset)),          100);
+        assertEq(conduit.totalPositions(address(asset)),          100);
+        assertEq(conduit.totalWithdrawable(address(asset)),       70);
 
         // TODO: Investigate partial withdrawals
         conduit.withdraw(ilk, address(asset), address(this), 70);
@@ -93,11 +93,11 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 0);
         assertEq(asset.balanceOf(address(this)),    70);
 
-        assertEq(conduit.availableWithdrawals(ilk, address(asset)), 0);
-        assertEq(conduit.pendingWithdrawals(ilk, address(asset)),   30);
-        assertEq(conduit.positions(ilk, address(asset)),            30);
-        assertEq(conduit.totalPositions(address(asset)),            30);
-        assertEq(conduit.totalWithdrawable(address(asset)),         0);
+        assertEq(conduit.maxWithdraw(ilk, address(asset)),        0);
+        assertEq(conduit.pendingWithdrawals(ilk, address(asset)), 30);
+        assertEq(conduit.positions(ilk, address(asset)),          30);
+        assertEq(conduit.totalPositions(address(asset)),          30);
+        assertEq(conduit.totalWithdrawable(address(asset)),       0);
     }
 
     function test_withdraw_twoIlks_complete_complete_complete_partial() external {
@@ -122,14 +122,14 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 310);
         assertEq(asset.balanceOf(dest1),            0);
 
-        assertEq(conduit.availableWithdrawals(ilk1, address(asset)), 100);
-        assertEq(conduit.availableWithdrawals(ilk2, address(asset)), 210);
-        assertEq(conduit.pendingWithdrawals(ilk1, address(asset)),   100);
-        assertEq(conduit.pendingWithdrawals(ilk2, address(asset)),   400);
-        assertEq(conduit.positions(ilk1, address(asset)),            100);
-        assertEq(conduit.positions(ilk2, address(asset)),            400);
-        assertEq(conduit.totalPositions(address(asset)),             500);
-        assertEq(conduit.totalWithdrawable(address(asset)),          310);
+        assertEq(conduit.maxWithdraw(ilk1, address(asset)),        100);
+        assertEq(conduit.maxWithdraw(ilk2, address(asset)),        210);
+        assertEq(conduit.pendingWithdrawals(ilk1, address(asset)), 100);
+        assertEq(conduit.pendingWithdrawals(ilk2, address(asset)), 400);
+        assertEq(conduit.positions(ilk1, address(asset)),          100);
+        assertEq(conduit.positions(ilk2, address(asset)),          400);
+        assertEq(conduit.totalPositions(address(asset)),           500);
+        assertEq(conduit.totalWithdrawable(address(asset)),        310);
 
         // Demonstrate that withdrawal order is dependent on the order in which the requests are
         // made, not the order of actioned withdrawals. There is enough funds to fulfill ilk2's
@@ -145,14 +145,14 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(dest1),            0);
         assertEq(asset.balanceOf(dest2),            210);
 
-        assertEq(conduit.availableWithdrawals(ilk1, address(asset)), 100);
-        assertEq(conduit.availableWithdrawals(ilk2, address(asset)), 0);
-        assertEq(conduit.pendingWithdrawals(ilk1, address(asset)),   100);
-        assertEq(conduit.pendingWithdrawals(ilk2, address(asset)),   190);
-        assertEq(conduit.positions(ilk1, address(asset)),            100);
-        assertEq(conduit.positions(ilk2, address(asset)),            190);
-        assertEq(conduit.totalPositions(address(asset)),             290);
-        assertEq(conduit.totalWithdrawable(address(asset)),          100);
+        assertEq(conduit.maxWithdraw(ilk1, address(asset)),        100);
+        assertEq(conduit.maxWithdraw(ilk2, address(asset)),        0);
+        assertEq(conduit.pendingWithdrawals(ilk1, address(asset)), 100);
+        assertEq(conduit.pendingWithdrawals(ilk2, address(asset)), 190);
+        assertEq(conduit.positions(ilk1, address(asset)),          100);
+        assertEq(conduit.positions(ilk2, address(asset)),          190);
+        assertEq(conduit.totalPositions(address(asset)),           290);
+        assertEq(conduit.totalWithdrawable(address(asset)),        100);
 
         conduit.withdraw(ilk1, address(asset), dest1, 100);
 
@@ -161,14 +161,14 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(dest1),            100);
         assertEq(asset.balanceOf(dest2),            210);
 
-        assertEq(conduit.availableWithdrawals(ilk1, address(asset)), 0);
-        assertEq(conduit.availableWithdrawals(ilk2, address(asset)), 0);
-        assertEq(conduit.pendingWithdrawals(ilk1, address(asset)),   0);
-        assertEq(conduit.pendingWithdrawals(ilk2, address(asset)),   190);
-        assertEq(conduit.positions(ilk1, address(asset)),            0);
-        assertEq(conduit.positions(ilk2, address(asset)),            190);
-        assertEq(conduit.totalPositions(address(asset)),             190);
-        assertEq(conduit.totalWithdrawable(address(asset)),          0);
+        assertEq(conduit.maxWithdraw(ilk1, address(asset)),        0);
+        assertEq(conduit.maxWithdraw(ilk2, address(asset)),        0);
+        assertEq(conduit.pendingWithdrawals(ilk1, address(asset)), 0);
+        assertEq(conduit.pendingWithdrawals(ilk2, address(asset)), 190);
+        assertEq(conduit.positions(ilk1, address(asset)),          0);
+        assertEq(conduit.positions(ilk2, address(asset)),          190);
+        assertEq(conduit.totalPositions(address(asset)),           190);
+        assertEq(conduit.totalWithdrawable(address(asset)),        0);
     }
 
 }
@@ -308,8 +308,8 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
             ilk2WithdrawSum += i % 2 == 1 ? withdrawAmount : 0;
 
             assertEq(
-                conduit.availableWithdrawals(ilk1, address(asset)) +
-                conduit.availableWithdrawals(ilk2, address(asset)),
+                conduit.maxWithdraw(ilk1, address(asset)) +
+                conduit.maxWithdraw(ilk2, address(asset)),
                 conduit.totalWithdrawable(address(asset))
             );
 
@@ -329,7 +329,7 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
                 conduit.totalPositions(address(asset)) - conduit.totalWithdrawable(address(asset))
             );
 
-            assertEq(conduit.availableWithdrawals(ilk, address(asset)), amountFilled - withdrawAmount);
+            assertEq(conduit.maxWithdraw(ilk, address(asset)), amountFilled - withdrawAmount);
         }
     }
 

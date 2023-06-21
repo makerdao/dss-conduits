@@ -156,7 +156,7 @@ interface IArrangerConduit is IAllocatorConduit {
      *  @dev    Function to get the status of a withdrawal request.
      *  @param  asset         The asset to check.
      *  @param  fundRequestId The ID of the withdrawal request.
-     *  @return ilk     The ilk of the withdrawal request.
+     *  @return ilk           The ilk of the withdrawal request.
      *  @return fundRequest   The FundRequest struct representing the withdrawal request.
      */
     function fundRequestStatus(address asset, uint256 fundRequestId)

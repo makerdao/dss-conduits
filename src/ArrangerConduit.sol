@@ -30,7 +30,7 @@ contract ArrangerConduit is IArrangerConduit {
 
     mapping(address => FundRequest[]) public fundRequests;
 
-    mapping(bytes32 => mapping(address => uint256)) public availableWithdrawals;
+    mapping(bytes32 => mapping(address => uint256)) public override maxWithdraw;
     mapping(bytes32 => mapping(address => uint256)) public pendingWithdrawals;
     mapping(bytes32 => mapping(address => uint256)) public positions;
 
@@ -71,14 +71,14 @@ contract ArrangerConduit is IArrangerConduit {
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
         external override
     {
-        // availableWithdrawals < pendingWithdrawals < positions
+        // maxWithdraw < pendingWithdrawals < positions
         // positions < totalWithdrawable < totalPositions
         require(
-            withdrawAmount <= availableWithdrawals[ilk][asset],
+            withdrawAmount <= maxWithdraw[ilk][asset],
             "Conduit/insufficient-withdrawal"
         );
 
-        availableWithdrawals[ilk][asset] -= withdrawAmount;
+        maxWithdraw[ilk][asset] -= withdrawAmount;
         pendingWithdrawals[ilk][asset]   -= withdrawAmount;
         positions[ilk][asset]            -= withdrawAmount;
 
@@ -164,7 +164,7 @@ contract ArrangerConduit is IArrangerConduit {
             fundRequest.amountFilled += fillAmount;
             totalWithdrawable[asset] += fillAmount;
 
-            availableWithdrawals[fundRequest.ilk][asset] += fillAmount;
+            maxWithdraw[fundRequest.ilk][asset] += fillAmount;
 
             if (fundsRemaining == 0) break;
         }
@@ -195,13 +195,6 @@ contract ArrangerConduit is IArrangerConduit {
     {
         ilk; asset;  // Silence warnings
         maxDeposit_ = type(uint256).max;
-    }
-
-    function maxWithdraw(bytes32 ilk, address asset)
-        external override view returns (uint256 maxWithdraw_)
-    {
-        // TODO: Check if maxWithdraw should turn into a mapping
-        maxWithdraw_ = availableWithdrawals[ilk][asset];
     }
 
     function isCancelable(address asset, uint256 fundRequestId)
