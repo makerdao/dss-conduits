@@ -19,20 +19,20 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Declarations and Constructor                                                           ***/
     /**********************************************************************************************/
 
-    address public admin;
-    address public fundManager;
+    address public override admin;
+    address public override fundManager;
 
-    mapping(address => uint256) public outstandingPrincipal;
-    mapping(address => uint256) public startingFundRequestId;
-    mapping(address => uint256) public totalInterestEarned;
-    mapping(address => uint256) public totalPositions;
-    mapping(address => uint256) public totalWithdrawable;
+    mapping(address => uint256) public override outstandingPrincipal;
+    mapping(address => uint256) public override startingFundRequestId;
+    mapping(address => uint256) public override totalInterestEarned;
+    mapping(address => uint256) public override totalPositions;
+    mapping(address => uint256) public override totalWithdrawable;
 
     mapping(address => FundRequest[]) public fundRequests;
 
     mapping(bytes32 => mapping(address => uint256)) public override maxWithdraw;
-    mapping(bytes32 => mapping(address => uint256)) public pendingWithdrawals;
-    mapping(bytes32 => mapping(address => uint256)) public positions;
+    mapping(bytes32 => mapping(address => uint256)) public override pendingWithdrawals;
+    mapping(bytes32 => mapping(address => uint256)) public override positions;
 
     constructor(address admin_, address fundManager_) {
         admin       = admin_;
