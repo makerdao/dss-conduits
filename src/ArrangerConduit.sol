@@ -112,8 +112,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function cancelFundRequest(address asset, uint256 fundRequestId) external override {
-        // TODO: What is permissioning for this?
-        // If they send the funds back, and the request is cancelled, they can be treated as deposits.
+        delete fundRequests[asset][fundRequestId];
     }
 
     /**********************************************************************************************/
@@ -232,8 +231,11 @@ contract ArrangerConduit is IArrangerConduit {
             FundRequest memory fundRequest = fundRequests[asset][j];
 
             if (
-                fundRequest.status == StatusEnum.PENDING ||
-                fundRequest.status == StatusEnum.PARTIAL
+                (
+                    fundRequest.status == StatusEnum.PENDING ||
+                    fundRequest.status == StatusEnum.PARTIAL
+                ) &&
+                fundRequest.ilk == ilk
             ) {
                 fundRequestIds[i++] = j;
 
@@ -244,6 +246,20 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function totalActiveFundRequests(address asset)
-        external override view returns (uint256 totalAmount) {}
+        external override view returns (uint256 totalRequested, uint256 totalFilled)
+    {
+        for (uint256 i = startingFundRequestId[asset]; i < fundRequests[asset].length; i++) {
+            FundRequest memory fundRequest = fundRequests[asset][i];
+
+            if (
+                fundRequest.status == StatusEnum.PENDING ||
+                fundRequest.status == StatusEnum.PARTIAL
+            ) {
+
+                totalRequested += fundRequest.amountRequested;
+                totalFilled    += fundRequest.amountFilled;
+            }
+        }
+    }
 
 }
