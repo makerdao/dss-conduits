@@ -77,9 +77,9 @@ contract ArrangerConduit is IArrangerConduit {
             "Conduit/insufficient-withdrawal"
         );
 
-        maxWithdraw[ilk][asset] -= withdrawAmount;
-        pendingWithdrawals[ilk][asset]   -= withdrawAmount;
-        positions[ilk][asset]            -= withdrawAmount;
+        maxWithdraw[ilk][asset]        -= withdrawAmount;
+        pendingWithdrawals[ilk][asset] -= withdrawAmount;
+        positions[ilk][asset]          -= withdrawAmount;
 
         totalPositions[asset]    -= withdrawAmount;
         totalWithdrawable[asset] -= withdrawAmount;
