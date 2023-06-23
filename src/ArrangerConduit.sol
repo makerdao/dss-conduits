@@ -199,7 +199,9 @@ contract ArrangerConduit is IArrangerConduit {
     function isCancelable(address asset, uint256 fundRequestId)
         external override view returns (bool isCancelable_)
     {
-        isCancelable_ = fundRequests[asset][fundRequestId].status == StatusEnum.PENDING;
+        StatusEnum status = fundRequests[asset][fundRequestId].status;
+
+        isCancelable_ = status == StatusEnum.PENDING || status == StatusEnum.PARTIAL;
     }
 
     function activeFundRequests(address asset, bytes32 ilk)
