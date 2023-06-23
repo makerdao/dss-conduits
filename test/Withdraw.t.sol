@@ -218,8 +218,8 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
         }
 
         for (uint256 i; i < ilk1Amounts.length; i++) {
-            uint256 amount1 = bound(uint256(keccak256(abi.encode(ilk1Amounts[i]))), 0, ilk1Amounts[i]);
-            uint256 amount2 = bound(uint256(keccak256(abi.encode(ilk2Amounts[i]))), 0, ilk2Amounts[i]);
+            uint256 amount1 = _bound(uint256(keccak256(abi.encode(ilk1Amounts[i]))), 0, ilk1Amounts[i]);
+            uint256 amount2 = _bound(uint256(keccak256(abi.encode(ilk2Amounts[i]))), 0, ilk2Amounts[i]);
 
             conduit.requestFunds(ilk1, address(asset), amount1, new bytes(0));
             conduit.requestFunds(ilk2, address(asset), amount2, new bytes(0));
@@ -263,7 +263,7 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
 
             uint256 amount = i % 2 == 0 ? ilk1Amounts[i / 2] : ilk2Amounts[i / 2];
 
-            uint256 requestedAmount = bound(uint256(keccak256(abi.encode(amount))), 0, amount);
+            uint256 requestedAmount = _bound(uint256(keccak256(abi.encode(amount))), 0, amount);
 
             uint256 filledAmount
                 = requestedAmount <= (returnAmount - filledSum)
@@ -297,7 +297,7 @@ contract Conduit_WithdrawFuzzTest is ConduitAssetTestBase {
                 = conduit.fundRequests(address(asset), i);
 
             uint256 withdrawAmount
-                = bound(uint256(keccak256(abi.encode(amountFilled))), 0, amountFilled);
+                = _bound(uint256(keccak256(abi.encode(amountFilled))), 0, amountFilled);
 
             address dest = i % 2 == 0 ? dest1 : dest2;
             bytes32 ilk  = i % 2 == 0 ? ilk1  : ilk2;
