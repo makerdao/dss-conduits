@@ -3,7 +3,10 @@ pragma solidity ^0.8.13;
 
 import { console2 as console } from "../lib/forge-std/src/console2.sol";
 
-import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
+// import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
+
+// TODO: Add and test Router ACL
+// TODO: Add events
 
 interface ERC20Like {
     function balanceOf(address src) external view returns (uint256 wad);
@@ -11,28 +14,56 @@ interface ERC20Like {
     function transferFrom(address src, address dst, uint wad) external returns (bool);
 }
 
-contract ArrangerConduit is IArrangerConduit {
+contract ArrangerConduit /*is IArrangerConduit*/ {
 
-    // TODO: Add and test Router ACL
+
+
+    /**
+     *  @dev   Struct representing a fund request.
+     *  @param status          The current status of the fund request.
+     *  @param ilk             The unique identifier of the ilk.
+     *  @param amountRequested The amount of asset requested in the fund request.
+     *  @param amountFilled    The amount of asset filled in the fund request.
+     */
+    struct FundRequest {
+        StatusEnum status;
+        bytes32    ilk;
+        uint256    amountRequested;
+        uint256    amountFilled;
+    }
+
+    /**
+     *  @dev    Enum representing the status of a fund request.
+     *  @notice PENDING   - The fund request has been made, but not yet processed.
+     *  @notice PARTIAL   - The fund request has been partially filled, but not yet completed.
+     *  @notice CANCELLED - The fund request has been cancelled by the ilk.
+     *  @notice COMPLETED - The fund request has been fully processed and completed.
+     */
+    enum StatusEnum {
+        PENDING,
+        PARTIAL,
+        CANCELLED,
+        COMPLETED
+    }
 
     /**********************************************************************************************/
     /*** Declarations and Constructor                                                           ***/
     /**********************************************************************************************/
 
-    address public override admin;
-    address public override fundManager;
+    address public /*override*/ admin;
+    address public /*override*/ fundManager;
 
-    mapping(address => uint256) public override outstandingPrincipal;
-    mapping(address => uint256) public override startingFundRequestId;
-    mapping(address => uint256) public override totalInterestEarned;
-    mapping(address => uint256) public override totalPositions;
-    mapping(address => uint256) public override totalWithdrawable;
+    mapping(address => uint256) public /*override*/ outstandingPrincipal;
+    mapping(address => uint256) public /*override*/ startingFundRequestId;
+    mapping(address => uint256) public /*override*/ totalInterestEarned;
+    mapping(address => uint256) public /*override*/ totalPositions;
+    mapping(address => uint256) public /*override*/ totalWithdrawable;
 
     mapping(address => FundRequest[]) public fundRequests;
 
-    mapping(bytes32 => mapping(address => uint256)) public override maxWithdraw;
-    mapping(bytes32 => mapping(address => uint256)) public override pendingWithdrawals;
-    mapping(bytes32 => mapping(address => uint256)) public override positions;
+    mapping(bytes32 => mapping(address => uint256)) public /*override*/ maxWithdraw;
+    mapping(bytes32 => mapping(address => uint256)) public /*override*/ pendingWithdrawals;
+    mapping(bytes32 => mapping(address => uint256)) public /*override*/ positions;
 
     constructor(address admin_, address fundManager_) {
         admin       = admin_;
@@ -57,7 +88,7 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Router Functions                                                                       ***/
     /**********************************************************************************************/
 
-    function deposit(bytes32 ilk, address asset, uint256 amount) external override {
+    function deposit(bytes32 ilk, address asset, uint256 amount) external /*override*/ {
         // TODO: Use ERC20Helper
         require(
             ERC20Like(asset).transferFrom(msg.sender, address(this), amount),
@@ -69,7 +100,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
-        external override
+        external /*override*/
     {
         // maxWithdraw < pendingWithdrawals < positions < totalWithdrawable < totalPositions
         require(
@@ -91,7 +122,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, bytes memory data)
-        external override returns (uint256 fundRequestId)
+        external /*override*/ returns (uint256 fundRequestId)
     {
         fundRequestId = fundRequests[asset].length;  // Current length will be the next index
 
@@ -110,7 +141,7 @@ contract ArrangerConduit is IArrangerConduit {
         );
     }
 
-    function cancelFundRequest(address asset, uint256 fundRequestId) external override {
+    function cancelFundRequest(address asset, uint256 fundRequestId) external /*override*/ {
         delete fundRequests[asset][fundRequestId];
     }
 
@@ -118,7 +149,7 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Fund Manager Functions                                                                 ***/
     /**********************************************************************************************/
 
-    function drawFunds(address asset, uint256 amount) external override isFundManager {
+    function drawFunds(address asset, uint256 amount) external /*override*/ isFundManager {
         outstandingPrincipal[asset] += amount;
 
         require(
@@ -129,7 +160,7 @@ contract ArrangerConduit is IArrangerConduit {
         require(ERC20Like(asset).transfer(fundManager, amount), "Conduit/transfer-failed");
     }
 
-    function returnFunds(address asset, uint256 returnAmount) external override isFundManager {
+    function returnFunds(address asset, uint256 returnAmount) external /*override*/ isFundManager {
         outstandingPrincipal[asset] -= returnAmount;
 
         uint256 fundsRemaining = returnAmount;
@@ -176,7 +207,7 @@ contract ArrangerConduit is IArrangerConduit {
         );
     }
 
-    function payInterest(address asset, uint256 amount) external override isFundManager {
+    function payInterest(address asset, uint256 amount) external /*override*/ isFundManager {
         totalInterestEarned[asset] += amount;
 
         require(
@@ -190,21 +221,21 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     function maxDeposit(bytes32 ilk, address asset)
-        external override pure returns (uint256 maxDeposit_)
+        external /*override*/ pure returns (uint256 maxDeposit_)
     {
         ilk; asset;  // Silence warnings
         maxDeposit_ = type(uint256).max;
     }
 
     function isCancelable(address asset, uint256 fundRequestId)
-        external override view returns (bool isCancelable_)
+        external /*override*/ view returns (bool isCancelable_)
     {
         isCancelable_ = _isActiveRequest(fundRequests[asset][fundRequestId].status);
     }
 
     // TODO: Determine if there is a better way to construct the array
     function activeFundRequests(address asset, bytes32 ilk)
-        external override view returns (
+        external /*override*/ view returns (
             uint256[] memory fundRequestIds,
             uint256 totalRequested,
             uint256 totalFilled
@@ -240,7 +271,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function totalActiveFundRequests(address asset)
-        external override view returns (uint256 totalRequested, uint256 totalFilled)
+        external /*override*/ view returns (uint256 totalRequested, uint256 totalFilled)
     {
         for (uint256 i = startingFundRequestId[asset]; i < fundRequests[asset].length; i++) {
             FundRequest memory fundRequest = fundRequests[asset][i];
