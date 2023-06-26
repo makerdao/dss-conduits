@@ -199,11 +199,10 @@ contract ArrangerConduit is IArrangerConduit {
     function isCancelable(address asset, uint256 fundRequestId)
         external override view returns (bool isCancelable_)
     {
-        StatusEnum status = fundRequests[asset][fundRequestId].status;
-
-        isCancelable_ = status == StatusEnum.PENDING || status == StatusEnum.PARTIAL;
+        isCancelable_ = _isActiveRequest(fundRequests[asset][fundRequestId].status);
     }
 
+    // TODO: Determine if there is a better way to construct the array
     function activeFundRequests(address asset, bytes32 ilk)
         external override view returns (
             uint256[] memory fundRequestIds,
@@ -211,18 +210,27 @@ contract ArrangerConduit is IArrangerConduit {
             uint256 totalFilled
         )
     {
-        uint256 i;
+        uint256 startingIndex        = startingFundRequestId[asset];
+        uint256 fundRequestIdsLength = fundRequests[asset].length;
 
-        for (uint256 j = startingFundRequestId[asset]; j < fundRequests[asset].length; j++) {
+        uint256 length;
+
+        for (uint256 j = startingIndex; j < fundRequestIdsLength; j++) {
             FundRequest memory fundRequest = fundRequests[asset][j];
 
-            if (
-                (
-                    fundRequest.status == StatusEnum.PENDING ||
-                    fundRequest.status == StatusEnum.PARTIAL
-                ) &&
-                fundRequest.ilk == ilk
-            ) {
+            if (_isActiveRequest(fundRequest.status) && fundRequest.ilk == ilk) length++;
+        }
+
+        require(length != 0, "Conduit/no-active-fund-requests");
+
+        fundRequestIds = new uint256[](length);
+
+        uint256 i;
+
+        for (uint256 j = startingIndex; j < fundRequestIdsLength; j++) {
+            FundRequest memory fundRequest = fundRequests[asset][j];
+
+            if (_isActiveRequest(fundRequest.status) && fundRequest.ilk == ilk) {
                 fundRequestIds[i++] = j;
 
                 totalRequested += fundRequest.amountRequested;
@@ -246,6 +254,14 @@ contract ArrangerConduit is IArrangerConduit {
                 totalFilled    += fundRequest.amountFilled;
             }
         }
+    }
+
+    /**********************************************************************************************/
+    /*** Internal Functions                                                                     ***/
+    /**********************************************************************************************/
+
+    function _isActiveRequest(StatusEnum status) internal view returns (bool) {
+        return status == StatusEnum.PENDING || status == StatusEnum.PARTIAL;
     }
 
 }
