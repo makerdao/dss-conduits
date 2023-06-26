@@ -3,6 +3,8 @@ pragma solidity ^0.8.13;
 
 import { console2 as console } from "../lib/forge-std/src/console2.sol";
 
+import { NonTransparentProxied } from "../lib/non-transparent-proxy/contracts/NonTransparentProxied.sol";
+
 // import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
 // TODO: Add and test Router ACL
@@ -14,7 +16,7 @@ interface ERC20Like {
     function transferFrom(address src, address dst, uint wad) external returns (bool);
 }
 
-contract ArrangerConduit /*is IArrangerConduit*/ {
+contract ArrangerConduit is NonTransparentProxied /*is IArrangerConduit*/ {
 
     /**
      *  @dev   Struct representing a fund request.
