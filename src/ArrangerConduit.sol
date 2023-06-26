@@ -16,8 +16,6 @@ interface ERC20Like {
 
 contract ArrangerConduit /*is IArrangerConduit*/ {
 
-
-
     /**
      *  @dev   Struct representing a fund request.
      *  @param status          The current status of the fund request.
@@ -160,7 +158,12 @@ contract ArrangerConduit /*is IArrangerConduit*/ {
         require(ERC20Like(asset).transfer(fundManager, amount), "Conduit/transfer-failed");
     }
 
-    function returnFunds(address asset, uint256 returnAmount) external /*override*/ isFundManager {
+    // Discuss with Sam best approach
+    // Do we do returns on a fund request basis?
+    // Do we loop through an ilk/asset array of fund requests and fill as much as possible?
+    // How do we account for gains/losses in the above scenario?
+
+    function returnFunds(bytes32 ilk, address asset, uint256 returnAmount) external /*override*/ isFundManager {
         outstandingPrincipal[asset] -= returnAmount;
 
         uint256 fundsRemaining = returnAmount;
