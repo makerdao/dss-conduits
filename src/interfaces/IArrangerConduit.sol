@@ -64,6 +64,7 @@ interface IArrangerConduit is IAllocatorConduit {
     /**
      *  @dev   Struct representing a fund request.
      *  @param status          The current status of the fund request.
+     *  @param asset           The address of the asset requested in the fund request.
      *  @param ilk             The unique identifier of the ilk.
      *  @param amountRequested The amount of asset requested in the fund request.
      *  @param amountFilled    The amount of asset filled in the fund request.
@@ -71,6 +72,7 @@ interface IArrangerConduit is IAllocatorConduit {
      */
     struct FundRequest {
         StatusEnum status;
+        address    asset;
         bytes32    ilk;
         uint256    amountRequested;
         uint256    amountFilled;
@@ -103,9 +105,9 @@ interface IArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev    Returns the fund manager address.
-     *  @return fundManager_ The address of the fund manager.
+     *  @return arranger_ The address of the fund manager.
      */
-    function fundManager() external view returns (address fundManager_);
+    function arranger() external view returns (address arranger_);
 
     /**
      *  @dev    Returns the total deposits for a given asset.
@@ -173,11 +175,9 @@ interface IArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev   Function to cancel a withdrawal request from a Arranger.
-     *  @param asset         The asset to cancel the fund request for.
-     *  @param ilk           The unique identifier for a particular ilk.
      *  @param fundRequestId The ID of the withdrawal request.
      */
-    function cancelFundRequest(bytes32 ilk, address asset, uint256 fundRequestId) external;
+    function cancelFundRequest(uint256 fundRequestId) external;
 
     /**********************************************************************************************/
     /*** Arranger Functions                                                                     ***/
@@ -186,11 +186,10 @@ interface IArrangerConduit is IAllocatorConduit {
     /**
      * @notice Draw funds from the contract to the Arranger.
      * @dev    Only the Arranger is authorized to call this function.
-     * @param  ilk    The unique identifier for a particular ilk.
      * @param  asset  The ERC20 token contract address from which funds are being drawn.
      * @param  amount The amount of tokens to be drawn.
      */
-    function drawFunds(bytes32 ilk, address asset, uint256 amount) external;
+    function drawFunds(address asset, uint256 amount) external;
 
     /**
      * @notice Return funds (principal only) from the Arranger back to the contract.
@@ -209,12 +208,9 @@ interface IArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev    Function to check if a withdrawal request can be cancelled.
-     *  @param  ilk            The unique identifier for a particular ilk.
-     *  @param  asset          The asset to check.
      *  @param  fundRequestId  The ID of the withdrawal request.
      *  @return isCancelable_  True if the withdrawal request can be cancelled, false otherwise.
      */
-    function isCancelable(bytes32 ilk, address asset, uint256 fundRequestId)
-        external view returns (bool isCancelable_);
+    function isCancelable(uint256 fundRequestId) external view returns (bool isCancelable_);
 
 }

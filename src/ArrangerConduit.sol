@@ -19,7 +19,8 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     address public override admin;
-    address public override fundManager;
+    address public override arranger;
+    address public          roles;
 
     mapping(address => uint256) public override totalDeposits;
     mapping(address => uint256) public override totalRequestedFunds;
@@ -29,11 +30,12 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
 
-    mapping(bytes32 => mapping(address => FundRequest[])) public fundRequests;
+    FundRequest[] public fundRequests;  // TODO: Refactor functions to use this
 
-    constructor(address admin_, address fundManager_) {
-        admin       = admin_;
-        fundManager = fundManager_;
+    constructor(address admin_, address arranger_, address roles_) {
+        admin    = admin_;
+        arranger = arranger_;
+        roles    = roles_;
     }
 
     /**********************************************************************************************/
@@ -46,7 +48,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     modifier isFundManager {
-        // require(msg.sender == fundManager, "Conduit/not-fund-manager");
+        // require(msg.sender == arranger, "Conduit/not-fund-manager");
         _;
     }
 
@@ -55,8 +57,8 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     function deposit(bytes32 ilk, address asset, uint256 amount) external override {
-        deposits[ilk][asset] += amount;
-        totalDeposits[asset] += amount;
+        deposits[ilk][asset] += amount;  // TODO: Change them to cumulative
+        totalDeposits[asset] += amount;  // TODO: Keep totals
 
         // TODO: Use ERC20Helper
         require(
@@ -66,11 +68,13 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
-        external override
+        external override returns (uint256 actualWithdrawAmount)
     {
         // TODO: Ensure withdrawers cant withdraw from deposits
         withdrawableFunds[ilk][asset] -= withdrawAmount;
         totalWithdrawableFunds[asset] -= withdrawAmount;
+
+        actualWithdrawAmount = withdrawAmount;
 
         // TODO: Do lookup from ilk => buffer
         require(
@@ -82,10 +86,11 @@ contract ArrangerConduit is IArrangerConduit {
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)
         external override returns (uint256 fundRequestId)
     {
-        fundRequestId = fundRequests[ilk][asset].length;  // Current length will be the next index
+        fundRequestId = fundRequests.length;  // Current length will be the next index
 
-        fundRequests[ilk][asset].push(FundRequest({
+        fundRequests.push(FundRequest({
             status:          StatusEnum.PENDING,
+            asset:           asset,
             ilk:             ilk,
             amountRequested: amount,
             amountFilled:    0,
@@ -96,32 +101,33 @@ contract ArrangerConduit is IArrangerConduit {
         totalRequestedFunds[asset] += amount;
     }
 
-    function cancelFundRequest(bytes32 ilk, address asset, uint256 fundRequestId)
-        external override
-    {
+    function cancelFundRequest(uint256 fundRequestId) external override {
         // TODO: Should we allow the arranger to cancel?
-        delete fundRequests[ilk][asset][fundRequestId];
+        delete fundRequests[fundRequestId];
     }
 
     /**********************************************************************************************/
     /*** Fund Manager Functions                                                                 ***/
     /**********************************************************************************************/
 
-    function drawFunds(bytes32 ilk, address asset, uint256 amount) external override isFundManager {
-        deposits[ilk][asset] -= amount;
-        totalDeposits[asset] -= amount;
+    function drawFunds(address asset, uint256 amount) external override isFundManager {
+        require(
+            ERC20Like(asset).balanceOf(address(this)) >= (amount - totalWithdrawableFunds[asset]),
+            "Conduit/insufficient-funds"
+        );
 
-        require(ERC20Like(asset).transfer(fundManager, amount), "Conduit/transfer-failed");
+        require(ERC20Like(asset).transfer(arranger, amount), "Conduit/transfer-failed");
     }
 
-    // TODO: Should we add (principal, interest, losses) and just emit as an event?
+    // TODO: Only full requests are fulfilled, meaning discrepancies between requested and filled are slippage
+    // TODO: Determine if any additional events data is desired
     function returnFunds(bytes32 ilk, address asset, uint256 fundRequestId, uint256 returnAmount)
         external override isFundManager
     {
         withdrawableFunds[ilk][asset] += returnAmount;
         totalWithdrawableFunds[asset] += returnAmount;
 
-        FundRequest storage fundRequest = fundRequests[ilk][asset][fundRequestId];
+        FundRequest storage fundRequest = fundRequests[fundRequestId];
 
         // TODO: Should we add info to the fund request itself?
         fundRequest.amountFilled += returnAmount;
@@ -131,7 +137,7 @@ contract ArrangerConduit is IArrangerConduit {
             : StatusEnum.PARTIAL;
 
         require(
-            ERC20Like(asset).transferFrom(fundManager, address(this), returnAmount),
+            ERC20Like(asset).transferFrom(arranger, address(this), returnAmount),
             "Conduit/transfer-failed"
         );
     }
@@ -153,18 +159,12 @@ contract ArrangerConduit is IArrangerConduit {
         maxWithdraw_ = withdrawableFunds[ilk][asset];
     }
 
-    function isCancelable(bytes32 ilk, address asset, uint256 fundRequestId)
+    function isCancelable(uint256 fundRequestId)
         external override view returns (bool isCancelable_)
     {
-        isCancelable_ = _isActiveRequest(fundRequests[ilk][asset][fundRequestId].status);
-    }
+        StatusEnum status = fundRequests[fundRequestId].status;
 
-    /**********************************************************************************************/
-    /*** Internal Functions                                                                     ***/
-    /**********************************************************************************************/
-
-    function _isActiveRequest(StatusEnum status) internal pure returns (bool) {
-        return status == StatusEnum.PENDING || status == StatusEnum.PARTIAL;
+        isCancelable_ = status == StatusEnum.PENDING || status == StatusEnum.PARTIAL;
     }
 
 }
