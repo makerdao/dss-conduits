@@ -121,8 +121,14 @@ contract ArrangerConduit is IArrangerConduit {
         withdrawableFunds[ilk][asset] += returnAmount;
         totalWithdrawableFunds[asset] += returnAmount;
 
+        FundRequest storage fundRequest = fundRequests[ilk][asset][fundRequestId];
+
         // TODO: Should we add info to the fund request itself?
-        fundRequests[ilk][asset][fundRequestId].amountFilled += returnAmount;
+        fundRequest.amountFilled += returnAmount;
+
+        fundRequest.status = fundRequest.amountFilled == fundRequest.amountRequested
+            ? StatusEnum.COMPLETED
+            : StatusEnum.PARTIAL;
 
         require(
             ERC20Like(asset).transferFrom(fundManager, address(this), returnAmount),
