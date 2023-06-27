@@ -25,9 +25,9 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(address => uint256) public override totalRequestedFunds;
     mapping(address => uint256) public override totalWithdrawableFunds;
 
-    mapping(bytes32 => mapping(address => uint256)) public /*override*/ deposits;
-    mapping(bytes32 => mapping(address => uint256)) public /*override*/ requestedFunds;
-    mapping(bytes32 => mapping(address => uint256)) public /*override*/ withdrawableFunds;
+    mapping(bytes32 => mapping(address => uint256)) public override deposits;
+    mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
+    mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
 
     mapping(bytes32 => mapping(address => FundRequest[])) public fundRequests;
 
@@ -54,7 +54,7 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Router Functions                                                                       ***/
     /**********************************************************************************************/
 
-    function deposit(bytes32 ilk, address asset, uint256 amount) external /*override*/ {
+    function deposit(bytes32 ilk, address asset, uint256 amount) external override {
         deposits[ilk][asset] += amount;
         totalDeposits[asset] += amount;
 
@@ -66,7 +66,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
-        external /*override*/
+        external override
     {
         // TODO: Ensure withdrawers cant withdraw from deposits
         withdrawableFunds[ilk][asset] -= withdrawAmount;
@@ -80,7 +80,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)
-        external /*override*/ returns (uint256 fundRequestId)
+        external override returns (uint256 fundRequestId)
     {
         fundRequestId = fundRequests[ilk][asset].length;  // Current length will be the next index
 
@@ -96,7 +96,7 @@ contract ArrangerConduit is IArrangerConduit {
         totalRequestedFunds[asset] += amount;
     }
 
-    function cancelFundRequest(bytes32 ilk, address asset, uint256 fundRequestId) external /*override*/ {
+    function cancelFundRequest(bytes32 ilk, address asset, uint256 fundRequestId) external override {
         // TODO: Should we allow the arranger to cancel?
         delete fundRequests[ilk][asset][fundRequestId];
     }
@@ -105,7 +105,7 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Fund Manager Functions                                                                 ***/
     /**********************************************************************************************/
 
-    function drawFunds(bytes32 ilk, address asset, uint256 amount) external /*override*/ isFundManager {
+    function drawFunds(bytes32 ilk, address asset, uint256 amount) external override isFundManager {
         deposits[ilk][asset] -= amount;
         totalDeposits[asset] -= amount;
 
@@ -114,7 +114,7 @@ contract ArrangerConduit is IArrangerConduit {
 
     // TODO: Should we add (principal, interest, losses) and just emit as an event?
     function returnFunds(bytes32 ilk, address asset, uint256 fundRequestId, uint256 returnAmount)
-        external /*override*/ isFundManager
+        external override isFundManager
     {
         withdrawableFunds[ilk][asset] += returnAmount;
         totalWithdrawableFunds[asset] += returnAmount;
@@ -133,18 +133,18 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     function maxDeposit(bytes32 ilk, address asset)
-        external /*override*/ pure returns (uint256 maxDeposit_)
+        external override pure returns (uint256 maxDeposit_)
     {
         ilk; asset;  // Silence warnings
         maxDeposit_ = type(uint256).max;
     }
 
-    function maxWithdraw(bytes32 ilk, address asset) external /*override*/ view returns (uint256 maxWithdraw_) {
+    function maxWithdraw(bytes32 ilk, address asset) external override view returns (uint256 maxWithdraw_) {
         maxWithdraw_ = withdrawableFunds[ilk][asset];
     }
 
     function isCancelable(bytes32 ilk, address asset, uint256 fundRequestId)
-        external /*override*/ view returns (bool isCancelable_)
+        external override view returns (bool isCancelable_)
     {
         isCancelable_ = _isActiveRequest(fundRequests[ilk][asset][fundRequestId].status);
     }
