@@ -96,7 +96,9 @@ contract ArrangerConduit is IArrangerConduit {
         totalRequestedFunds[asset] += amount;
     }
 
-    function cancelFundRequest(bytes32 ilk, address asset, uint256 fundRequestId) external override {
+    function cancelFundRequest(bytes32 ilk, address asset, uint256 fundRequestId)
+        external override
+    {
         // TODO: Should we allow the arranger to cancel?
         delete fundRequests[ilk][asset][fundRequestId];
     }
@@ -139,7 +141,9 @@ contract ArrangerConduit is IArrangerConduit {
         maxDeposit_ = type(uint256).max;
     }
 
-    function maxWithdraw(bytes32 ilk, address asset) external override view returns (uint256 maxWithdraw_) {
+    function maxWithdraw(bytes32 ilk, address asset)
+        external override view returns (uint256 maxWithdraw_)
+    {
         maxWithdraw_ = withdrawableFunds[ilk][asset];
     }
 

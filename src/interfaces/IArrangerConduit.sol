@@ -30,7 +30,7 @@ interface IArrangerConduit is IAllocatorConduit {
         uint256 amount,
         bytes   data,
         uint256 fundRequestId
-);
+    );
 
     /**
      *  @dev   Event emitted when a fund request is cancelled.
