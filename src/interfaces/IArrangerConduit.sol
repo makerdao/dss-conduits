@@ -194,12 +194,10 @@ interface IArrangerConduit is IAllocatorConduit {
     /**
      * @notice Return funds (principal only) from the Arranger back to the contract.
      * @dev    Only the Arranger is authorized to call this function.
-     * @param  asset         The ERC20 token contract address of the funds being returned.
-     * @param  ilk           The unique identifier for a particular ilk.
      * @param  fundRequestId The ID of the withdrawal request.
      * @param  amount        The amount of tokens to be returned.
      */
-    function returnFunds(bytes32 ilk, address asset, uint256 fundRequestId, uint256 amount)
+    function returnFunds(uint256 fundRequestId, uint256 amount)
         external;
 
     /**********************************************************************************************/

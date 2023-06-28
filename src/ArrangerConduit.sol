@@ -26,7 +26,7 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(address => uint256) public override totalRequestedFunds;
     mapping(address => uint256) public override totalWithdrawableFunds;
 
-    mapping(bytes32 => mapping(address => uint256)) public override deposits;
+    mapping(bytes32 => mapping(address => uint256)) public override deposits;  // Should this be cumulative or be reduced on withdraw?
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
 
@@ -57,8 +57,8 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     function deposit(bytes32 ilk, address asset, uint256 amount) external override {
-        deposits[ilk][asset] += amount;  // TODO: Change them to cumulative
-        totalDeposits[asset] += amount;  // TODO: Keep totals
+        deposits[ilk][asset] += amount;
+        totalDeposits[asset] += amount;
 
         // TODO: Use ERC20Helper
         require(
@@ -70,9 +70,11 @@ contract ArrangerConduit is IArrangerConduit {
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
         external override returns (uint256 actualWithdrawAmount)
     {
-        // TODO: Ensure withdrawers cant withdraw from deposits
         withdrawableFunds[ilk][asset] -= withdrawAmount;
         totalWithdrawableFunds[asset] -= withdrawAmount;
+
+        deposits[ilk][asset] -= withdrawAmount;
+        totalDeposits[asset] -= withdrawAmount;
 
         actualWithdrawAmount = withdrawAmount;
 
@@ -119,17 +121,14 @@ contract ArrangerConduit is IArrangerConduit {
         require(ERC20Like(asset).transfer(arranger, amount), "Conduit/transfer-failed");
     }
 
-    // TODO: Only full requests are fulfilled, meaning discrepancies between requested and filled are slippage
-    // TODO: Determine if any additional events data is desired
-    function returnFunds(bytes32 ilk, address asset, uint256 fundRequestId, uint256 returnAmount)
+    function returnFunds(uint256 fundRequestId, uint256 returnAmount)
         external override isFundManager
     {
-        withdrawableFunds[ilk][asset] += returnAmount;
-        totalWithdrawableFunds[asset] += returnAmount;
+        FundRequest memory fundRequest = fundRequests[fundRequestId];
 
-        FundRequest storage fundRequest = fundRequests[fundRequestId];
+        withdrawableFunds[fundRequest.ilk][fundRequest.asset] += returnAmount;
+        totalWithdrawableFunds[fundRequest.asset]             += returnAmount;
 
-        // TODO: Should we add info to the fund request itself?
         fundRequest.amountFilled += returnAmount;
 
         fundRequest.status = fundRequest.amountFilled == fundRequest.amountRequested
@@ -137,7 +136,7 @@ contract ArrangerConduit is IArrangerConduit {
             : StatusEnum.PARTIAL;
 
         require(
-            ERC20Like(asset).transferFrom(arranger, address(this), returnAmount),
+            ERC20Like(fundRequest.asset).transferFrom(arranger, address(this), returnAmount),
             "Conduit/transfer-failed"
         );
     }
