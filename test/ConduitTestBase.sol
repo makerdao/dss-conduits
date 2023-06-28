@@ -12,13 +12,14 @@ import { ArrangerConduit }  from "../src/ArrangerConduit.sol";
 
 contract ConduitTestBase is Test {
 
-    address admin       = makeAddr("admin");
-    address fundManager = makeAddr("fundManager");
+    address admin    = makeAddr("admin");
+    address arranger = makeAddr("arranger");
+    address roles    = makeAddr("roles");
 
     ArrangerConduit conduit;
 
     function setUp() public virtual {
-        conduit = new ArrangerConduit(admin, fundManager);
+        conduit = new ArrangerConduit(admin, arranger, roles);
     }
 
 }
@@ -40,7 +41,7 @@ contract ConduitAssetTestBase is ConduitTestBase {
 
         conduit.deposit(ilk_, address(asset_), amount);
 
-        vm.startPrank(fundManager);
+        vm.startPrank(arranger);
         conduit.drawFunds(address(asset_), amount);
 
         uint256 allowance = asset.allowance(address(this), address(conduit));

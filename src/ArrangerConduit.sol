@@ -47,7 +47,7 @@ contract ArrangerConduit is IArrangerConduit {
         _;
     }
 
-    modifier isFundManager {
+    modifier isArranger {
         // require(msg.sender == arranger, "Conduit/not-fund-manager");
         _;
     }
@@ -112,7 +112,7 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Fund Manager Functions                                                                 ***/
     /**********************************************************************************************/
 
-    function drawFunds(address asset, uint256 amount) external override isFundManager {
+    function drawFunds(address asset, uint256 amount) external override isArranger {
         require(
             ERC20Like(asset).balanceOf(address(this)) >= (amount - totalWithdrawableFunds[asset]),
             "Conduit/insufficient-funds"
@@ -122,7 +122,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function returnFunds(uint256 fundRequestId, uint256 returnAmount)
-        external override isFundManager
+        external override isArranger
     {
         FundRequest memory fundRequest = fundRequests[fundRequestId];
 
