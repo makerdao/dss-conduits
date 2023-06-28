@@ -5,6 +5,7 @@ import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
 // TODO: Add and test Router ACL
 // TODO: Add events
+// TODO: Add cumulative withdrawals
 
 interface ERC20Like {
     function balanceOf(address src) external view returns (uint256 wad);
@@ -26,9 +27,9 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(address => uint256) public override totalRequestedFunds;
     mapping(address => uint256) public override totalWithdrawableFunds;
 
-    mapping(bytes32 => mapping(address => uint256)) public override deposits;  // Should this be cumulative or be reduced on withdraw?
+    mapping(bytes32 => mapping(address => uint256)) public override deposits;
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
-    mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;  // TODO: Add cumulative withdrawals
+    mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
 
     FundRequest[] public fundRequests;  // TODO: Refactor functions to use this
 
