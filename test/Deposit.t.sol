@@ -66,16 +66,16 @@ contract Conduit_DepositTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(this)),    100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.positions(ilk, address(asset)), 0);
-        assertEq(conduit.totalPositions(address(asset)), 0);
+        assertEq(conduit.deposits(ilk, address(asset)), 0);
+        assertEq(conduit.totalDeposits(address(asset)), 0);
 
         conduit.deposit(ilk, address(asset), 100);
 
         assertEq(asset.balanceOf(address(this)),    0);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.positions(ilk, address(asset)), 100);
-        assertEq(conduit.totalPositions(address(asset)), 100);
+        assertEq(conduit.deposits(ilk, address(asset)), 100);
+        assertEq(conduit.totalDeposits(address(asset)), 100);
     }
 
     function testFuzz_deposit_singleIlk(uint256 amount) external {
@@ -85,16 +85,16 @@ contract Conduit_DepositTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(this)),    amount);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.positions(ilk, address(asset)), 0);
-        assertEq(conduit.totalPositions(address(asset)), 0);
+        assertEq(conduit.deposits(ilk, address(asset)), 0);
+        assertEq(conduit.totalDeposits(address(asset)), 0);
 
         conduit.deposit(ilk, address(asset), amount);
 
         assertEq(asset.balanceOf(address(this)),    0);
         assertEq(asset.balanceOf(address(conduit)), amount);
 
-        assertEq(conduit.positions(ilk, address(asset)), amount);
-        assertEq(conduit.totalPositions(address(asset)), amount);
+        assertEq(conduit.deposits(ilk, address(asset)), amount);
+        assertEq(conduit.totalDeposits(address(asset)), amount);
     }
 
     function test_deposit_multiIlk() external {
@@ -108,27 +108,27 @@ contract Conduit_DepositTest is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(this)),    400);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.positions(ilk1, address(asset)), 0);
-        assertEq(conduit.positions(ilk2, address(asset)), 0);
-        assertEq(conduit.totalPositions(address(asset)),  0);
+        assertEq(conduit.deposits(ilk1, address(asset)), 0);
+        assertEq(conduit.deposits(ilk2, address(asset)), 0);
+        assertEq(conduit.totalDeposits(address(asset)),  0);
 
         conduit.deposit(ilk1, address(asset), 100);
 
         assertEq(asset.balanceOf(address(this)),    300);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.positions(ilk1, address(asset)), 100);
-        assertEq(conduit.positions(ilk2, address(asset)), 0);
-        assertEq(conduit.totalPositions(address(asset)),  100);
+        assertEq(conduit.deposits(ilk1, address(asset)), 100);
+        assertEq(conduit.deposits(ilk2, address(asset)), 0);
+        assertEq(conduit.totalDeposits(address(asset)),  100);
 
         conduit.deposit(ilk2, address(asset), 300);
 
         assertEq(asset.balanceOf(address(this)),    0);
         assertEq(asset.balanceOf(address(conduit)), 400);
 
-        assertEq(conduit.positions(ilk1, address(asset)), 100);
-        assertEq(conduit.positions(ilk2, address(asset)), 300);
-        assertEq(conduit.totalPositions(address(asset)),  400);
+        assertEq(conduit.deposits(ilk1, address(asset)), 100);
+        assertEq(conduit.deposits(ilk2, address(asset)), 300);
+        assertEq(conduit.totalDeposits(address(asset)),  400);
     }
 
     // TODO: Fuzz test multiIlk multiAsset
