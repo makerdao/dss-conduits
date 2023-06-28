@@ -40,6 +40,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
+
+        _assertInvariants(ilk, address(asset));
     }
 
     function test_requestFunds_multiIlk_singleRequest_singleAsset() public {
@@ -102,6 +104,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(conduit.requestedFunds(ilk2, address(asset)), 60);
         assertEq(conduit.totalRequestedFunds(address(asset)),  100);
+
+        _assertInvariants(ilk1, ilk2, address(asset));
     }
 
     // NOTE: Removing all struct-level assertions for below tests since they have been adequately
@@ -128,6 +132,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
+
+        _assertInvariants(ilk, address(asset));
     }
 
     function test_requestFunds_singleIlk_singleRequest_multiAsset() public {
@@ -162,6 +168,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(conduit.requestedFunds(ilk, address(asset2)), 300);
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 300);
+
+        _assertInvariants(ilk, address(asset1));
+        _assertInvariants(ilk, address(asset2));
     }
 
     function test_requestFunds_multiIlk_multiRequest_multiAsset() public {
@@ -194,6 +203,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(conduit.totalRequestedFunds(address(asset1)), 0);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 0);
 
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
+
         // Request Funds for asset1 ilk1
 
         uint256 returnFundRequestId = conduit.requestFunds(ilk1, address(asset1), 40, "info");
@@ -207,6 +219,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 40);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 0);
+
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
 
         // Request Funds for asset1 ilk2
 
@@ -222,6 +237,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 0);
 
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
+
         // Request Funds for asset2 ilk1
 
         returnFundRequestId = conduit.requestFunds(ilk1, address(asset2), 100, "info");
@@ -236,6 +254,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 100);
 
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
+
         // Request Funds for asset2 ilk2
 
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset2), 300, "info");
@@ -249,6 +270,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 400);
+
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
 
         asset1.mint(address(this), 100);
         asset2.mint(address(this), 400);
@@ -279,6 +303,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(conduit.totalRequestedFunds(address(asset1)), 140);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 400);
 
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
+
         // Request Funds for asset1 ilk2
 
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset1), 60, "info");
@@ -292,6 +319,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 200);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 400);
+
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
 
         // Request Funds for asset2 ilk1
 
@@ -307,6 +337,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         assertEq(conduit.totalRequestedFunds(address(asset1)), 200);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 500);
 
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
+
         // Request Funds for asset2 ilk2
 
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset2), 300, "info");
@@ -320,6 +353,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 200);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 800);
+
+        _assertInvariants(ilk1, ilk2, address(asset1));
+        _assertInvariants(ilk1, ilk2, address(asset2));
     }
 
 }

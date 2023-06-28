@@ -28,7 +28,7 @@ contract ArrangerConduit is IArrangerConduit {
 
     mapping(bytes32 => mapping(address => uint256)) public override deposits;  // Should this be cumulative or be reduced on withdraw?
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
-    mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
+    mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;  // TODO: Add cumulative withdrawals
 
     FundRequest[] public fundRequests;  // TODO: Refactor functions to use this
 
@@ -72,9 +72,6 @@ contract ArrangerConduit is IArrangerConduit {
     {
         withdrawableFunds[ilk][asset] -= withdrawAmount;
         totalWithdrawableFunds[asset] -= withdrawAmount;
-
-        deposits[ilk][asset] -= withdrawAmount;
-        totalDeposits[asset] -= withdrawAmount;
 
         actualWithdrawAmount = withdrawAmount;
 

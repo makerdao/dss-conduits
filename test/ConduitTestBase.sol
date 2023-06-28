@@ -51,4 +51,27 @@ contract ConduitAssetTestBase is ConduitTestBase {
         vm.stopPrank();
     }
 
+    function _assertInvariants(bytes32 ilk_, address asset_) internal {
+        _assertInvariants(ilk_, "", asset_);
+    }
+
+    function _assertInvariants(bytes32 ilk1, bytes32 ilk2, address asset_) internal {
+        uint256 totalSupply = MockERC20(asset_).totalSupply();
+
+        assertEq(
+            MockERC20(asset_).balanceOf(arranger) + MockERC20(asset_).balanceOf(address(conduit)),
+            totalSupply
+        );
+
+        assertEq(
+            conduit.totalWithdrawableFunds(asset_),
+            conduit.withdrawableFunds(ilk1, asset_) + conduit.withdrawableFunds(ilk2, asset_)
+        );
+
+        assertEq(
+            conduit.totalRequestedFunds(asset_),
+            conduit.requestedFunds(ilk1, asset_) + conduit.requestedFunds(ilk2, asset_)
+        );
+    }
+
 }
