@@ -19,7 +19,7 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
     }
 
     function test_returnFunds_noRequests() external {
-        vm.startPrank(fundManager);
+        vm.startPrank(arranger);
 
         asset.mint(address(conduit), 100);
 
@@ -27,22 +27,20 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         asset.approve(address(conduit), 100);
 
-        assertEq(asset.balanceOf(fundManager),      100);
+        assertEq(asset.balanceOf(arranger),         100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  100);
-        assertEq(conduit.totalWithdrawable(address(asset)),     0);
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     0);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      0);
         assertEq(conduit.startingFundRequestId(address(asset)), 0);
 
         conduit.returnFunds(address(asset), 100);
 
-        assertEq(asset.balanceOf(fundManager),      0);
+        assertEq(asset.balanceOf(arranger),         0);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  0);
-        assertEq(conduit.totalWithdrawable(address(asset)),     0);  // No requests, can draw funds again
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     0);  // No requests, can draw funds again
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      0);
         assertEq(conduit.startingFundRequestId(address(asset)), 0);
 
         conduit.drawFunds(address(asset), 100);  // Draw funds to demonstrate
@@ -54,7 +52,7 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), 100);
 
-        vm.startPrank(fundManager);
+        vm.startPrank(arranger);
 
         conduit.drawFunds(address(asset), 100);
 
@@ -75,12 +73,11 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(amountRequested, 100);
         assertEq(amountFilled,    0);
 
-        assertEq(asset.balanceOf(fundManager),      100);
+        assertEq(asset.balanceOf(arranger),         100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  100);
-        assertEq(conduit.totalWithdrawable(address(asset)),     0);
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     0);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      0);
         assertEq(conduit.startingFundRequestId(address(asset)), 0);
 
         conduit.returnFunds(address(asset), 100);
@@ -98,12 +95,11 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(amountRequested, 100);
         assertEq(amountFilled,    100);
 
-        assertEq(asset.balanceOf(fundManager),      0);
+        assertEq(asset.balanceOf(arranger),         0);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  0);
-        assertEq(conduit.totalWithdrawable(address(asset)),     100);
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      100);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     100);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      100);
         assertEq(conduit.startingFundRequestId(address(asset)), 1);
     }
 
@@ -113,7 +109,7 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), 100);
 
-        vm.startPrank(fundManager);
+        vm.startPrank(arranger);
 
         conduit.drawFunds(address(asset), 100);
 
@@ -134,12 +130,11 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(amountRequested, 100);
         assertEq(amountFilled,    0);
 
-        assertEq(asset.balanceOf(fundManager),      100);
+        assertEq(asset.balanceOf(arranger),         100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  100);
-        assertEq(conduit.totalWithdrawable(address(asset)),     0);
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     0);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      0);
         assertEq(conduit.startingFundRequestId(address(asset)), 0);
 
         conduit.returnFunds(address(asset), 40);
@@ -157,12 +152,11 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(amountRequested, 100);
         assertEq(amountFilled,    40);
 
-        assertEq(asset.balanceOf(fundManager),      60);
+        assertEq(asset.balanceOf(arranger),         60);
         assertEq(asset.balanceOf(address(conduit)), 40);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  60);
-        assertEq(conduit.totalWithdrawable(address(asset)),     40);
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      40);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     40);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      40);
         assertEq(conduit.startingFundRequestId(address(asset)), 0);
     }
 
@@ -172,7 +166,7 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), 100);
 
-        vm.startPrank(fundManager);
+        vm.startPrank(arranger);
 
         conduit.drawFunds(address(asset), 100);
 
@@ -201,12 +195,11 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(amountRequested, 80);
         assertEq(amountFilled,    0);
 
-        assertEq(asset.balanceOf(fundManager),      100);
+        assertEq(asset.balanceOf(arranger),         100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  100);
-        assertEq(conduit.totalWithdrawable(address(asset)),     0);
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     0);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      0);
         assertEq(conduit.startingFundRequestId(address(asset)), 0);
 
         conduit.returnFunds(address(asset), 60);
@@ -225,12 +218,11 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(amountRequested, 80);
         assertEq(amountFilled,    40);
 
-        assertEq(asset.balanceOf(fundManager),      40);
+        assertEq(asset.balanceOf(arranger),         40);
         assertEq(asset.balanceOf(address(conduit)), 60);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  40);
-        assertEq(conduit.totalWithdrawable(address(asset)),     60);
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      60);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     60);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      60);
         assertEq(conduit.startingFundRequestId(address(asset)), 1);
     }
 
@@ -244,7 +236,7 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         conduit.deposit(ilk1, address(asset), 40);
         conduit.deposit(ilk2, address(asset), 60);
 
-        vm.startPrank(fundManager);
+        vm.startPrank(arranger);
 
         conduit.drawFunds(address(asset), 100);
 
@@ -274,12 +266,11 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(amountRequested, 60);
         assertEq(amountFilled,    0);
 
-        assertEq(asset.balanceOf(fundManager),      100);
+        assertEq(asset.balanceOf(arranger),         100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  100);
-        assertEq(conduit.totalWithdrawable(address(asset)),     0);
-        assertEq(conduit.maxWithdraw(ilk, address(asset)),      0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     0);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)),      0);
         assertEq(conduit.startingFundRequestId(address(asset)), 0);
 
         conduit.returnFunds(address(asset), 70);
@@ -298,13 +289,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         assertEq(amountRequested, 60);
         assertEq(amountFilled,    30);
 
-        assertEq(asset.balanceOf(fundManager),      30);
+        assertEq(asset.balanceOf(arranger),      30);
         assertEq(asset.balanceOf(address(conduit)), 70);
 
-        assertEq(conduit.outstandingPrincipal(address(asset)),  30);
-        assertEq(conduit.totalWithdrawable(address(asset)),     70);
-        assertEq(conduit.maxWithdraw(ilk1, address(asset)),     40);
-        assertEq(conduit.maxWithdraw(ilk2, address(asset)),     30);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)),     70);
+        assertEq(conduit.withdrawableFunds(ilk1, address(asset)),     40);
+        assertEq(conduit.withdrawableFunds(ilk2, address(asset)),     30);
         assertEq(conduit.startingFundRequestId(address(asset)), 1);
     }
 
@@ -326,7 +316,7 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         conduit.deposit(ilk1, address(asset2), 100);
         conduit.deposit(ilk2, address(asset2), 300);
 
-        vm.startPrank(fundManager);
+        vm.startPrank(arranger);
 
         conduit.drawFunds(address(asset1), 100);
         conduit.drawFunds(address(asset2), 400);
@@ -373,13 +363,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         // Asset 1 general
 
-        assertEq(asset1.balanceOf(fundManager),      100);
+        assertEq(asset1.balanceOf(arranger),         100);
         assertEq(asset1.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.outstandingPrincipal(address(asset1)),  100);
-        assertEq(conduit.totalWithdrawable(address(asset1)),     0);
-        assertEq(conduit.maxWithdraw(ilk1, address(asset1)),     0);
-        assertEq(conduit.maxWithdraw(ilk2, address(asset1)),     0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),     0);
+        assertEq(conduit.withdrawableFunds(ilk1, address(asset1)),     0);
+        assertEq(conduit.withdrawableFunds(ilk2, address(asset1)),     0);
         assertEq(conduit.startingFundRequestId(address(asset1)), 0);
 
         // Ilk 1 asset 2
@@ -406,13 +395,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         // Asset 2 general
 
-        assertEq(asset1.balanceOf(fundManager),      100);
+        assertEq(asset1.balanceOf(arranger),         100);
         assertEq(asset1.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.outstandingPrincipal(address(asset2)),  400);
-        assertEq(conduit.totalWithdrawable(address(asset2)),     0);
-        assertEq(conduit.maxWithdraw(ilk1, address(asset2)),     0);
-        assertEq(conduit.maxWithdraw(ilk2, address(asset2)),     0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset2)),     0);
+        assertEq(conduit.withdrawableFunds(ilk1, address(asset2)),     0);
+        assertEq(conduit.withdrawableFunds(ilk2, address(asset2)),     0);
         assertEq(conduit.startingFundRequestId(address(asset2)), 0);
 
         /*******************************/
@@ -443,13 +431,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         // Asset 1 general
 
-        assertEq(asset1.balanceOf(fundManager),      30);
+        assertEq(asset1.balanceOf(arranger),         30);
         assertEq(asset1.balanceOf(address(conduit)), 70);
 
-        assertEq(conduit.outstandingPrincipal(address(asset1)),  30);
-        assertEq(conduit.totalWithdrawable(address(asset1)),     70);
-        assertEq(conduit.maxWithdraw(ilk1, address(asset1)),     40);
-        assertEq(conduit.maxWithdraw(ilk2, address(asset1)),     30);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),     70);
+        assertEq(conduit.withdrawableFunds(ilk1, address(asset1)),     40);
+        assertEq(conduit.withdrawableFunds(ilk2, address(asset1)),     30);
         assertEq(conduit.startingFundRequestId(address(asset1)), 1);
 
         // Ilk 1 asset 2 (no change)
@@ -474,13 +461,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         // Asset 2 general
 
-        assertEq(asset2.balanceOf(fundManager),      400);
+        assertEq(asset2.balanceOf(arranger),         400);
         assertEq(asset2.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.outstandingPrincipal(address(asset2)),  400);
-        assertEq(conduit.totalWithdrawable(address(asset2)),     0);
-        assertEq(conduit.maxWithdraw(ilk1, address(asset2)),     0);
-        assertEq(conduit.maxWithdraw(ilk2, address(asset2)),     0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset2)),     0);
+        assertEq(conduit.withdrawableFunds(ilk1, address(asset2)),     0);
+        assertEq(conduit.withdrawableFunds(ilk2, address(asset2)),     0);
         assertEq(conduit.startingFundRequestId(address(asset2)), 0);
 
         /*******************************/
@@ -511,13 +497,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         // Asset 1 general
 
-        assertEq(asset1.balanceOf(fundManager),      30);
+        assertEq(asset1.balanceOf(arranger),         30);
         assertEq(asset1.balanceOf(address(conduit)), 70);
 
-        assertEq(conduit.outstandingPrincipal(address(asset1)),  30);
-        assertEq(conduit.totalWithdrawable(address(asset1)),     70);
-        assertEq(conduit.maxWithdraw(ilk1, address(asset1)),     40);
-        assertEq(conduit.maxWithdraw(ilk2, address(asset1)),     30);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),     70);
+        assertEq(conduit.withdrawableFunds(ilk1, address(asset1)),     40);
+        assertEq(conduit.withdrawableFunds(ilk2, address(asset1)),     30);
         assertEq(conduit.startingFundRequestId(address(asset1)), 1);
 
         // Ilk 1 asset 2 (fully filled)
@@ -541,13 +526,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         // Asset 1 general
 
-        assertEq(asset2.balanceOf(fundManager),      250);
+        assertEq(asset2.balanceOf(arranger),         250);
         assertEq(asset2.balanceOf(address(conduit)), 150);
 
-        assertEq(conduit.outstandingPrincipal(address(asset2)),  250);
-        assertEq(conduit.totalWithdrawable(address(asset2)),     150);
-        assertEq(conduit.maxWithdraw(ilk1, address(asset2)),     100);
-        assertEq(conduit.maxWithdraw(ilk2, address(asset2)),     50);
+        assertEq(conduit.totalWithdrawableFunds(address(asset2)),     150);
+        assertEq(conduit.withdrawableFunds(ilk1, address(asset2)),     100);
+        assertEq(conduit.withdrawableFunds(ilk2, address(asset2)),     50);
         assertEq(conduit.startingFundRequestId(address(asset2)), 1);
     }
 
