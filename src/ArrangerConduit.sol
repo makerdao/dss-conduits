@@ -121,19 +121,27 @@ contract ArrangerConduit is IArrangerConduit {
         require(ERC20Like(asset).transfer(arranger, amount), "Conduit/transfer-failed");
     }
 
+    // TODO: Add ilk and asset input and add require check to prevent human error?
+    // TODO: Add require to check that request is pending
     function returnFunds(uint256 fundRequestId, uint256 returnAmount)
         external override isArranger
     {
-        FundRequest memory fundRequest = fundRequests[fundRequestId];
+        FundRequest storage fundRequest = fundRequests[fundRequestId];
 
-        withdrawableFunds[fundRequest.ilk][fundRequest.asset] += returnAmount;
-        totalWithdrawableFunds[fundRequest.asset]             += returnAmount;
+        address asset = fundRequest.asset;
+        bytes32 ilk   = fundRequest.ilk;
+
+        uint256 amountRequested = fundRequest.amountRequested;
+
+        withdrawableFunds[ilk][asset] += returnAmount;
+        totalWithdrawableFunds[asset] += returnAmount;
+
+        requestedFunds[ilk][asset] -= amountRequested;
+        totalRequestedFunds[asset] -= amountRequested;
 
         fundRequest.amountFilled += returnAmount;
 
-        fundRequest.status = fundRequest.amountFilled == fundRequest.amountRequested
-            ? StatusEnum.COMPLETED
-            : StatusEnum.PARTIAL;
+        fundRequest.status = StatusEnum.COMPLETED;
 
         require(
             ERC20Like(fundRequest.asset).transferFrom(arranger, address(this), returnAmount),
@@ -161,9 +169,7 @@ contract ArrangerConduit is IArrangerConduit {
     function isCancelable(uint256 fundRequestId)
         external override view returns (bool isCancelable_)
     {
-        StatusEnum status = fundRequests[fundRequestId].status;
-
-        isCancelable_ = status == StatusEnum.PENDING || status == StatusEnum.PARTIAL;
+        isCancelable_ = fundRequests[fundRequestId].status == StatusEnum.PENDING;
     }
 
 }

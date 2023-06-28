@@ -82,13 +82,11 @@ interface IArrangerConduit is IAllocatorConduit {
     /**
      *  @dev    Enum representing the status of a fund request.
      *  @notice PENDING   - The fund request has been made, but not yet processed.
-     *  @notice PARTIAL   - The fund request has been partially filled, but not yet completed.
      *  @notice CANCELLED - The fund request has been cancelled by the ilk.
      *  @notice COMPLETED - The fund request has been fully processed and completed.
      */
     enum StatusEnum {
         PENDING,
-        PARTIAL,
         CANCELLED,
         COMPLETED
     }
