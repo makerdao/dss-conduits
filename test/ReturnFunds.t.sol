@@ -161,26 +161,26 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         _assertInvariants(ilk, address(asset));
 
-        // conduit.returnFunds(0, 40);
+        conduit.returnFunds(0, 40);
 
-        // ( status,,, amountRequested, amountFilled, ) = conduit.fundRequests(0);
+        ( status,,, amountRequested, amountFilled, ) = conduit.fundRequests(0);
 
-        // assertTrue(status == IArrangerConduit.StatusEnum.COMPLETED);
+        assertTrue(status == IArrangerConduit.StatusEnum.COMPLETED);
 
-        // assertEq(amountRequested, 100);
-        // assertEq(amountFilled,    40);
+        assertEq(amountRequested, 100);
+        assertEq(amountFilled,    40);
 
-        // assertEq(asset.balanceOf(arranger),         60);
-        // assertEq(asset.balanceOf(address(conduit)), 40);
+        assertEq(asset.balanceOf(arranger),         60);
+        assertEq(asset.balanceOf(address(conduit)), 40);
 
-        // // Goes to zero because amount is reduced by requestedAmount even on partial fills
-        // assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
-        // assertEq(conduit.totalRequestedFunds(address(asset)), 0);
+        // Goes to zero because amount is reduced by requestedAmount even on partial fills
+        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.totalRequestedFunds(address(asset)), 0);
 
-        // assertEq(conduit.withdrawableFunds(ilk, address(asset)), 40);
-        // assertEq(conduit.totalWithdrawableFunds(address(asset)), 40);
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 40);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)), 40);
 
-        // _assertInvariants(ilk, address(asset));
+        _assertInvariants(ilk, address(asset));
     }
 
     // TODO: Write another test with second request getting filled first

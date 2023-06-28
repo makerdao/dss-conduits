@@ -26,10 +26,12 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(address => uint256) public override totalDeposits;
     mapping(address => uint256) public override totalRequestedFunds;
     mapping(address => uint256) public override totalWithdrawableFunds;
+    mapping(address => uint256) public          totalWithdrawals;
 
     mapping(bytes32 => mapping(address => uint256)) public override deposits;
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
+    mapping(bytes32 => mapping(address => uint256)) public          withdrawals;
 
     FundRequest[] public fundRequests;  // TODO: Refactor functions to use this
 
@@ -73,6 +75,9 @@ contract ArrangerConduit is IArrangerConduit {
     {
         withdrawableFunds[ilk][asset] -= withdrawAmount;
         totalWithdrawableFunds[asset] -= withdrawAmount;
+
+        withdrawals[ilk][asset] += withdrawAmount;
+        totalWithdrawals[asset] += withdrawAmount;
 
         actualWithdrawAmount = withdrawAmount;
 
