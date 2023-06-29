@@ -51,10 +51,7 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     modifier auth(bytes32 ilk) {
-        require(
-            RolesLike(roles).canCall(ilk, msg.sender, address(this), msg.sig),
-            "ArrangerConduit/not-authorized"
-        );
+        _checkAuth(ilk);
         _;
     }
 
@@ -123,11 +120,13 @@ contract ArrangerConduit is IArrangerConduit {
         emit RequestFunds(ilk, asset, fundRequestId, amount, info);
     }
 
-    function cancelFundRequest(uint256 fundRequestId) external override auth(ilk) {
+    function cancelFundRequest(uint256 fundRequestId) external override {
         FundRequest memory fundRequest = fundRequests[fundRequestId];
 
         address asset = fundRequest.asset;
         bytes32 ilk   = fundRequest.ilk;
+
+        _checkAuth(ilk);
 
         uint256 amountRequested = fundRequest.amountRequested;
 
@@ -205,6 +204,17 @@ contract ArrangerConduit is IArrangerConduit {
         external override view returns (bool isCancelable_)
     {
         isCancelable_ = fundRequests[fundRequestId].status == StatusEnum.PENDING;
+    }
+
+    /**********************************************************************************************/
+    /*** Internal Functions                                                                     ***/
+    /**********************************************************************************************/
+
+    function _checkAuth(bytes32 ilk) internal view {
+        require(
+            RolesLike(roles).canCall(ilk, msg.sender, address(this), msg.sig),
+            "ArrangerConduit/not-authorized"
+        );
     }
 
 }
