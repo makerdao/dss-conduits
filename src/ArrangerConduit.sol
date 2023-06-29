@@ -3,9 +3,7 @@ pragma solidity ^0.8.13;
 
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
-// TODO: Add and test Router ACL
 // TODO: Add events
-// TODO: Add cumulative withdrawals
 
 interface ERC20Like {
     function balanceOf(address src) external view returns (uint256 wad);
@@ -16,6 +14,8 @@ interface ERC20Like {
 interface RolesLike {
     function canCall(bytes32, address, address, bytes4) external view returns (bool);
 }
+
+// TODO: Add admin-permissioned setter function for arranger (or setPending + accept)?
 
 contract ArrangerConduit is IArrangerConduit {
 
@@ -56,6 +56,12 @@ contract ArrangerConduit is IArrangerConduit {
         );
         _;
     }
+
+    modifier isArranger {
+        require(msg.sender == arranger, "ArrangerConduit/not-arranger");
+        _;
+    }
+
     /**********************************************************************************************/
     /*** Router Functions                                                                       ***/
     /**********************************************************************************************/
@@ -72,7 +78,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
-        external override returns (uint256 actualWithdrawAmount)
+        external override auth(ilk) returns (uint256 actualWithdrawAmount)
     {
         require(
             withdrawAmount <= withdrawableFunds[ilk][asset],
@@ -95,7 +101,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)
-        external override returns (uint256 fundRequestId)
+        external override auth(ilk) returns (uint256 fundRequestId)
     {
         fundRequestId = fundRequests.length;  // Current length will be the next index
 
@@ -121,7 +127,7 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Fund Manager Functions                                                                 ***/
     /**********************************************************************************************/
 
-    function drawFunds(address asset, uint256 amount) external override {
+    function drawFunds(address asset, uint256 amount) external override isArranger {
         require(
             ERC20Like(asset).balanceOf(address(this)) >= (amount - totalWithdrawableFunds[asset]),
             "Conduit/insufficient-funds"
@@ -133,7 +139,7 @@ contract ArrangerConduit is IArrangerConduit {
     // TODO: Add ilk and asset input and add require check to prevent human error?
     // TODO: Add require to check that request is pending
     function returnFunds(uint256 fundRequestId, uint256 returnAmount)
-        external override
+        external override isArranger
     {
         FundRequest storage fundRequest = fundRequests[fundRequestId];
 

@@ -48,8 +48,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, arranger, address(this));
-        _setupRoles(ilk2, arranger, address(this));
+        _setupRoles(ilk1, address(this));
+        _setupRoles(ilk2, address(this));
 
         asset.mint(address(this), 100);
         asset.approve(address(conduit), 100);
@@ -183,8 +183,8 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, arranger, address(this));
-        _setupRoles(ilk2, arranger, address(this));
+        _setupRoles(ilk1, address(this));
+        _setupRoles(ilk2, address(this));
 
         /********************************************/
         /*** First round of deposits and requests ***/

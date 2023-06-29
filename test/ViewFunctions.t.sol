@@ -28,12 +28,12 @@ contract Conduit_IsCancelabletest is ConduitAssetTestBase {
         conduitHarness = new ArrangerConduitHarness(admin, arranger, address(roles));
 
         roles.setIlkAdmin(ilk, address(this));
-        roles.setUserRole(ilk, address(this), OPERATOR_ROLE, true);
+        roles.setUserRole(ilk, address(this), ROLE, true);
 
         address conduit_ = address(conduitHarness);
 
-        roles.setRoleAction(ilk, OPERATOR_ROLE, conduit_, conduit.deposit.selector,      true);
-        roles.setRoleAction(ilk, OPERATOR_ROLE, conduit_, conduit.requestFunds.selector, true);
+        roles.setRoleAction(ilk, ROLE, conduit_, conduit.deposit.selector,      true);
+        roles.setRoleAction(ilk, ROLE, conduit_, conduit.requestFunds.selector, true);
     }
 
     function test_isCancelable() external {

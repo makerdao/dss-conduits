@@ -51,11 +51,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), 100);
 
-        vm.startPrank(arranger);
-
+        vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
         conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        vm.startPrank(arranger);
 
         asset.approve(address(conduit), 100);
 
@@ -129,11 +130,12 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), 100);
 
-        vm.startPrank(arranger);
-
+        vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
         conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        vm.startPrank(arranger);
 
         asset.approve(address(conduit), 100);
 
@@ -191,12 +193,13 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), 100);
 
-        vm.startPrank(arranger);
-
+        vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
         conduit.requestFunds(ilk, address(asset), 20, "info");
         conduit.requestFunds(ilk, address(asset), 80, "info");
+
+        vm.startPrank(arranger);
 
         asset.approve(address(conduit), 100);
 
@@ -274,8 +277,8 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, arranger, address(this));
-        _setupRoles(ilk2, arranger, address(this));
+        _setupRoles(ilk1, address(this));
+        _setupRoles(ilk2, address(this));
 
         asset.mint(address(this), 100);
         asset.approve(address(conduit), 100);
@@ -283,12 +286,13 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         conduit.deposit(ilk1, address(asset), 40);
         conduit.deposit(ilk2, address(asset), 60);
 
-        vm.startPrank(arranger);
-
+        vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
         conduit.requestFunds(ilk1, address(asset), 40, "info");
         conduit.requestFunds(ilk2, address(asset), 60, "info");
+
+        vm.startPrank(arranger);
 
         asset.approve(address(conduit), 20);
 
@@ -370,8 +374,8 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, arranger, address(this));
-        _setupRoles(ilk2, arranger, address(this));
+        _setupRoles(ilk1, address(this));
+        _setupRoles(ilk2, address(this));
 
         MockERC20 asset1 = new MockERC20("asset1", "asset1", 18);
         MockERC20 asset2 = new MockERC20("asset2", "asset2", 18);
@@ -391,6 +395,8 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
 
         conduit.drawFunds(address(asset1), 100);
         conduit.drawFunds(address(asset2), 400);
+
+        vm.stopPrank();
 
         conduit.requestFunds(ilk1, address(asset1), 40,  "info");
         conduit.requestFunds(ilk2, address(asset1), 60,  "info");
@@ -470,6 +476,8 @@ contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
         /**************************************************************************/
         /*** Return funds for FundRequest 1 BEFORE FundRequest 0 (Over request) ***/
         /**************************************************************************/
+
+        vm.startPrank(arranger);
 
         asset1.approve(address(conduit), 70);
         conduit.returnFunds(1, 70);

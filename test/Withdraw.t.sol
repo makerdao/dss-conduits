@@ -20,6 +20,7 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
 
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
+        vm.prank(arranger);
         conduit.returnFunds(0, 100);
 
         vm.expectRevert("Conduit/insufficient-withdrawable");
@@ -63,8 +64,8 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, arranger, address(this));
-        _setupRoles(ilk2, arranger, address(this));
+        _setupRoles(ilk1, address(this));
+        _setupRoles(ilk2, address(this));
 
         _depositAndDrawFunds(asset, ilk1, 100);
         _depositAndDrawFunds(asset, ilk2, 400);
@@ -73,9 +74,12 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         conduit.requestFunds(ilk2, address(asset), 400, "info");
 
         vm.startPrank(arranger);
+
         asset.approve(address(conduit), 500);
         conduit.returnFunds(0, 200);  // Over by 100
         conduit.returnFunds(1, 300);  // Under by 100
+
+        vm.stopPrank();
 
         assertEq(asset.balanceOf(address(conduit)), 500);
         assertEq(asset.balanceOf(address(this)),    0);
