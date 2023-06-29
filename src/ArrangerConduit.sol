@@ -21,17 +21,17 @@ contract ArrangerConduit is IArrangerConduit {
 
     address public override admin;
     address public override arranger;
-    address public          roles;
+    address public override roles;
 
     mapping(address => uint256) public override totalDeposits;
     mapping(address => uint256) public override totalRequestedFunds;
     mapping(address => uint256) public override totalWithdrawableFunds;
-    mapping(address => uint256) public          totalWithdrawals;
+    mapping(address => uint256) public override totalWithdrawals;
 
     mapping(bytes32 => mapping(address => uint256)) public override deposits;
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
-    mapping(bytes32 => mapping(address => uint256)) public          withdrawals;
+    mapping(bytes32 => mapping(address => uint256)) public override withdrawals;
 
     FundRequest[] public fundRequests;  // TODO: Refactor functions to use this
 

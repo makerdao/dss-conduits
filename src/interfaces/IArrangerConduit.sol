@@ -102,10 +102,16 @@ interface IArrangerConduit is IAllocatorConduit {
     function admin() external view returns (address admin_);
 
     /**
-     *  @dev    Returns the fund manager address.
-     *  @return arranger_ The address of the fund manager.
+     *  @dev    Returns the arranger address.
+     *  @return arranger_ The address of the arranger.
      */
     function arranger() external view returns (address arranger_);
+
+    /**
+     *  @dev    Returns the roles address.
+     *  @return roles_ The address of the roles.
+     */
+    function roles() external view returns (address roles_);
 
     /**
      *  @dev    Returns the total deposits for a given asset.
@@ -129,6 +135,14 @@ interface IArrangerConduit is IAllocatorConduit {
      */
     function totalWithdrawableFunds(address asset)
         external view returns (uint256 totalWithdrawableFunds_);
+
+    /**
+     *  @dev    Returns the total amount of cumulative withdrawals for a given asset.
+     *  @param  asset             The address of the asset.
+     *  @return totalWithdrawals_ The total amount that can be withdrawn from the asset.
+     */
+    function totalWithdrawals(address asset)
+        external view returns (uint256 totalWithdrawals_);
 
     /**
      *  @dev    Returns the aggregate deposits for a given ilk and asset.
@@ -155,6 +169,14 @@ interface IArrangerConduit is IAllocatorConduit {
      */
     function withdrawableFunds(bytes32 ilk, address asset)
         external view returns (uint256 withdrawableFunds_);
+
+    /**
+     *  @dev    Returns the aggregate cumulative withdraws for a given ilk and asset.
+     *  @param  ilk          The unique identifier for a particular ilk.
+     *  @param  asset        The address of the asset.
+     *  @return withdrawals_ The withdrawals funds for the given ilk and asset.
+     */
+    function withdrawals(bytes32 ilk, address asset) external view returns (uint256 withdrawals_);
 
     /**********************************************************************************************/
     /*** Router Functions                                                                       ***/
