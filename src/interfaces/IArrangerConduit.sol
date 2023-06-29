@@ -13,8 +13,14 @@ import { IAllocatorConduit } from "../../lib/dss-allocator/src/interfaces/IAlloc
 interface IArrangerConduit is IAllocatorConduit {
 
     /**********************************************************************************************/
-    /*** Events                                                                                 ***/
+    /*** Administrative Events                                                                  ***/
     /**********************************************************************************************/
+
+    /**
+     *  @dev   Event emitted when a new admin is removed from the Conduit.
+     *  @param usr The address of the user to remove.
+     */
+    event Deny(address indexed usr);
 
     /**
      *  @dev   Event emitted when a new admin is added to the Conduit.
@@ -23,10 +29,27 @@ interface IArrangerConduit is IAllocatorConduit {
     event Rely(address indexed usr);
 
     /**
-     *  @dev   Event emitted when a new admin is removed from the Conduit.
-     *  @param usr The address of the user to remove.
+     *  @dev   Event emitted when a new Arranger is set by governance.
+     *  @param arranger The address of the new arranger.
      */
-    event Deny(address indexed usr);
+    event SetArranger(address arranger);
+
+    /**********************************************************************************************/
+    /*** Fund Events                                                                            ***/
+    /**********************************************************************************************/
+
+    /**
+     *  @dev   Event emitted when a fund request is cancelled.
+     *  @param fundRequestId The ID of the cancelled fund request.
+     */
+    event CancelFundRequest(uint256 fundRequestId);
+
+    /**
+     *  @dev   Event emitted when funds are drawn from the Conduit by the Arranger.
+     *  @param asset         The address of the asset to be withdrawn.
+     *  @param amount        The amount of asset to be withdrawn.
+     */
+    event DrawFunds(address indexed asset, uint256 amount);
 
     /**
      *  @dev   Event emitted when a fund request is made.
@@ -45,19 +68,6 @@ interface IArrangerConduit is IAllocatorConduit {
     );
 
     /**
-     *  @dev   Event emitted when a fund request is cancelled.
-     *  @param fundRequestId The ID of the cancelled fund request.
-     */
-    event CancelFundRequest(uint256 fundRequestId);
-
-    /**
-     *  @dev   Event emitted when funds are drawn from the Conduit by the Arranger.
-     *  @param asset         The address of the asset to be withdrawn.
-     *  @param amount        The amount of asset to be withdrawn.
-     */
-    event DrawFunds(address indexed asset, uint256 amount);
-
-    /**
      *  @dev   Event emitted when an Arranger returns funds to the Conduit to fill a fund request.
      *  @param ilk             The unique identifier of the ilk.
      *  @param asset           The address of the asset to be withdrawn.
@@ -72,12 +82,6 @@ interface IArrangerConduit is IAllocatorConduit {
         uint256 amountRequested,
         uint256 returnAmount
     );
-
-    /**
-     *  @dev   Event emitted when a new Arranger is set by governance.
-     *  @param arranger The address of the new arranger.
-     */
-    event SetArranger(address arranger);
 
     /**********************************************************************************************/
     /*** Data Types                                                                             ***/
