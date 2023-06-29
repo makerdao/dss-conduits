@@ -73,6 +73,11 @@ contract ArrangerConduit is IArrangerConduit {
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
         external override returns (uint256 actualWithdrawAmount)
     {
+        require(
+            withdrawAmount <= withdrawableFunds[ilk][asset],
+            "Conduit/insufficient-withdrawable"
+        );
+
         withdrawableFunds[ilk][asset] -= withdrawAmount;
         totalWithdrawableFunds[asset] -= withdrawAmount;
 

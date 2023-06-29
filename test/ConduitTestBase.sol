@@ -59,7 +59,9 @@ contract ConduitAssetTestBase is ConduitTestBase {
         uint256 totalSupply = MockERC20(asset_).totalSupply();
 
         assertEq(
-            MockERC20(asset_).balanceOf(arranger) + MockERC20(asset_).balanceOf(address(conduit)),
+            MockERC20(asset_).balanceOf(address(this))
+                + MockERC20(asset_).balanceOf(arranger)
+                + MockERC20(asset_).balanceOf(address(conduit)),
             totalSupply
         );
 

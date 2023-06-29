@@ -76,6 +76,8 @@ contract Conduit_DepositTest is ConduitAssetTestBase {
 
         assertEq(conduit.deposits(ilk, address(asset)), 100);
         assertEq(conduit.totalDeposits(address(asset)), 100);
+
+        _assertInvariants(ilk, address(asset));
     }
 
     function testFuzz_deposit_singleIlk(uint256 amount) external {
@@ -95,6 +97,8 @@ contract Conduit_DepositTest is ConduitAssetTestBase {
 
         assertEq(conduit.deposits(ilk, address(asset)), amount);
         assertEq(conduit.totalDeposits(address(asset)), amount);
+
+        _assertInvariants(ilk, address(asset));
     }
 
     function test_deposit_multiIlk() external {
@@ -121,6 +125,8 @@ contract Conduit_DepositTest is ConduitAssetTestBase {
         assertEq(conduit.deposits(ilk2, address(asset)), 0);
         assertEq(conduit.totalDeposits(address(asset)),  100);
 
+        _assertInvariants(ilk1, ilk2, address(asset));
+
         conduit.deposit(ilk2, address(asset), 300);
 
         assertEq(asset.balanceOf(address(this)),    0);
@@ -129,6 +135,8 @@ contract Conduit_DepositTest is ConduitAssetTestBase {
         assertEq(conduit.deposits(ilk1, address(asset)), 100);
         assertEq(conduit.deposits(ilk2, address(asset)), 300);
         assertEq(conduit.totalDeposits(address(asset)),  400);
+
+        _assertInvariants(ilk1, ilk2, address(asset));
     }
 
     // TODO: Fuzz test multiIlk multiAsset
