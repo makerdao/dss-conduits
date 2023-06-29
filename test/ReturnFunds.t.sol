@@ -11,7 +11,7 @@ import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
 
-contract Conduit_ReturnFundsTest is ConduitAssetTestBase {
+contract Conduit_ReturnFundsTests is ConduitAssetTestBase {
 
     // function test_returnFunds_notFundManager() external {
     //     vm.expectRevert("Conduit/not-fund-manager");

@@ -9,7 +9,7 @@ import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
 
-contract Conduit_RequestFundsTest is ConduitAssetTestBase {
+contract Conduit_RequestFundsTests is ConduitAssetTestBase {
 
     function test_requestFunds_singleIlk_singleRequest() public {
         asset.mint(address(this), 100);

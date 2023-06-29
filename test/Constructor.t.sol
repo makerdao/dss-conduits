@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { ConduitTestBase } from "./ConduitTestBase.sol";
 
-contract Conduit_ConstructorTest is ConduitTestBase {
+contract Conduit_ConstructorTests is ConduitTestBase {
 
     function test_constructor() public {
         assertEq(conduit.arranger(), arranger);

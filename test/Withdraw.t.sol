@@ -11,7 +11,7 @@ import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
 
-contract Conduit_WithdrawTest is ConduitAssetTestBase {
+contract Conduit_WithdrawFailureTests is ConduitAssetTestBase {
 
     function test_withdraw_insufficientAvailableWithdrawalBoundary() external {
         _depositAndDrawFunds(asset, ilk, 100);
@@ -28,6 +28,10 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
 
         conduit.withdraw(ilk, address(asset), address(this), 100);
     }
+
+}
+
+contract Conduit_WithdrawTests is ConduitAssetTestBase {
 
     // TODO: Determine if failure from insufficient balance is possible
 

@@ -12,7 +12,7 @@ import { ArrangerConduitHarness } from "./ArrangerConduitHarness.sol";
 
 import { ConduitTestBase, ConduitAssetTestBase } from "./ConduitTestBase.sol";
 
-contract Conduit_MaxDepositTest is ConduitTestBase {
+contract Conduit_MaxDepositTests is ConduitTestBase {
 
     function testFuzz_maxDepositTest(bytes32 ilk, address asset) external {
         assertEq(conduit.maxDeposit(ilk, asset), type(uint256).max);
