@@ -24,7 +24,7 @@ contract ConduitTestBase is Test {
     ArrangerConduit conduit;
 
     function setUp() public virtual {
-        conduit = new ArrangerConduit(admin, arranger, address(roles));
+        conduit = new ArrangerConduit(arranger, address(roles));
     }
 
 }

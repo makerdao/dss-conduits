@@ -25,7 +25,7 @@ contract Conduit_IsCancelableTest is ConduitAssetTestBase {
     ArrangerConduitHarness conduitHarness;
 
     function setUp() public override {
-        conduitHarness = new ArrangerConduitHarness(admin, arranger, address(roles));
+        conduitHarness = new ArrangerConduitHarness(arranger, address(roles));
 
         roles.setIlkAdmin(ilk, address(this));
         roles.setUserRole(ilk, address(this), ROLE, true);

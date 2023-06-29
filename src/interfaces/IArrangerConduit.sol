@@ -17,6 +17,18 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
 
     /**
+     *  @dev   Event emitted when a new admin is added to the Conduit.
+     *  @param usr The address of the user to add.
+     */
+    event Rely(address indexed usr);
+
+    /**
+     *  @dev   Event emitted when a new admin is removed from the Conduit.
+     *  @param usr The address of the user to remove.
+     */
+    event Deny(address indexed usr);
+
+    /**
      *  @dev   Event emitted when a fund request is made.
      *  @param ilk           The unique identifier of the ilk.
      *  @param asset         The address of the asset to be withdrawn.
@@ -98,12 +110,6 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
     /*** Storage Variables                                                                      ***/
     /**********************************************************************************************/
-
-    /**
-     *  @dev    Returns the admin address of the contract.
-     *  @return admin_ The admin address of the contract.
-     */
-    function admin() external view returns (address admin_);
 
     /**
      *  @dev    Returns the arranger address.

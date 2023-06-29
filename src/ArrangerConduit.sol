@@ -15,7 +15,6 @@ interface RolesLike {
 
 // TODO: Add admin-permissioned setter function for arranger set by the pause proxy
 // TODO: Use ERC20Helper - Ask in signal
-// TODO: Change admin to wards, add standard procedures for changing admin
 // TODO: Use lookups from ilk => buffer
 
 contract ArrangerConduit is IArrangerConduit {
@@ -24,9 +23,10 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Declarations and Constructor                                                           ***/
     /**********************************************************************************************/
 
-    address public override admin;
     address public override arranger;
     address public override roles;
+
+    mapping(address => uint256) public wards;
 
     mapping(address => uint256) public override totalDeposits;
     mapping(address => uint256) public override totalRequestedFunds;
@@ -40,17 +40,24 @@ contract ArrangerConduit is IArrangerConduit {
 
     FundRequest[] public fundRequests;
 
-    constructor(address admin_, address arranger_, address roles_) {
-        admin    = admin_;
+    constructor(address arranger_, address roles_) {
         arranger = arranger_;
         roles    = roles_;
+
+        wards[msg.sender] = 1;
+        emit Rely(msg.sender);
     }
 
     /**********************************************************************************************/
     /*** Modifiers                                                                              ***/
     /**********************************************************************************************/
 
-    modifier auth(bytes32 ilk) {
+    modifier auth {
+        require(wards[msg.sender] == 1, "ArrangerConduit/not-authorized");
+        _;
+    }
+
+    modifier ilkAuth(bytes32 ilk) {
         _checkAuth(ilk);
         _;
     }
@@ -59,12 +66,25 @@ contract ArrangerConduit is IArrangerConduit {
         require(msg.sender == arranger, "ArrangerConduit/not-arranger");
         _;
     }
+    /**********************************************************************************************/
+    /*** Administrative Functions                                                               ***/
+    /**********************************************************************************************/
+
+    function rely(address usr) external auth {
+        wards[usr] = 1;
+        emit Rely(usr);
+    }
+
+    function deny(address usr) external auth {
+        wards[usr] = 0;
+        emit Deny(usr);
+    }
 
     /**********************************************************************************************/
     /*** Router Functions                                                                       ***/
     /**********************************************************************************************/
 
-    function deposit(bytes32 ilk, address asset, uint256 amount) external override auth(ilk) {
+    function deposit(bytes32 ilk, address asset, uint256 amount) external override ilkAuth(ilk) {
         deposits[ilk][asset] += amount;
         totalDeposits[asset] += amount;
 
@@ -77,7 +97,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
-        external override auth(ilk) returns (uint256 actualWithdrawAmount)
+        external override ilkAuth(ilk) returns (uint256 actualWithdrawAmount)
     {
         require(
             withdrawAmount <= withdrawableFunds[ilk][asset],
@@ -101,7 +121,7 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)
-        external override auth(ilk) returns (uint256 fundRequestId)
+        external override ilkAuth(ilk) returns (uint256 fundRequestId)
     {
         fundRequestId = fundRequests.length;  // Current length will be the next index
 
