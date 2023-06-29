@@ -85,22 +85,15 @@ contract ConduitAssetTestBase is ConduitTestBase {
     }
 
     function _setupRoles(bytes32 ilk_, address operator_) internal {
-        // console.log("ROLES");
         roles.setIlkAdmin(ilk_, address(this));
         roles.setUserRole(ilk_, operator_, ROLE, true);
 
         address conduit_ = address(conduit);
 
-        // console.log("ROLES", roles.hasUserRole(ilk_, operator_, ROLE));
-
-        // console.log("QUERY1", roles.canCall(ilk_, operator_, conduit_, conduit.requestFunds.selector));
-
         roles.setRoleAction(ilk_, ROLE, conduit_, conduit.deposit.selector,           true);
         roles.setRoleAction(ilk_, ROLE, conduit_, conduit.withdraw.selector,          true);
         roles.setRoleAction(ilk_, ROLE, conduit_, conduit.requestFunds.selector,      true);
         roles.setRoleAction(ilk_, ROLE, conduit_, conduit.cancelFundRequest.selector, true);
-
-        // console.log("QUERY2", roles.canCall(ilk_, operator_, conduit_, conduit.requestFunds.selector));
     }
 
 }
