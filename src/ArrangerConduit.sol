@@ -33,7 +33,7 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawals;
 
-    FundRequest[] public fundRequests;  // TODO: Refactor functions to use this
+    FundRequest[] public fundRequests;
 
     constructor(address admin_, address arranger_, address roles_) {
         admin    = admin_;
@@ -135,6 +135,8 @@ contract ArrangerConduit is IArrangerConduit {
         external override isArranger
     {
         FundRequest storage fundRequest = fundRequests[fundRequestId];
+
+        require(fundRequest.status == StatusEnum.PENDING, "Conduit/invalid-status");
 
         address asset = fundRequest.asset;
         bytes32 ilk   = fundRequest.ilk;
