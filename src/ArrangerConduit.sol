@@ -13,7 +13,6 @@ interface RolesLike {
     function canCall(bytes32, address, address, bytes4) external view returns (bool);
 }
 
-// TODO: Add admin-permissioned setter function for arranger set by the pause proxy
 // TODO: Use ERC20Helper - Ask in signal
 // TODO: Use lookups from ilk => buffer
 
@@ -70,14 +69,19 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Administrative Functions                                                               ***/
     /**********************************************************************************************/
 
-    function rely(address usr) external auth {
+    function rely(address usr) external override auth {
         wards[usr] = 1;
         emit Rely(usr);
     }
 
-    function deny(address usr) external auth {
+    function deny(address usr) external override auth {
         wards[usr] = 0;
         emit Deny(usr);
+    }
+
+    function setArranger(address arranger_) external override auth {
+        arranger = arranger_;
+        emit SetArranger(arranger_);
     }
 
     /**********************************************************************************************/

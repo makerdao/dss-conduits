@@ -73,6 +73,12 @@ interface IArrangerConduit is IAllocatorConduit {
         uint256 returnAmount
     );
 
+    /**
+     *  @dev   Event emitted when a new Arranger is set by governance.
+     *  @param arranger The address of the new arranger.
+     */
+    event SetArranger(address arranger);
+
     /**********************************************************************************************/
     /*** Data Types                                                                             ***/
     /**********************************************************************************************/
@@ -187,6 +193,28 @@ interface IArrangerConduit is IAllocatorConduit {
      *  @return withdrawals_ The withdrawals funds for the given ilk and asset.
      */
     function withdrawals(bytes32 ilk, address asset) external view returns (uint256 withdrawals_);
+
+    /**********************************************************************************************/
+    /*** Administrative Functions                                                               ***/
+    /**********************************************************************************************/
+
+    /**
+     *  @dev   Function to give an address admin permissions.
+     *  @param usr The address of the new admin.
+     */
+    function rely(address usr) external;
+
+    /**
+     *  @dev   Function to remove an addresses admin permissions.
+     *  @param usr The address of the admin.
+     */
+    function deny(address usr) external;
+
+    /**
+     *  @dev   Function to set the address of the arranger.
+     *  @param arranger_ The address of the new arranger.
+     */
+    function setArranger(address arranger_) external;
 
     /**********************************************************************************************/
     /*** Router Functions                                                                       ***/
