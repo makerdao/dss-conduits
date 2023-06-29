@@ -3,8 +3,6 @@ pragma solidity ^0.8.13;
 
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
-// TODO: Add events
-
 interface ERC20Like {
     function balanceOf(address src) external view returns (uint256 wad);
     function transfer(address dst, uint wad) external returns (bool);
@@ -15,11 +13,10 @@ interface RolesLike {
     function canCall(bytes32, address, address, bytes4) external view returns (bool);
 }
 
-// TODO: Add admin-permissioned setter function for arranger (or setPending + accept)?
-// TODO: Use ERC20Helper
+// TODO: Add admin-permissioned setter function for arranger set by the pause proxy
+// TODO: Use ERC20Helper - Ask in signal
+// TODO: Change admin to wards, add standard procedures for changing admin
 // TODO: Use lookups from ilk => buffer
-// TODO: Should we allow the arranger to cancel fund requests?
-// TODO: Add ilk and asset input to returnFunds and add require check to prevent human error?
 
 contract ArrangerConduit is IArrangerConduit {
 
@@ -126,8 +123,18 @@ contract ArrangerConduit is IArrangerConduit {
         emit RequestFunds(ilk, asset, fundRequestId, amount, info);
     }
 
-    function cancelFundRequest(uint256 fundRequestId) external override {
+    function cancelFundRequest(uint256 fundRequestId) external override auth(ilk) {
+        FundRequest memory fundRequest = fundRequests[fundRequestId];
+
+        address asset = fundRequest.asset;
+        bytes32 ilk   = fundRequest.ilk;
+
+        uint256 amountRequested = fundRequest.amountRequested;
+
         delete fundRequests[fundRequestId];
+
+        requestedFunds[ilk][asset] -= amountRequested;
+        totalRequestedFunds[asset] -= amountRequested;
 
         emit CancelFundRequest(fundRequestId);
     }
