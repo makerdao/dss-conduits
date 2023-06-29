@@ -20,43 +20,43 @@ contract Conduit_MaxDepositTest is ConduitTestBase {
 
 }
 
-contract Conduit_IsCancelabletest is Test {
+contract Conduit_IsCancelabletest is ConduitAssetTestBase {
 
-    address admin    = makeAddr("admin");
-    address arranger = makeAddr("arranger");
-    address roles    = makeAddr("roles");
+    ArrangerConduitHarness conduitHarness;
 
-    bytes32 ilk = "ilk";
+    function setUp() public override {
+        conduitHarness = new ArrangerConduitHarness(admin, arranger, address(roles));
 
-    MockERC20 asset = new MockERC20("asset", "asset", 18);
+        roles.setIlkAdmin(ilk, address(this));
+        roles.setUserRole(ilk, address(this), OPERATOR_ROLE, true);
 
-    ArrangerConduitHarness conduit;
+        address conduit_ = address(conduitHarness);
 
-    function setUp() public virtual {
-        conduit = new ArrangerConduitHarness(admin, arranger, roles);
+        roles.setRoleAction(ilk, OPERATOR_ROLE, conduit_, conduit.deposit.selector,      true);
+        roles.setRoleAction(ilk, OPERATOR_ROLE, conduit_, conduit.requestFunds.selector, true);
     }
 
     function test_isCancelable() external {
         asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        asset.approve(address(conduitHarness), 100);
 
-        conduit.deposit(ilk, address(asset), 100);
+        conduitHarness.deposit(ilk, address(asset), 100);
 
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        conduitHarness.requestFunds(ilk, address(asset), 100, "info");
 
-        ( IArrangerConduit.StatusEnum status,,,,, ) = conduit.fundRequests(0);
+        ( IArrangerConduit.StatusEnum status,,,,, ) = conduitHarness.fundRequests(0);
 
         assertEq(uint256(status), uint256(IArrangerConduit.StatusEnum.PENDING));
 
-        assertEq(conduit.isCancelable(0), true);
+        assertEq(conduitHarness.isCancelable(0), true);
 
-        conduit.__setFundRequestStatus(0, IArrangerConduit.StatusEnum.CANCELLED);
+        conduitHarness.__setFundRequestStatus(0, IArrangerConduit.StatusEnum.CANCELLED);
 
-        assertEq(conduit.isCancelable(0), false);
+        assertEq(conduitHarness.isCancelable(0), false);
 
-        conduit.__setFundRequestStatus(0, IArrangerConduit.StatusEnum.COMPLETED);
+        conduitHarness.__setFundRequestStatus(0, IArrangerConduit.StatusEnum.COMPLETED);
 
-        assertEq(conduit.isCancelable(0), false);
+        assertEq(conduitHarness.isCancelable(0), false);
     }
 
 }

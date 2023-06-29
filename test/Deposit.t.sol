@@ -105,6 +105,9 @@ contract Conduit_DepositTest is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
+        _setupRoles(ilk1, arranger, address(this));
+        _setupRoles(ilk2, arranger, address(this));
+
         asset.mint(address(this), 400);
 
         asset.approve(address(conduit), 400);

@@ -63,6 +63,9 @@ contract Conduit_WithdrawTest is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
+        _setupRoles(ilk1, arranger, address(this));
+        _setupRoles(ilk2, arranger, address(this));
+
         _depositAndDrawFunds(asset, ilk1, 100);
         _depositAndDrawFunds(asset, ilk2, 400);
 

@@ -36,13 +36,12 @@ contract ConduitAssetTestBase is ConduitTestBase {
 
     bytes32 ilk = "ilk";
 
-    MockERC20 asset;
+    MockERC20 asset = new MockERC20("asset", "ASSET", 18);
 
-    function setUp() public override {
+    function setUp() public virtual override {
         super.setUp();
-        asset = new MockERC20("asset", "ASSET", 18);
 
-        _setUpRoles(ilk, arranger, address(this));
+        _setupRoles(ilk, arranger, address(this));
     }
 
     function _assertInvariants(bytes32 ilk_, address asset_) internal {
@@ -86,20 +85,20 @@ contract ConduitAssetTestBase is ConduitTestBase {
         vm.stopPrank();
     }
 
-    function _setUpRoles(bytes32 ilk_, address arranger_, address operator_) internal {
+    function _setupRoles(bytes32 ilk_, address arranger_, address operator_) internal {
         roles.setIlkAdmin(ilk_, address(this));
         roles.setUserRole(ilk_, arranger_, ARRANGER_ROLE, true);
         roles.setUserRole(ilk_, operator_, OPERATOR_ROLE, true);
 
         address conduit_ = address(conduit);
 
-        roles.setRoleAction(ilk, ARRANGER_ROLE, conduit_, conduit.drawFunds.selector,   true);
-        roles.setRoleAction(ilk, ARRANGER_ROLE, conduit_, conduit.returnFunds.selector, true);
+        roles.setRoleAction(ilk_, ARRANGER_ROLE, conduit_, conduit.drawFunds.selector,   true);
+        roles.setRoleAction(ilk_, ARRANGER_ROLE, conduit_, conduit.returnFunds.selector, true);
 
-        roles.setRoleAction(ilk, OPERATOR_ROLE, conduit_, conduit.deposit.selector,           true);
-        roles.setRoleAction(ilk, OPERATOR_ROLE, conduit_, conduit.withdraw.selector,          true);
-        roles.setRoleAction(ilk, OPERATOR_ROLE, conduit_, conduit.requestFunds.selector,      true);
-        roles.setRoleAction(ilk, OPERATOR_ROLE, conduit_, conduit.cancelFundRequest.selector, true);
+        roles.setRoleAction(ilk_, OPERATOR_ROLE, conduit_, conduit.deposit.selector,           true);
+        roles.setRoleAction(ilk_, OPERATOR_ROLE, conduit_, conduit.withdraw.selector,          true);
+        roles.setRoleAction(ilk_, OPERATOR_ROLE, conduit_, conduit.requestFunds.selector,      true);
+        roles.setRoleAction(ilk_, OPERATOR_ROLE, conduit_, conduit.cancelFundRequest.selector, true);
     }
 
 }

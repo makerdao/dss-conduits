@@ -48,6 +48,9 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
+        _setupRoles(ilk1, arranger, address(this));
+        _setupRoles(ilk2, arranger, address(this));
+
         asset.mint(address(this), 100);
         asset.approve(address(conduit), 100);
 
@@ -177,8 +180,11 @@ contract Conduit_RequestFundsTest is ConduitAssetTestBase {
         MockERC20 asset1 = new MockERC20("asset1", "asset1", 18);
         MockERC20 asset2 = new MockERC20("asset2", "asset2", 18);
 
-        bytes32 ilk1 = "ilk";
+        bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
+
+        _setupRoles(ilk1, arranger, address(this));
+        _setupRoles(ilk2, arranger, address(this));
 
         /********************************************/
         /*** First round of deposits and requests ***/
