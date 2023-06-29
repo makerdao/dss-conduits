@@ -16,6 +16,10 @@ interface RolesLike {
 }
 
 // TODO: Add admin-permissioned setter function for arranger (or setPending + accept)?
+// TODO: Use ERC20Helper
+// TODO: Use lookups from ilk => buffer
+// TODO: Should we allow the arranger to cancel fund requests?
+// TODO: Add ilk and asset input to returnFunds and add require check to prevent human error?
 
 contract ArrangerConduit is IArrangerConduit {
 
@@ -70,7 +74,6 @@ contract ArrangerConduit is IArrangerConduit {
         deposits[ilk][asset] += amount;
         totalDeposits[asset] += amount;
 
-        // TODO: Use ERC20Helper
         require(
             ERC20Like(asset).transferFrom(msg.sender, address(this), amount),
             "Conduit/deposit-transfer-failed"
@@ -95,7 +98,6 @@ contract ArrangerConduit is IArrangerConduit {
 
         actualWithdrawAmount = withdrawAmount;
 
-        // TODO: Do lookup from ilk => buffer
         require(
             ERC20Like(asset).transfer(destination, withdrawAmount),
             "Conduit/withdraw-transfer-failed"
@@ -125,7 +127,6 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function cancelFundRequest(uint256 fundRequestId) external override {
-        // TODO: Should we allow the arranger to cancel?
         delete fundRequests[fundRequestId];
 
         emit CancelFundRequest(fundRequestId);
@@ -146,8 +147,6 @@ contract ArrangerConduit is IArrangerConduit {
         emit DrawFunds(asset, amount);
     }
 
-    // TODO: Add ilk and asset input and add require check to prevent human error?
-    // TODO: Add require to check that request is pending
     function returnFunds(uint256 fundRequestId, uint256 returnAmount)
         external override isArranger
     {
