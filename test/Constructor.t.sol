@@ -8,7 +8,7 @@ contract Conduit_ConstructorTest is ConduitTestBase {
     function test_constructor() public {
         assertEq(conduit.admin(),    admin);
         assertEq(conduit.arranger(), arranger);
-        assertEq(conduit.roles(),    roles);
+        assertEq(conduit.roles(),    address(roles));
     }
 
 }
