@@ -75,6 +75,8 @@ contract ArrangerConduit is IArrangerConduit {
             ERC20Like(asset).transferFrom(msg.sender, address(this), amount),
             "Conduit/deposit-transfer-failed"
         );
+
+        emit Deposit(ilk, asset, amount);
     }
 
     function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
@@ -98,6 +100,8 @@ contract ArrangerConduit is IArrangerConduit {
             ERC20Like(asset).transfer(destination, withdrawAmount),
             "Conduit/withdraw-transfer-failed"
         );
+
+        emit Withdraw(ilk, asset, destination, withdrawAmount);
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)
@@ -116,11 +120,15 @@ contract ArrangerConduit is IArrangerConduit {
 
         requestedFunds[ilk][asset] += amount;
         totalRequestedFunds[asset] += amount;
+
+        emit RequestFunds(ilk, asset, fundRequestId, amount, info);
     }
 
     function cancelFundRequest(uint256 fundRequestId) external override {
         // TODO: Should we allow the arranger to cancel?
         delete fundRequests[fundRequestId];
+
+        emit CancelFundRequest(fundRequestId);
     }
 
     /**********************************************************************************************/
@@ -134,6 +142,8 @@ contract ArrangerConduit is IArrangerConduit {
         );
 
         require(ERC20Like(asset).transfer(arranger, amount), "Conduit/transfer-failed");
+
+        emit DrawFunds(asset, amount);
     }
 
     // TODO: Add ilk and asset input and add require check to prevent human error?
@@ -164,6 +174,8 @@ contract ArrangerConduit is IArrangerConduit {
             ERC20Like(fundRequest.asset).transferFrom(arranger, address(this), returnAmount),
             "Conduit/transfer-failed"
         );
+
+        emit ReturnFunds(ilk, asset, fundRequestId, amountRequested, returnAmount);
     }
 
     /**********************************************************************************************/

@@ -17,45 +17,49 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
 
     /**
-     *  @dev   Event emitted when a Conduit request is made.
+     *  @dev   Event emitted when a fund request is made.
      *  @param ilk           The unique identifier of the ilk.
      *  @param asset         The address of the asset to be withdrawn.
-     *  @param amount        The amount of asset to be withdrawn.
-     *  @param data          Arbitrary encoded data to provide additional info to the Arranger.
      *  @param fundRequestId The ID of the fund request.
+     *  @param amount        The amount of asset to be withdrawn.
+     *  @param info          Arbitrary string to provide additional info to the Arranger.
      */
     event RequestFunds(
         bytes32 indexed ilk,
         address indexed asset,
+        uint256 fundRequestId,
         uint256 amount,
-        bytes   data,
-        uint256 fundRequestId
+        string  info
     );
 
     /**
      *  @dev   Event emitted when a fund request is cancelled.
-     *  @param ilk           The unique identifier of the ilk.
-     *  @param asset         The address of the asset for the cancelled request.
-     *  @param amount        The amount of asset for the cancelled request.
-     *  @param data          Arbitrary encoded data to provide additional info to the Arranger.
      *  @param fundRequestId The ID of the cancelled fund request.
      */
-    event CancelRequest(
-        bytes32 indexed ilk,
-        address indexed asset,
-        uint256 amount,
-        bytes   data,
-        uint256 fundRequestId
-    );
+    event CancelFundRequest(uint256 fundRequestId);
 
     /**
-     *  @dev   Event emitted when a fund request is filled.
-     *  @param ilk    The unique identifier of the ilk.
-     *  @param asset  The address of the asset for the filled request.
-     *  @param amount The amount of asset for the filled request.
-     *  @param data   Arbitrary encoded data to provide additional info to the Conduit.
+     *  @dev   Event emitted when funds are drawn from the Conduit by the Arranger.
+     *  @param asset         The address of the asset to be withdrawn.
+     *  @param amount        The amount of asset to be withdrawn.
      */
-    event FillRequest(bytes32 indexed ilk, address indexed asset, uint256 amount, bytes data);
+    event DrawFunds(address indexed asset, uint256 amount);
+
+    /**
+     *  @dev   Event emitted when an Arranger returns funds to the Conduit to fill a fund request.
+     *  @param ilk             The unique identifier of the ilk.
+     *  @param asset           The address of the asset to be withdrawn.
+     *  @param fundRequestId   The ID of the fund request.
+     *  @param amountRequested The amount of asset that was requested by the ilk to be withdrawn.
+     *  @param returnAmount    The resulting amount that was returned by the Arranger.
+     */
+    event ReturnFunds(
+        bytes32 indexed ilk,
+        address indexed asset,
+        uint256 fundRequestId,
+        uint256 amountRequested,
+        uint256 returnAmount
+    );
 
     /**********************************************************************************************/
     /*** Data Types                                                                             ***/

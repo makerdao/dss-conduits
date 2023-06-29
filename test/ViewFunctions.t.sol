@@ -20,7 +20,7 @@ contract Conduit_MaxDepositTest is ConduitTestBase {
 
 }
 
-contract Conduit_IsCancelabletest is ConduitAssetTestBase {
+contract Conduit_IsCancelableTest is ConduitAssetTestBase {
 
     ArrangerConduitHarness conduitHarness;
 
