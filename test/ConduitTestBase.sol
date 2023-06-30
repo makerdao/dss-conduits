@@ -18,13 +18,14 @@ contract ConduitTestBase is Test {
 
     address admin    = makeAddr("admin");
     address arranger = makeAddr("arranger");
+    address registry = makeAddr("registry");
 
     AllocatorRoles roles = new AllocatorRoles();
 
     ArrangerConduit conduit;
 
     function setUp() public virtual {
-        conduit = new ArrangerConduit(arranger, address(roles));
+        conduit = new ArrangerConduit(arranger, registry, address(roles));
     }
 
 }

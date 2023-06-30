@@ -23,6 +23,7 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     address public override arranger;
+    address public override registry;
     address public override roles;
 
     mapping(address => uint256) public wards;
@@ -39,9 +40,11 @@ contract ArrangerConduit is IArrangerConduit {
 
     FundRequest[] public fundRequests;
 
-    constructor(address arranger_, address roles_) {
+    constructor(address arranger_, address registry_, address roles_) {
         arranger = arranger_;
+        registry = registry_;
         roles    = roles_;
+
 
         wards[msg.sender] = 1;
         emit Rely(msg.sender);

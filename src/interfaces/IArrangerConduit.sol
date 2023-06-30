@@ -129,6 +129,12 @@ interface IArrangerConduit is IAllocatorConduit {
     function arranger() external view returns (address arranger_);
 
     /**
+     *  @dev    Returns the AllocationRegistry address.
+     *  @return registry_ The address of the registry contract.
+     */
+    function registry() external view returns (address registry_);
+
+    /**
      *  @dev    Returns the roles address.
      *  @return roles_ The address of the roles.
      */
