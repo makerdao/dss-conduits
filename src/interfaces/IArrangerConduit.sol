@@ -29,10 +29,11 @@ interface IArrangerConduit is IAllocatorConduit {
     event Rely(address indexed usr);
 
     /**
-     *  @dev   Event emitted when a new Arranger is set by governance.
-     *  @param arranger The address of the new arranger.
+     *  @dev   Event emitted when a value is changed by an admin.
+     *  @param what The identifier of the value changed.
+     *  @param data The new value of the identifier.
      */
-    event SetArranger(address arranger);
+    event File(bytes32 indexed what, address data);
 
     /**********************************************************************************************/
     /*** Fund Events                                                                            ***/
@@ -215,10 +216,11 @@ interface IArrangerConduit is IAllocatorConduit {
     function deny(address usr) external;
 
     /**
-     *  @dev   Function to set the address of the arranger.
-     *  @param arranger_ The address of the new arranger.
+     *  @dev   Function to set a value in the contract, called by the admin.
+     *  @param what The identifier for the value to be set.
+     *  @param data The value to be set.
      */
-    function setArranger(address arranger_) external;
+    function file(bytes32 what, address data) external;
 
     /**********************************************************************************************/
     /*** Router Functions                                                                       ***/

@@ -15,7 +15,6 @@ interface RolesLike {
 
 // TODO: Use ERC20Helper - Ask in signal
 // TODO: Use lookups from ilk => buffer
-// TODO: Change setArranger to use file
 
 contract ArrangerConduit is IArrangerConduit {
 
@@ -80,9 +79,11 @@ contract ArrangerConduit is IArrangerConduit {
         emit Deny(usr);
     }
 
-    function setArranger(address arranger_) external override auth {
-        arranger = arranger_;
-        emit SetArranger(arranger_);
+    function file(bytes32 what, address data) external auth {
+        if (what == "arranger") {
+            arranger = data;
+        } else revert("AllocatorRegistry/file-unrecognized-param");
+        emit File(what, data);
     }
 
     /**********************************************************************************************/
