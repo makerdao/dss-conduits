@@ -15,6 +15,7 @@ interface RolesLike {
 
 // TODO: Use ERC20Helper - Ask in signal
 // TODO: Use lookups from ilk => buffer
+// TODO: Add drawableFunds virtual variable
 
 contract ArrangerConduit is IArrangerConduit {
 
@@ -97,10 +98,10 @@ contract ArrangerConduit is IArrangerConduit {
             "Conduit/deposit-transfer-failed"
         );
 
-        emit Deposit(ilk, asset, amount);
+        emit Deposit(ilk, asset, msg.sender, amount);
     }
 
-    function withdraw(bytes32 ilk, address asset, address destination, uint256 withdrawAmount)
+    function withdraw(bytes32 ilk, address asset, uint256 withdrawAmount)
         external override ilkAuth(ilk) returns (uint256 actualWithdrawAmount)
     {
         require(
@@ -117,11 +118,11 @@ contract ArrangerConduit is IArrangerConduit {
         actualWithdrawAmount = withdrawAmount;
 
         require(
-            ERC20Like(asset).transfer(destination, withdrawAmount),
+            ERC20Like(asset).transfer(msg.sender, withdrawAmount),
             "Conduit/withdraw-transfer-failed"
         );
 
-        emit Withdraw(ilk, asset, destination, withdrawAmount);
+        emit Withdraw(ilk, asset, msg.sender, withdrawAmount);
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)

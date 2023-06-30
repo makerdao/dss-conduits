@@ -24,9 +24,9 @@ contract Conduit_WithdrawFailureTests is ConduitAssetTestBase {
         conduit.returnFunds(0, 100);
 
         vm.expectRevert("Conduit/insufficient-withdrawable");
-        conduit.withdraw(ilk, address(asset), address(this), 101);
+        conduit.withdraw(ilk, address(asset), 101);
 
-        conduit.withdraw(ilk, address(asset), address(this), 100);
+        conduit.withdraw(ilk, address(asset), 100);
     }
 
 }
@@ -51,7 +51,7 @@ contract Conduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(conduit.withdrawals(ilk, address(asset)),       0);
         assertEq(conduit.totalWithdrawals(address(asset)),       0);
 
-        uint256 amount = conduit.withdraw(ilk, address(asset), address(this), 100);
+        uint256 amount = conduit.withdraw(ilk, address(asset), 100);
 
         assertEq(amount, 100);
 
@@ -97,7 +97,7 @@ contract Conduit_WithdrawTests is ConduitAssetTestBase {
 
         // Partial withdraw ilk 1
 
-        uint256 amount = conduit.withdraw(ilk1, address(asset), address(this), 50);
+        uint256 amount = conduit.withdraw(ilk1, address(asset), 50);
 
         assertEq(amount, 50);
 
@@ -113,7 +113,7 @@ contract Conduit_WithdrawTests is ConduitAssetTestBase {
 
         // Finish withdraw ilk 1
 
-        amount = conduit.withdraw(ilk1, address(asset), address(this), 150);
+        amount = conduit.withdraw(ilk1, address(asset), 150);
 
         assertEq(amount, 150);
 
@@ -129,7 +129,7 @@ contract Conduit_WithdrawTests is ConduitAssetTestBase {
 
         // Full withdraw ilk 2
 
-        amount = conduit.withdraw(ilk2, address(asset), address(this), 300);
+        amount = conduit.withdraw(ilk2, address(asset), 300);
 
         assertEq(amount, 300);
 
