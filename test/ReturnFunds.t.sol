@@ -13,38 +13,6 @@ import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
 
 contract Conduit_ReturnFundsTests is ConduitAssetTestBase {
 
-    // function test_returnFunds_notFundManager() external {
-    //     vm.expectRevert("Conduit/not-fund-manager");
-    //     conduit.returnFunds(address(0), 0);
-    // }
-
-    // TODO: Make this revert?
-    // function test_returnFunds_noRequests() external {
-    //     vm.startPrank(arranger);
-
-    //     asset.mint(address(conduit), 100);
-
-    //     conduit.drawFunds(address(asset), 100);
-
-    //     asset.approve(address(conduit), 100);
-
-    //     assertEq(asset.balanceOf(arranger),         100);
-    //     assertEq(asset.balanceOf(address(conduit)), 0);
-
-    //     assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
-    //     assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
-
-    //     conduit.returnFunds(address(asset), 100);
-
-    //     assertEq(asset.balanceOf(arranger),         0);
-    //     assertEq(asset.balanceOf(address(conduit)), 100);
-
-    //     assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);  // No requests, can draw funds again
-    //     assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
-
-    //     conduit.drawFunds(address(asset), 100);  // Draw funds to demonstrate
-    // }
-
     function test_returnFunds_oneRequest_exact() external {
         asset.mint(address(this), 100);
         asset.approve(address(conduit), 100);
