@@ -51,6 +51,9 @@ contract Conduit_RequestFundsTests is ConduitAssetTestBase {
         _setupRoles(ilk1, address(this));
         _setupRoles(ilk2, address(this));
 
+        registry.file(ilk1, "buffer", address(this));
+        registry.file(ilk2, "buffer", address(this));
+
         asset.mint(address(this), 100);
         asset.approve(address(conduit), 100);
 
@@ -185,6 +188,9 @@ contract Conduit_RequestFundsTests is ConduitAssetTestBase {
 
         _setupRoles(ilk1, address(this));
         _setupRoles(ilk2, address(this));
+
+        registry.file(ilk1, "buffer", address(this));
+        registry.file(ilk2, "buffer", address(this));
 
         /********************************************/
         /*** First round of deposits and requests ***/

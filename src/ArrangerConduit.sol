@@ -13,8 +13,11 @@ interface RolesLike {
     function canCall(bytes32, address, address, bytes4) external view returns (bool);
 }
 
+interface RegistryLike {
+    function buffers(bytes32 ilk) external view returns (address buffer);
+}
+
 // TODO: Use ERC20Helper - Ask in signal
-// TODO: Use lookups from ilk => buffer
 
 contract ArrangerConduit is IArrangerConduit {
 
@@ -44,7 +47,6 @@ contract ArrangerConduit is IArrangerConduit {
         arranger = arranger_;
         registry = registry_;
         roles    = roles_;
-
 
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
@@ -97,12 +99,14 @@ contract ArrangerConduit is IArrangerConduit {
         deposits[ilk][asset] += amount;
         totalDeposits[asset] += amount;
 
+        address source = RegistryLike(registry).buffers(ilk);
+
         require(
-            ERC20Like(asset).transferFrom(msg.sender, address(this), amount),
+            ERC20Like(asset).transferFrom(source, address(this), amount),
             "Conduit/deposit-transfer-failed"
         );
 
-        emit Deposit(ilk, asset, msg.sender, amount);
+        emit Deposit(ilk, asset, source, amount);
     }
 
     function withdraw(bytes32 ilk, address asset, uint256 withdrawAmount)
@@ -121,12 +125,14 @@ contract ArrangerConduit is IArrangerConduit {
 
         actualWithdrawAmount = withdrawAmount;
 
+        address destination = RegistryLike(registry).buffers(ilk);
+
         require(
-            ERC20Like(asset).transfer(msg.sender, withdrawAmount),
+            ERC20Like(asset).transfer(destination, withdrawAmount),
             "Conduit/withdraw-transfer-failed"
         );
 
-        emit Withdraw(ilk, asset, msg.sender, withdrawAmount);
+        emit Withdraw(ilk, asset, destination, withdrawAmount);
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)

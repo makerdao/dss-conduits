@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { AllocatorRoles } from "../lib/dss-allocator/src/AllocatorRoles.sol";
+import { AllocatorRegistry } from "../lib/dss-allocator/src/AllocatorRegistry.sol";
+import { AllocatorRoles }    from "../lib/dss-allocator/src/AllocatorRoles.sol";
 
 import { console2 as console } from "../lib/forge-std/src/console2.sol";
 import { stdError }            from "../lib/forge-std/src/StdError.sol";
@@ -18,14 +19,14 @@ contract ConduitTestBase is Test {
 
     address admin    = makeAddr("admin");
     address arranger = makeAddr("arranger");
-    address registry = makeAddr("registry");
 
-    AllocatorRoles roles = new AllocatorRoles();
+    AllocatorRegistry registry = new AllocatorRegistry();
+    AllocatorRoles   roles     = new AllocatorRoles();
 
     ArrangerConduit conduit;
 
     function setUp() public virtual {
-        conduit = new ArrangerConduit(arranger, registry, address(roles));
+        conduit = new ArrangerConduit(arranger, address(registry), address(roles));
     }
 
 }
@@ -42,6 +43,8 @@ contract ConduitAssetTestBase is ConduitTestBase {
         super.setUp();
 
         _setupRoles(ilk, address(this));
+
+        registry.file(ilk, "buffer", address(this));  // TODO: Use dedicated buffer addresses
     }
 
     function _assertInvariants(bytes32 ilk_, address asset_) internal {

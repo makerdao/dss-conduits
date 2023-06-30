@@ -280,6 +280,9 @@ contract Conduit_ReturnFundsTests is ConduitAssetTestBase {
         _setupRoles(ilk1, address(this));
         _setupRoles(ilk2, address(this));
 
+        registry.file(ilk1, "buffer", address(this));
+        registry.file(ilk2, "buffer", address(this));
+
         asset.mint(address(this), 100);
         asset.approve(address(conduit), 100);
 
@@ -376,6 +379,9 @@ contract Conduit_ReturnFundsTests is ConduitAssetTestBase {
 
         _setupRoles(ilk1, address(this));
         _setupRoles(ilk2, address(this));
+
+        registry.file(ilk1, "buffer", address(this));
+        registry.file(ilk2, "buffer", address(this));
 
         MockERC20 asset1 = new MockERC20("asset1", "asset1", 18);
         MockERC20 asset2 = new MockERC20("asset2", "asset2", 18);

@@ -71,6 +71,9 @@ contract Conduit_WithdrawTests is ConduitAssetTestBase {
         _setupRoles(ilk1, address(this));
         _setupRoles(ilk2, address(this));
 
+        registry.file(ilk1, "buffer", address(this));
+        registry.file(ilk2, "buffer", address(this));
+
         _depositAndDrawFunds(asset, ilk1, 100);
         _depositAndDrawFunds(asset, ilk2, 400);
 
