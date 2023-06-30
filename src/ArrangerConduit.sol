@@ -15,7 +15,7 @@ interface RolesLike {
 
 // TODO: Use ERC20Helper - Ask in signal
 // TODO: Use lookups from ilk => buffer
-// TODO: Add drawableFunds virtual variable
+// TODO: Change setArranger to use file
 
 contract ArrangerConduit is IArrangerConduit {
 
@@ -168,10 +168,7 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     function drawFunds(address asset, uint256 amount) external override isArranger {
-        require(
-            ERC20Like(asset).balanceOf(address(this)) >= (amount - totalWithdrawableFunds[asset]),
-            "Conduit/insufficient-funds"
-        );
+        require(amount <= drawableFunds(asset), "Conduit/insufficient-funds");
 
         require(ERC20Like(asset).transfer(arranger, amount), "Conduit/transfer-failed");
 
@@ -211,6 +208,10 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
     /*** View Functions                                                                         ***/
     /**********************************************************************************************/
+
+    function drawableFunds(address asset) public view returns (uint256 drawableFunds_) {
+        drawableFunds_ = ERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
+    }
 
     function maxDeposit(bytes32 ilk, address asset)
         external override pure returns (uint256 maxDeposit_)
