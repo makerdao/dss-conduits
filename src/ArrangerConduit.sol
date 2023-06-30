@@ -17,7 +17,7 @@ interface RegistryLike {
     function buffers(bytes32 ilk) external view returns (address buffer);
 }
 
-// TODO: Use ERC20Helper - Ask in signal
+// TODO: Use ERC20Helper
 
 contract ArrangerConduit is IArrangerConduit {
 
