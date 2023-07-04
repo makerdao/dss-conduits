@@ -30,6 +30,10 @@ jobs:
 
       - name: Generate coverage report
         run: |
+          wget "https://github.com/linux-test-project/lcov/archive/master.zip"
+          unzip "master.zip"
+          cd "lcov-master"
+          sudo make install
           forge coverage --report lcov
           lcov --remove lcov.info  -o lcov.info 'test/*' 'script/*'
 
