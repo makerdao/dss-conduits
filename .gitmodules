@@ -7,6 +7,3 @@
 [submodule "lib/dss-allocator"]
 	path = lib/dss-allocator
 	url = https://github.com/makerdao/dss-allocator
-[submodule "lib/non-transparent-proxy"]
-	path = lib/non-transparent-proxy
-	url = https://github.com/maple-labs/non-transparent-proxy
