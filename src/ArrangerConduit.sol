@@ -202,12 +202,12 @@ contract ArrangerConduit is IArrangerConduit {
         requestedFunds[ilk][asset] -= amountRequested;
         totalRequestedFunds[asset] -= amountRequested;
 
-        fundRequest.amountFilled += returnAmount;
+        fundRequest.amountFilled = returnAmount;
 
         fundRequest.status = StatusEnum.COMPLETED;
 
         require(
-            ERC20Like(fundRequest.asset).transferFrom(arranger, address(this), returnAmount),
+            ERC20Like(fundRequest.asset).transferFrom(msg.sender, address(this), returnAmount),
             "ArrangerConduit/transfer-failed"
         );
 
@@ -222,10 +222,9 @@ contract ArrangerConduit is IArrangerConduit {
         drawableFunds_ = ERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
     }
 
-    function maxDeposit(bytes32 ilk, address asset)
+    function maxDeposit(bytes32, address)
         external override pure returns (uint256 maxDeposit_)
     {
-        ilk; asset;  // Silence warnings
         maxDeposit_ = type(uint256).max;
     }
 
