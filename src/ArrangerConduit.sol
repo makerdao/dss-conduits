@@ -43,11 +43,7 @@ contract ArrangerConduit is IArrangerConduit {
 
     FundRequest[] public fundRequests;
 
-    constructor(address arranger_, address registry_, address roles_) {
-        arranger = arranger_;
-        registry = registry_;
-        roles    = roles_;
-
+    constructor() {
         wards[msg.sender] = 1;
         emit Rely(msg.sender);
     }
@@ -85,9 +81,10 @@ contract ArrangerConduit is IArrangerConduit {
     }
 
     function file(bytes32 what, address data) external auth {
-        if (what == "arranger") {
-            arranger = data;
-        } else revert("ArrangerConduit/file-unrecognized-param");
+        if      (what == "arranger") arranger = data;
+        else if (what == "registry") registry = data;
+        else if (what == "roles")    roles    = data;
+        else revert("ArrangerConduit/file-unrecognized-param");
         emit File(what, data);
     }
 

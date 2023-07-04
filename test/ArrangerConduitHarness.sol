@@ -5,8 +5,8 @@ import { ArrangerConduit } from "../src/ArrangerConduit.sol";
 
 contract ArrangerConduitHarness is ArrangerConduit {
 
-    constructor(address arranger_, address registry_, address roles_)
-        ArrangerConduit(arranger_, registry_, roles_) {}
+    constructor()
+        ArrangerConduit() {}
 
     function __setFundRequestStatus(uint256 fundRequestId, ArrangerConduit.StatusEnum status)
         external
