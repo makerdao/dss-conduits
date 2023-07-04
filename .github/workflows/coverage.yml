@@ -1,15 +1,12 @@
-name: test
+name: coverage
 
 on:
   pull_request:
   push:
     branches: [main]
 
-env:
-  FOUNDRY_PROFILE: ci
-
 jobs:
-  check:
+  coverage_report:
     strategy:
       fail-fast: true
 
@@ -31,7 +28,15 @@ jobs:
           forge build --sizes
         id: build
 
-      - name: Run Forge tests
-        run: |
-          forge test -vvv
-        id: test
+    - name: Generate coverage report
+      run: |
+        forge coverage --report lcov
+
+    - name: Report code coverage
+      uses: zgosalvez/github-actions-report-lcov@v1
+      with:
+        coverage-files: lcov.info
+        minimum-coverage: 90
+        artifact-name: code-coverage-report
+        github-token: ${{ secrets.GH_TOKEN }}
+        working-directory: ./
