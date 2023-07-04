@@ -108,11 +108,13 @@ interface IArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev    Enum representing the status of a fund request.
+     *  @notice PENDING   - Null state before the fund request has been made.
      *  @notice PENDING   - The fund request has been made, but not yet processed.
      *  @notice CANCELLED - The fund request has been cancelled by the ilk.
      *  @notice COMPLETED - The fund request has been fully processed and completed.
      */
     enum StatusEnum {
+        UNINITIALIZED,
         PENDING,
         CANCELLED,
         COMPLETED
@@ -139,6 +141,12 @@ interface IArrangerConduit is IAllocatorConduit {
      *  @return roles_ The address of the roles.
      */
     function roles() external view returns (address roles_);
+
+    /**
+     *  @dev    Returns a 0 or 1 depending on if the user has been added as an admin.
+     *  @return relied The value of the user's admin status.
+     */
+    function wards(address user) external view returns (uint256 relied);
 
     /**
      *  @dev    Returns the total deposits for a given asset.
@@ -205,6 +213,26 @@ interface IArrangerConduit is IAllocatorConduit {
      */
     function withdrawals(bytes32 ilk, address asset) external view returns (uint256 withdrawals_);
 
+    /**
+     *  @dev    Returns a FundRequest struct at a given fundRequestId.
+     *  @param  fundRequestId   The id of the fund request.
+     *  @return status          The current status of the fund request.
+     *  @return asset           The address of the asset requested in the fund request.
+     *  @return ilk             The unique identifier of the ilk.
+     *  @return amountRequested The amount of asset requested in the fund request.
+     *  @return amountFilled    The amount of asset filled in the fund request.
+     *  @return info            Arbitrary string to provide additional info to the Arranger.
+     */
+    function fundRequests(uint256 fundRequestId)
+        external view returns (
+            StatusEnum    status,
+            address       asset,
+            bytes32       ilk,
+            uint256       amountRequested,
+            uint256       amountFilled,
+            string memory info
+        );
+
     /**********************************************************************************************/
     /*** Administrative Functions                                                               ***/
     /**********************************************************************************************/
@@ -229,7 +257,7 @@ interface IArrangerConduit is IAllocatorConduit {
     function file(bytes32 what, address data) external;
 
     /**********************************************************************************************/
-    /*** Router Functions                                                                       ***/
+    /*** Allocator Functions                                                                    ***/
     /**********************************************************************************************/
 
     /**

@@ -29,7 +29,7 @@ contract ArrangerConduit is IArrangerConduit {
     address public override registry;
     address public override roles;
 
-    mapping(address => uint256) public wards;
+    mapping(address => uint256) public override wards;
 
     mapping(address => uint256) public override totalDeposits;
     mapping(address => uint256) public override totalRequestedFunds;
@@ -41,7 +41,7 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawals;
 
-    FundRequest[] public fundRequests;
+    FundRequest[] public override fundRequests;
 
     constructor() {
         wards[msg.sender] = 1;
