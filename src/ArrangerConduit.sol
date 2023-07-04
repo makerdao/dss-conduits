@@ -155,6 +155,8 @@ contract ArrangerConduit is IArrangerConduit {
     function cancelFundRequest(uint256 fundRequestId) external override {
         FundRequest memory fundRequest = fundRequests[fundRequestId];
 
+        require(fundRequest.status == StatusEnum.PENDING, "ArrangerConduit/invalid-status");
+
         address asset = fundRequest.asset;
         bytes32 ilk   = fundRequest.ilk;
 
@@ -162,7 +164,7 @@ contract ArrangerConduit is IArrangerConduit {
 
         uint256 amountRequested = fundRequest.amountRequested;
 
-        delete fundRequests[fundRequestId];
+        fundRequests[fundRequestId].status = StatusEnum.CANCELLED;
 
         requestedFunds[ilk][asset] -= amountRequested;
         totalRequestedFunds[asset] -= amountRequested;
