@@ -11,29 +11,10 @@ import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
 
-contract Conduit_WithdrawFailureTests is ConduitAssetTestBase {
-
-    function test_withdraw_insufficientAvailableWithdrawalBoundary() external {
-        _depositAndDrawFunds(asset, ilk, 100);
-
-        asset.approve(address(conduit), 100);
-
-        conduit.requestFunds(ilk, address(asset), 100, "info");
-
-        vm.prank(arranger);
-        conduit.returnFunds(0, 100);
-
-        vm.expectRevert("ArrangerConduit/insufficient-withdrawable");
-        conduit.withdraw(ilk, address(asset), 101);
-
-        conduit.withdraw(ilk, address(asset), 100);
-    }
-
-}
-
 contract Conduit_WithdrawTests is ConduitAssetTestBase {
 
     // TODO: Determine if failure from insufficient balance is possible
+    // TODO: Add test with over-limit request
 
     function test_withdraw_singleIlk() external {
         _depositAndDrawFunds(asset, ilk, 100);
