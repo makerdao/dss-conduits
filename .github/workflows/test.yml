@@ -5,9 +5,6 @@ on:
   push:
     branches: [main]
 
-env:
-  FOUNDRY_PROFILE: ci
-
 jobs:
   check:
     strategy:
