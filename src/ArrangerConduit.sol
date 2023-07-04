@@ -87,7 +87,7 @@ contract ArrangerConduit is IArrangerConduit {
     function file(bytes32 what, address data) external auth {
         if (what == "arranger") {
             arranger = data;
-        } else revert("AllocatorRegistry/file-unrecognized-param");
+        } else revert("ArrangerConduit/file-unrecognized-param");
         emit File(what, data);
     }
 
@@ -103,36 +103,36 @@ contract ArrangerConduit is IArrangerConduit {
 
         require(
             ERC20Like(asset).transferFrom(source, address(this), amount),
-            "Conduit/deposit-transfer-failed"
+            "ArrangerConduit/deposit-transfer-failed"
         );
 
         emit Deposit(ilk, asset, source, amount);
     }
 
-    function withdraw(bytes32 ilk, address asset, uint256 withdrawAmount)
-        external override ilkAuth(ilk) returns (uint256 actualWithdrawAmount)
+    function withdraw(bytes32 ilk, address asset, uint256 maxAmount)
+        external override ilkAuth(ilk) returns (uint256 amount)
     {
         require(
-            withdrawAmount <= withdrawableFunds[ilk][asset],
-            "Conduit/insufficient-withdrawable"
+            maxAmount <= withdrawableFunds[ilk][asset],
+            "ArrangerConduit/insufficient-withdrawable"
         );
 
-        withdrawableFunds[ilk][asset] -= withdrawAmount;
-        totalWithdrawableFunds[asset] -= withdrawAmount;
+        withdrawableFunds[ilk][asset] -= maxAmount;
+        totalWithdrawableFunds[asset] -= maxAmount;
 
-        withdrawals[ilk][asset] += withdrawAmount;
-        totalWithdrawals[asset] += withdrawAmount;
+        withdrawals[ilk][asset] += maxAmount;
+        totalWithdrawals[asset] += maxAmount;
 
-        actualWithdrawAmount = withdrawAmount;
+        amount = maxAmount;
 
         address destination = RegistryLike(registry).buffers(ilk);
 
         require(
-            ERC20Like(asset).transfer(destination, withdrawAmount),
-            "Conduit/withdraw-transfer-failed"
+            ERC20Like(asset).transfer(destination, maxAmount),
+            "ArrangerConduit/withdraw-transfer-failed"
         );
 
-        emit Withdraw(ilk, asset, destination, withdrawAmount);
+        emit Withdraw(ilk, asset, destination, maxAmount);
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)
@@ -178,9 +178,9 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
 
     function drawFunds(address asset, uint256 amount) external override isArranger {
-        require(amount <= drawableFunds(asset), "Conduit/insufficient-funds");
+        require(amount <= drawableFunds(asset), "ArrangerConduit/insufficient-funds");
 
-        require(ERC20Like(asset).transfer(arranger, amount), "Conduit/transfer-failed");
+        require(ERC20Like(asset).transfer(arranger, amount), "ArrangerConduit/transfer-failed");
 
         emit DrawFunds(asset, amount);
     }
@@ -190,7 +190,7 @@ contract ArrangerConduit is IArrangerConduit {
     {
         FundRequest storage fundRequest = fundRequests[fundRequestId];
 
-        require(fundRequest.status == StatusEnum.PENDING, "Conduit/invalid-status");
+        require(fundRequest.status == StatusEnum.PENDING, "ArrangerConduit/invalid-status");
 
         address asset = fundRequest.asset;
         bytes32 ilk   = fundRequest.ilk;
@@ -209,7 +209,7 @@ contract ArrangerConduit is IArrangerConduit {
 
         require(
             ERC20Like(fundRequest.asset).transferFrom(arranger, address(this), returnAmount),
-            "Conduit/transfer-failed"
+            "ArrangerConduit/transfer-failed"
         );
 
         emit ReturnFunds(ilk, asset, fundRequestId, amountRequested, returnAmount);

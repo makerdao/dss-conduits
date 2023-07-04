@@ -23,7 +23,7 @@ contract Conduit_WithdrawFailureTests is ConduitAssetTestBase {
         vm.prank(arranger);
         conduit.returnFunds(0, 100);
 
-        vm.expectRevert("Conduit/insufficient-withdrawable");
+        vm.expectRevert("ArrangerConduit/insufficient-withdrawable");
         conduit.withdraw(ilk, address(asset), 101);
 
         conduit.withdraw(ilk, address(asset), 100);
