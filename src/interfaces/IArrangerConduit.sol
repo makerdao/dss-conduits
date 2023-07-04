@@ -303,6 +303,13 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
 
     /**
+     *  @dev    Function to get the amount of funds that can be drawn by the Arranger.
+     *  @param  asset          The asset to check.
+     *  @return drawableFunds_ The amount of funds that can be drawn by the Arranger.
+     */
+    function drawableFunds(address asset) external view returns (uint256 drawableFunds_);
+
+    /**
      *  @dev    Function to check if a withdrawal request can be cancelled.
      *  @param  fundRequestId  The ID of the withdrawal request.
      *  @return isCancelable_  True if the withdrawal request can be cancelled, false otherwise.

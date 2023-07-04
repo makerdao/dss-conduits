@@ -18,6 +18,7 @@ interface RegistryLike {
 }
 
 // TODO: Use ERC20Helper
+// TODO: Figure out optimal way to structure natspec
 
 contract ArrangerConduit is IArrangerConduit {
 
@@ -109,23 +110,20 @@ contract ArrangerConduit is IArrangerConduit {
     function withdraw(bytes32 ilk, address asset, uint256 maxAmount)
         external override ilkAuth(ilk) returns (uint256 amount)
     {
-        require(
-            maxAmount <= withdrawableFunds[ilk][asset],
-            "ArrangerConduit/insufficient-withdrawable"
-        );
+        uint256 withdrawableFunds_ = withdrawableFunds[ilk][asset];
 
-        withdrawableFunds[ilk][asset] -= maxAmount;
-        totalWithdrawableFunds[asset] -= maxAmount;
+        amount = maxAmount > withdrawableFunds_ ? withdrawableFunds_ : maxAmount;
 
-        withdrawals[ilk][asset] += maxAmount;
-        totalWithdrawals[asset] += maxAmount;
+        withdrawableFunds[ilk][asset] -= amount;
+        totalWithdrawableFunds[asset] -= amount;
 
-        amount = maxAmount;
+        withdrawals[ilk][asset] += amount;
+        totalWithdrawals[asset] += amount;
 
         address destination = RegistryLike(registry).buffers(ilk);
 
         require(
-            ERC20Like(asset).transfer(destination, maxAmount),
+            ERC20Like(asset).transfer(destination, amount),
             "ArrangerConduit/withdraw-transfer-failed"
         );
 
@@ -179,7 +177,7 @@ contract ArrangerConduit is IArrangerConduit {
     function drawFunds(address asset, uint256 amount) external override isArranger {
         require(amount <= drawableFunds(asset), "ArrangerConduit/insufficient-funds");
 
-        require(ERC20Like(asset).transfer(arranger, amount), "ArrangerConduit/transfer-failed");
+        require(ERC20Like(asset).transfer(msg.sender, amount), "ArrangerConduit/transfer-failed");
 
         emit DrawFunds(asset, amount);
     }
@@ -218,7 +216,7 @@ contract ArrangerConduit is IArrangerConduit {
     /*** View Functions                                                                         ***/
     /**********************************************************************************************/
 
-    function drawableFunds(address asset) public view returns (uint256 drawableFunds_) {
+    function drawableFunds(address asset) public view override returns (uint256 drawableFunds_) {
         drawableFunds_ = ERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
     }
 
