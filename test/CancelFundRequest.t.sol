@@ -7,7 +7,7 @@ import { MockERC20 } from "../lib/mock-erc20/src/MockERC20.sol";
 
 import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
-import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
+import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
 contract Conduit_RequestFundsFailureTests is ConduitAssetTestBase {
 

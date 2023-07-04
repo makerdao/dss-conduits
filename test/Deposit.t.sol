@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { stdError } from "../lib/forge-std/src/StdError.sol";
 
-import { ConduitAssetTestBase } from "./ConduitTestBase.sol";
+import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
 contract Conduit_DepositFailureTests is ConduitAssetTestBase {
 

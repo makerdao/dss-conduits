@@ -8,9 +8,9 @@ import { MockERC20 } from "../lib/mock-erc20/src/MockERC20.sol";
 
 import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
-import { ArrangerConduitHarness } from "./ArrangerConduitHarness.sol";
+import { ArrangerConduitHarness } from "./ArrangerConduitHarness.t.sol";
 
-import { ConduitTestBase, ConduitAssetTestBase } from "./ConduitTestBase.sol";
+import { ConduitTestBase, ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
 contract Conduit_MaxDepositTests is ConduitTestBase {
 

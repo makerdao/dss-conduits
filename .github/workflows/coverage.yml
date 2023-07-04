@@ -31,6 +31,7 @@ jobs:
       - name: Generate coverage report
         run: |
           forge coverage --report lcov
+          lcov --remove lcov.info  -o lcov.info 'test/*' 'script/*'
 
       - name: Report code coverage
         uses: zgosalvez/github-actions-report-lcov@v1

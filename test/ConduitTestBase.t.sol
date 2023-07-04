@@ -105,3 +105,4 @@ contract ConduitAssetTestBase is ConduitTestBase {
     }
 
 }
+

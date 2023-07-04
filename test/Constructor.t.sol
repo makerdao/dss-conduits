@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { ConduitTestBase } from "./ConduitTestBase.sol";
+import { ConduitTestBase } from "./ConduitTestBase.t.sol";
 
 contract Conduit_ConstructorTests is ConduitTestBase {
 
