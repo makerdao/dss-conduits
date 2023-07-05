@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
+import { UpgradeableProxied } from "../lib/upgradeable-proxy/src/UpgradeableProxied.sol";
+
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
 interface ERC20Like {
@@ -20,14 +22,11 @@ interface RegistryLike {
 // TODO: Use ERC20Helper
 // TODO: Figure out optimal way to structure natspec
 
-contract ArrangerConduit is IArrangerConduit {
+contract ArrangerConduit is IArrangerConduit, UpgradeableProxied {
 
     /**********************************************************************************************/
     /*** Declarations and Constructor                                                           ***/
     /**********************************************************************************************/
-
-    // Mapping is used in proxy, so it must be declared first
-    mapping(address => uint256) public override wards;
 
     FundRequest[] internal fundRequests;
 
@@ -44,11 +43,6 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawals;
-
-    constructor() {
-        wards[msg.sender] = 1;
-        emit Rely(msg.sender);
-    }
 
     /**********************************************************************************************/
     /*** Modifiers                                                                              ***/
@@ -71,16 +65,6 @@ contract ArrangerConduit is IArrangerConduit {
     /**********************************************************************************************/
     /*** Administrative Functions                                                               ***/
     /**********************************************************************************************/
-
-    function rely(address usr) external override auth {
-        wards[usr] = 1;
-        emit Rely(usr);
-    }
-
-    function deny(address usr) external override auth {
-        wards[usr] = 0;
-        emit Deny(usr);
-    }
 
     function file(bytes32 what, address data) external auth {
         if      (what == "arranger") arranger = data;

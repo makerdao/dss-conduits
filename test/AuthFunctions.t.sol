@@ -8,22 +8,22 @@ import { ConduitTestBase } from "./ConduitTestBase.t.sol";
 contract Conduit_RelyTests is ConduitTestBase {
 
     function test_rely_no_auth() public {
-        vm.expectRevert("ArrangerConduit/not-authorized");
+        vm.expectRevert("UpgradeableProxy/not-authed");
         vm.prank(address(1));
-        conduit.rely(address(2));
+        conduitProxy.rely(address(2));
     }
 
     function test_rely_auth() public {
-        assertEq(conduit.wards(address(1)),    0);
-        assertEq(conduit.wards(address(this)), 1);
+        assertEq(conduitProxy.wards(address(1)),    0);
+        assertEq(conduitProxy.wards(address(this)), 1);
 
-        vm.expectRevert("ArrangerConduit/not-authorized");
+        vm.expectRevert("UpgradeableProxy/not-authed");
         vm.prank(address(1));
-        conduit.rely(address(1));
+        conduitProxy.rely(address(1));
 
-        conduit.rely(address(1));
+        conduitProxy.rely(address(1));
 
-        assertEq(conduit.wards(address(1)), 1);
+        assertEq(conduitProxy.wards(address(1)), 1);
     }
 
 }
@@ -31,26 +31,26 @@ contract Conduit_RelyTests is ConduitTestBase {
 contract Conduit_DenyTests is ConduitTestBase {
 
     function test_deny_no_auth() public {
-        vm.expectRevert("ArrangerConduit/not-authorized");
+        vm.expectRevert("UpgradeableProxy/not-authed");
         vm.prank(address(1));
-        conduit.deny(address(2));
+        conduitProxy.deny(address(2));
     }
 
     function test_deny_auth() public {
-        assertEq(conduit.wards(address(this)), 1);
+        assertEq(conduitProxy.wards(address(this)), 1);
 
-        conduit.rely(address(1));
+        conduitProxy.rely(address(1));
 
-        assertEq(conduit.wards(address(1)), 1);
+        assertEq(conduitProxy.wards(address(1)), 1);
 
-        vm.expectRevert("ArrangerConduit/not-authorized");
+        vm.expectRevert("UpgradeableProxy/not-authed");
         vm.prank(address(2));
-        conduit.deny(address(1));
+        conduitProxy.deny(address(1));
 
         vm.prank(address(1));
-        conduit.deny(address(1));
+        conduitProxy.deny(address(1));
 
-        assertEq(conduit.wards(address(1)), 0);
+        assertEq(conduitProxy.wards(address(1)), 0);
     }
 
 }
@@ -66,7 +66,7 @@ contract Conduit_SetArrangerTests is ConduitTestBase {
     function test_file_auth() public {
         assertEq(conduit.arranger(), arranger);
 
-        conduit.rely(address(1));
+        conduitProxy.rely(address(1));
 
         assertEq(conduit.wards(address(1)), 1);
 
