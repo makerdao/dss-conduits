@@ -49,9 +49,9 @@ contract Conduit_IsCancelableTest is ConduitAssetTestBase {
 
         conduitHarness.requestFunds(ilk, address(asset), 100, "info");
 
-        ( IArrangerConduit.StatusEnum status,,,,, ) = conduitHarness.fundRequests(0);
+        IArrangerConduit.FundRequest memory fundRequest = conduitHarness.getFundRequest(0);
 
-        assertEq(uint256(status), uint256(IArrangerConduit.StatusEnum.PENDING));
+        assertEq(uint256(fundRequest.status), uint256(IArrangerConduit.StatusEnum.PENDING));
 
         assertEq(conduitHarness.isCancelable(0), true);
 

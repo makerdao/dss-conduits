@@ -83,22 +83,15 @@ contract Conduit_RequestFundsTests is ConduitAssetTestBase {
 
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
-        (
-            IArrangerConduit.StatusEnum status,
-            address actualAsset,
-            bytes32 actualIlk,
-            uint256 amountRequested,
-            uint256 amountFilled,
-            string memory info
-        ) = conduit.fundRequests(0);
+        IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
 
-        assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
+        assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.PENDING);
 
-        assertEq(actualAsset,     address(asset));
-        assertEq(actualIlk,       ilk);
-        assertEq(amountRequested, 100);
-        assertEq(amountFilled,    0);
-        assertEq(info,            "info");
+        assertEq(fundRequest.asset,           address(asset));
+        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.amountRequested, 100);
+        assertEq(fundRequest.amountFilled,    0);
+        assertEq(fundRequest.info,            "info");
 
         assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
@@ -107,16 +100,15 @@ contract Conduit_RequestFundsTests is ConduitAssetTestBase {
 
         conduit.cancelFundRequest(0);
 
-        ( status, actualAsset, actualIlk, amountRequested, amountFilled, info )
-            = conduit.fundRequests(0);
+        fundRequest = conduit.getFundRequest(0);
 
-        assertTrue(status == IArrangerConduit.StatusEnum.CANCELLED);
+        assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.CANCELLED);
 
-        assertEq(actualAsset,     address(asset));
-        assertEq(actualIlk,       ilk);
-        assertEq(amountRequested, 100);
-        assertEq(amountFilled,    0);
-        assertEq(info,            "info");
+        assertEq(fundRequest.asset,           address(asset));
+        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.amountRequested, 100);
+        assertEq(fundRequest.amountFilled,    0);
+        assertEq(fundRequest.info,            "info");
 
         assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
         assertEq(conduit.totalRequestedFunds(address(asset)), 0);

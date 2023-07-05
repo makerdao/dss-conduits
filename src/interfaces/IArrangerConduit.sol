@@ -213,26 +213,6 @@ interface IArrangerConduit is IAllocatorConduit {
      */
     function withdrawals(bytes32 ilk, address asset) external view returns (uint256 withdrawals_);
 
-    /**
-     *  @dev    Returns a FundRequest struct at a given fundRequestId.
-     *  @param  fundRequestId   The id of the fund request.
-     *  @return status          The current status of the fund request.
-     *  @return asset           The address of the asset requested in the fund request.
-     *  @return ilk             The unique identifier of the ilk.
-     *  @return amountRequested The amount of asset requested in the fund request.
-     *  @return amountFilled    The amount of asset filled in the fund request.
-     *  @return info            Arbitrary string to provide additional info to the Arranger.
-     */
-    function fundRequests(uint256 fundRequestId)
-        external view returns (
-            StatusEnum    status,
-            address       asset,
-            bytes32       ilk,
-            uint256       amountRequested,
-            uint256       amountFilled,
-            string memory info
-        );
-
     /**********************************************************************************************/
     /*** Administrative Functions                                                               ***/
     /**********************************************************************************************/
@@ -261,6 +241,12 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
 
     /**
+     *  @dev   Function to cancel a withdrawal request from a Arranger.
+     *  @param fundRequestId The ID of the withdrawal request.
+     */
+    function cancelFundRequest(uint256 fundRequestId) external;
+
+    /**
      *  @dev    Function to initiate a withdrawal request from a Arranger.
      *  @param  ilk           The unique identifier for a particular ilk.
      *  @param  asset         The asset to withdraw.
@@ -270,12 +256,6 @@ interface IArrangerConduit is IAllocatorConduit {
      */
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)
         external returns (uint256 fundRequestId);
-
-    /**
-     *  @dev   Function to cancel a withdrawal request from a Arranger.
-     *  @param fundRequestId The ID of the withdrawal request.
-     */
-    function cancelFundRequest(uint256 fundRequestId) external;
 
     /**********************************************************************************************/
     /*** Arranger Functions                                                                     ***/
@@ -308,6 +288,20 @@ interface IArrangerConduit is IAllocatorConduit {
      *  @return drawableFunds_ The amount of funds that can be drawn by the Arranger.
      */
     function drawableFunds(address asset) external view returns (uint256 drawableFunds_);
+
+    /**
+     *  @dev    Returns a FundRequest struct at a given fundRequestId.
+     *  @param  fundRequestId The id of the fund request.
+     *  @return fundRequest   The FundRequest struct at the fundRequestId.
+     */
+    function getFundRequest(uint256 fundRequestId)
+        external view returns (FundRequest memory fundRequest);
+
+    /**
+     * @dev    Returns the length of the fundRequests array.
+     * @return fundRequestsLength The length of the fundRequests array.
+     */
+    function getFundRequestsLength() external view returns (uint256 fundRequestsLength);
 
     /**
      *  @dev    Function to check if a withdrawal request can be cancelled.

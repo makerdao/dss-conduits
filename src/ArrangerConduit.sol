@@ -26,11 +26,14 @@ contract ArrangerConduit is IArrangerConduit {
     /*** Declarations and Constructor                                                           ***/
     /**********************************************************************************************/
 
+    // Mapping is used in proxy, so it must be declared first
+    mapping(address => uint256) public override wards;
+
+    FundRequest[] internal fundRequests;
+
     address public override arranger;
     address public override registry;
     address public override roles;
-
-    mapping(address => uint256) public override wards;
 
     mapping(address => uint256) public override totalDeposits;
     mapping(address => uint256) public override totalRequestedFunds;
@@ -41,8 +44,6 @@ contract ArrangerConduit is IArrangerConduit {
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawals;
-
-    FundRequest[] public override fundRequests;
 
     constructor() {
         wards[msg.sender] = 1;
@@ -127,7 +128,7 @@ contract ArrangerConduit is IArrangerConduit {
             "ArrangerConduit/withdraw-transfer-failed"
         );
 
-        emit Withdraw(ilk, asset, destination, maxAmount);
+        emit Withdraw(ilk, asset, destination, amount);
     }
 
     function requestFunds(bytes32 ilk, address asset, uint256 amount, string memory info)
@@ -220,6 +221,22 @@ contract ArrangerConduit is IArrangerConduit {
         drawableFunds_ = ERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
     }
 
+    function getFundRequest(uint256 fundRequestId)
+        external override view returns (FundRequest memory fundRequest)
+    {
+        fundRequest = fundRequests[fundRequestId];
+    }
+
+    function getFundRequestsLength() external override view returns (uint256 fundRequestsLength) {
+        fundRequestsLength = fundRequests.length;
+    }
+
+    function isCancelable(uint256 fundRequestId)
+        external override view returns (bool isCancelable_)
+    {
+        isCancelable_ = fundRequests[fundRequestId].status == StatusEnum.PENDING;
+    }
+
     function maxDeposit(bytes32, address)
         external override pure returns (uint256 maxDeposit_)
     {
@@ -230,12 +247,6 @@ contract ArrangerConduit is IArrangerConduit {
         external override view returns (uint256 maxWithdraw_)
     {
         maxWithdraw_ = withdrawableFunds[ilk][asset];
-    }
-
-    function isCancelable(uint256 fundRequestId)
-        external override view returns (bool isCancelable_)
-    {
-        isCancelable_ = fundRequests[fundRequestId].status == StatusEnum.PENDING;
     }
 
     /**********************************************************************************************/

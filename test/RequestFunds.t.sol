@@ -21,22 +21,15 @@ contract Conduit_RequestFundsTests is ConduitAssetTestBase {
 
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
-        (
-            IArrangerConduit.StatusEnum status,
-            address actualAsset,
-            bytes32 actualIlk,
-            uint256 amountRequested,
-            uint256 amountFilled,
-            string memory info
-        ) = conduit.fundRequests(0);
+        IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
 
-        assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
+        assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.PENDING);
 
-        assertEq(actualAsset,     address(asset));
-        assertEq(actualIlk,       ilk);
-        assertEq(amountRequested, 100);
-        assertEq(amountFilled,    0);
-        assertEq(info,            "info");
+        assertEq(fundRequest.asset,           address(asset));
+        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.amountRequested, 100);
+        assertEq(fundRequest.amountFilled,    0);
+        assertEq(fundRequest.info,            "info");
 
         assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
@@ -67,22 +60,15 @@ contract Conduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 0);
 
-        (
-            IArrangerConduit.StatusEnum status,
-            address actualAsset,
-            bytes32 actualIlk,
-            uint256 amountRequested,
-            uint256 amountFilled,
-            string memory info
-        ) = conduit.fundRequests(0);
+        IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
 
-        assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
+        assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.PENDING);
 
-        assertEq(actualAsset,     address(asset));
-        assertEq(actualIlk,       ilk1);
-        assertEq(amountRequested, 40);
-        assertEq(amountFilled,    0);
-        assertEq(info,            "info1");
+        assertEq(fundRequest.asset,           address(asset));
+        assertEq(fundRequest.ilk,             ilk1);
+        assertEq(fundRequest.amountRequested, 40);
+        assertEq(fundRequest.amountFilled,    0);
+        assertEq(fundRequest.info,            "info1");
 
         assertEq(conduit.requestedFunds(ilk1, address(asset)), 40);
         assertEq(conduit.totalRequestedFunds(address(asset)),  40);
@@ -91,22 +77,15 @@ contract Conduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 1);
 
-        (
-            status,
-            actualAsset,
-            actualIlk,
-            amountRequested,
-            amountFilled,
-            info
-        ) = conduit.fundRequests(1);
+        fundRequest = conduit.getFundRequest(1);
 
-        assertTrue(status == IArrangerConduit.StatusEnum.PENDING);
+        assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.PENDING);
 
-        assertEq(actualAsset,     address(asset));
-        assertEq(actualIlk,       ilk2);
-        assertEq(amountRequested, 60);
-        assertEq(amountFilled,    0);
-        assertEq(info,            "info2");
+        assertEq(fundRequest.asset,           address(asset));
+        assertEq(fundRequest.ilk,             ilk2);
+        assertEq(fundRequest.amountRequested, 60);
+        assertEq(fundRequest.amountFilled,    0);
+        assertEq(fundRequest.info,            "info2");
 
         assertEq(conduit.requestedFunds(ilk2, address(asset)), 60);
         assertEq(conduit.totalRequestedFunds(address(asset)),  100);
