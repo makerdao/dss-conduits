@@ -8,7 +8,7 @@ import { ConduitTestBase } from "./ConduitTestBase.t.sol";
 contract Conduit_RelyTests is ConduitTestBase {
 
     function test_rely_no_auth() public {
-        vm.expectRevert("UpgradeableProxy/not-authed");
+        vm.expectRevert("UpgradeableProxy/not-authorized");
         vm.prank(address(1));
         conduitProxy.rely(address(2));
     }
@@ -17,7 +17,7 @@ contract Conduit_RelyTests is ConduitTestBase {
         assertEq(conduitProxy.wards(address(1)),    0);
         assertEq(conduitProxy.wards(address(this)), 1);
 
-        vm.expectRevert("UpgradeableProxy/not-authed");
+        vm.expectRevert("UpgradeableProxy/not-authorized");
         vm.prank(address(1));
         conduitProxy.rely(address(1));
 
@@ -31,7 +31,7 @@ contract Conduit_RelyTests is ConduitTestBase {
 contract Conduit_DenyTests is ConduitTestBase {
 
     function test_deny_no_auth() public {
-        vm.expectRevert("UpgradeableProxy/not-authed");
+        vm.expectRevert("UpgradeableProxy/not-authorized");
         vm.prank(address(1));
         conduitProxy.deny(address(2));
     }
@@ -43,7 +43,7 @@ contract Conduit_DenyTests is ConduitTestBase {
 
         assertEq(conduitProxy.wards(address(1)), 1);
 
-        vm.expectRevert("UpgradeableProxy/not-authed");
+        vm.expectRevert("UpgradeableProxy/not-authorized");
         vm.prank(address(2));
         conduitProxy.deny(address(1));
 

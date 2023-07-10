@@ -22,7 +22,7 @@ interface RegistryLike {
 // TODO: Use ERC20Helper
 // TODO: Figure out optimal way to structure natspec
 
-contract ArrangerConduit is IArrangerConduit, UpgradeableProxied {
+contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
     /**********************************************************************************************/
     /*** Declarations and Constructor                                                           ***/
