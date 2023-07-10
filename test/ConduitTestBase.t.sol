@@ -10,6 +10,8 @@ import { Test }                from "../lib/forge-std/src/Test.sol";
 
 import { MockERC20 } from "../lib/mock-erc20/src/MockERC20.sol";
 
+import { UpgradeableProxy } from "../lib/upgradeable-proxy/src/UpgradeableProxy.sol";
+
 import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 import { ArrangerConduit }  from "../src/ArrangerConduit.sol";
 
@@ -23,10 +25,17 @@ contract ConduitTestBase is Test {
     AllocatorRegistry registry = new AllocatorRegistry();
     AllocatorRoles   roles     = new AllocatorRoles();
 
-    ArrangerConduit conduit;
+    ArrangerConduit  conduit;
+    UpgradeableProxy conduitProxy;
 
     function setUp() public virtual {
-        conduit = new ArrangerConduit();
+        conduitProxy = new UpgradeableProxy();
+
+        ArrangerConduit conduitImplementation = new ArrangerConduit();
+
+        conduitProxy.setImplementation(address(conduitImplementation));
+
+        conduit = ArrangerConduit(address(conduitProxy));
 
         conduit.file("arranger", arranger);
         conduit.file("registry", address(registry));

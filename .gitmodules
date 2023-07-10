@@ -7,3 +7,6 @@
 [submodule "lib/dss-allocator"]
 	path = lib/dss-allocator
 	url = https://github.com/makerdao/dss-allocator
+[submodule "lib/upgradeable-proxy"]
+	path = lib/upgradeable-proxy
+	url = https://github.com/marsfoundation/upgradeable-proxy

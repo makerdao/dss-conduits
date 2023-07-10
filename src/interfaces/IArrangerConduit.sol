@@ -17,18 +17,6 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
 
     /**
-     *  @dev   Event emitted when a new admin is removed from the Conduit.
-     *  @param usr The address of the user to remove.
-     */
-    event Deny(address indexed usr);
-
-    /**
-     *  @dev   Event emitted when a new admin is added to the Conduit.
-     *  @param usr The address of the user to add.
-     */
-    event Rely(address indexed usr);
-
-    /**
      *  @dev   Event emitted when a value is changed by an admin.
      *  @param what The identifier of the value changed.
      *  @param data The new value of the identifier.
@@ -143,12 +131,6 @@ interface IArrangerConduit is IAllocatorConduit {
     function roles() external view returns (address roles_);
 
     /**
-     *  @dev    Returns a 0 or 1 depending on if the user has been added as an admin.
-     *  @return relied The value of the user's admin status.
-     */
-    function wards(address user) external view returns (uint256 relied);
-
-    /**
      *  @dev    Returns the total deposits for a given asset.
      *  @param  asset          The address of the asset.
      *  @return totalDeposits_ The total deposits held in the asset.
@@ -216,18 +198,6 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
     /*** Administrative Functions                                                               ***/
     /**********************************************************************************************/
-
-    /**
-     *  @dev   Function to give an address admin permissions.
-     *  @param usr The address of the new admin.
-     */
-    function rely(address usr) external;
-
-    /**
-     *  @dev   Function to remove an addresses admin permissions.
-     *  @param usr The address of the admin.
-     */
-    function deny(address usr) external;
 
     /**
      *  @dev   Function to set a value in the contract, called by the admin.
