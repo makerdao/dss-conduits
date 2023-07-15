@@ -26,12 +26,13 @@ contract ConduitTestBase is Test {
     AllocatorRoles   roles     = new AllocatorRoles();
 
     ArrangerConduit  conduit;
+    ArrangerConduit  conduitImplementation;
     UpgradeableProxy conduitProxy;
 
     function setUp() public virtual {
         conduitProxy = new UpgradeableProxy();
 
-        ArrangerConduit conduitImplementation = new ArrangerConduit();
+        conduitImplementation = new ArrangerConduit();
 
         conduitProxy.setImplementation(address(conduitImplementation));
 
