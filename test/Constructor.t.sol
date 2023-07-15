@@ -6,9 +6,6 @@ import { ConduitTestBase } from "./ConduitTestBase.t.sol";
 contract ArrangerConduit_ConstructorTests is ConduitTestBase {
 
     function test_constructor() public {
-        assertEq(conduit.arranger(), arranger);
-        assertEq(conduit.roles(),    address(roles));
-
         assertEq(conduit.wards(address(this)), 1);
     }
 

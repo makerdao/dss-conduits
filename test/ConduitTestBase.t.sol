@@ -23,7 +23,7 @@ contract ConduitTestBase is Test {
     address arranger = makeAddr("arranger");
 
     AllocatorRegistry registry = new AllocatorRegistry();
-    AllocatorRoles   roles     = new AllocatorRoles();
+    AllocatorRoles    roles    = new AllocatorRoles();
 
     ArrangerConduit  conduit;
     ArrangerConduit  conduitImplementation;
