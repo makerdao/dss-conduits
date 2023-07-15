@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { AllocatorRegistry } from "../lib/dss-allocator/src/AllocatorRegistry.sol";
-import { AllocatorRoles }    from "../lib/dss-allocator/src/AllocatorRoles.sol";
+import { AllocatorRegistry } from "../../lib/dss-allocator/src/AllocatorRegistry.sol";
+import { AllocatorRoles }    from "../../lib/dss-allocator/src/AllocatorRoles.sol";
 
-import { console2 as console } from "../lib/forge-std/src/console2.sol";
-import { stdError }            from "../lib/forge-std/src/StdError.sol";
-import { Test }                from "../lib/forge-std/src/Test.sol";
+import { console2 as console } from "../../lib/forge-std/src/console2.sol";
+import { stdError }            from "../../lib/forge-std/src/StdError.sol";
+import { Test }                from "../../lib/forge-std/src/Test.sol";
 
-import { MockERC20 } from "../lib/mock-erc20/src/MockERC20.sol";
+import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
 
-import { UpgradeableProxy } from "../lib/upgradeable-proxy/src/UpgradeableProxy.sol";
+import { UpgradeableProxy } from "../../lib/upgradeable-proxy/src/UpgradeableProxy.sol";
 
-import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
-import { ArrangerConduit }  from "../src/ArrangerConduit.sol";
+import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
+import { ArrangerConduit }  from "../../src/ArrangerConduit.sol";
 
 // TODO: Refactor all tests to use different operators and ilk admins
 

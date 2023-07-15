@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { stdError } from "../lib/forge-std/src/StdError.sol";
+import { stdError } from "../../lib/forge-std/src/StdError.sol";
 
-import { MockERC20 } from "../lib/mock-erc20/src/MockERC20.sol";
+import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
 
-import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
+import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
