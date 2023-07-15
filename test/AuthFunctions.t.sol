@@ -5,7 +5,7 @@ import { ConduitTestBase } from "./ConduitTestBase.t.sol";
 
 // TODO: Use makeAddr
 
-contract Conduit_RelyTests is ConduitTestBase {
+contract ArrangerConduit_RelyTests is ConduitTestBase {
 
     function test_rely_no_auth() public {
         vm.expectRevert("UpgradeableProxy/not-authorized");
@@ -28,7 +28,7 @@ contract Conduit_RelyTests is ConduitTestBase {
 
 }
 
-contract Conduit_DenyTests is ConduitTestBase {
+contract ArrangerConduit_DenyTests is ConduitTestBase {
 
     function test_deny_no_auth() public {
         vm.expectRevert("UpgradeableProxy/not-authorized");
@@ -55,7 +55,7 @@ contract Conduit_DenyTests is ConduitTestBase {
 
 }
 
-contract Conduit_SetArrangerTests is ConduitTestBase {
+contract ArrangerConduit_SetArrangerTests is ConduitTestBase {
 
     function test_file_no_auth() public {
         vm.expectRevert("ArrangerConduit/not-authorized");

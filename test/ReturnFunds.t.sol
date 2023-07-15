@@ -11,7 +11,7 @@ import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
-contract Conduit_ReturnFundsTests is ConduitAssetTestBase {
+contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
     function test_returnFunds_oneRequest_exact() external {
         asset.mint(address(this), 100);

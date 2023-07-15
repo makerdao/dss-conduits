@@ -9,7 +9,7 @@ import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
-contract Conduit_RequestFundsFailureTests is ConduitAssetTestBase {
+contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
 
     function test_cancelFundRequest_no_ilkAuth() public {
         asset.mint(address(this), 100);
@@ -73,7 +73,7 @@ contract Conduit_RequestFundsFailureTests is ConduitAssetTestBase {
 
 }
 
-contract Conduit_RequestFundsTests is ConduitAssetTestBase {
+contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
     function test_cancelFundRequest() public {
         asset.mint(address(this), 100);

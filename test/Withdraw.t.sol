@@ -11,7 +11,7 @@ import { IArrangerConduit } from "../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
-contract Conduit_WithdrawTests is ConduitAssetTestBase {
+contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
     // TODO: Determine if failure from insufficient balance is possible
     // TODO: Add test with over-limit request

@@ -5,7 +5,7 @@ import { stdError } from "../lib/forge-std/src/StdError.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
-contract Conduit_DepositFailureTests is ConduitAssetTestBase {
+contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
     function test_deposit_insufficientApproveBoundary() public {
         asset.mint(address(this), 100);
@@ -61,7 +61,7 @@ contract Conduit_DepositFailureTests is ConduitAssetTestBase {
 
 }
 
-contract Conduit_DepositTests is ConduitAssetTestBase {
+contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
     function test_deposit_singleIlk() external {
         asset.mint(address(this), 100);
