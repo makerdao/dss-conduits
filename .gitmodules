@@ -10,3 +10,6 @@
 [submodule "lib/upgradeable-proxy"]
 	path = lib/upgradeable-proxy
 	url = https://github.com/marsfoundation/upgradeable-proxy
+[submodule "lib/dss-test"]
+	path = lib/dss-test
+	url = https://github.com/makerdao/dss-test
