@@ -27,8 +27,8 @@ contract ArrangerConduit_IsCancelableTest is ConduitAssetTestBase {
     ArrangerConduitHarness conduitHarness;
 
     function setUp() public override {
-        UpgradeableProxy        conduitProxy          = new UpgradeableProxy();
-        ArrangerConduitHarness  conduitImplementation = new ArrangerConduitHarness();
+        UpgradeableProxy       conduitProxy          = new UpgradeableProxy();
+        ArrangerConduitHarness conduitImplementation = new ArrangerConduitHarness();
 
         conduitProxy.setImplementation(address(conduitImplementation));
 
@@ -71,4 +71,32 @@ contract ArrangerConduit_IsCancelableTest is ConduitAssetTestBase {
         assertEq(conduitHarness.isCancelable(0), false);
     }
 
+}
+
+contract ArrangerConduit_GetFundRequestsLengthTest is ConduitAssetTestBase {
+
+    function test_getFundRequestsLength() external {
+        asset.mint(address(this), 100);
+        asset.approve(address(conduit), 100);
+
+        conduit.deposit(ilk, address(asset), 100);
+
+        assertEq(conduit.getFundRequestsLength(), 0);
+
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        assertEq(conduit.getFundRequestsLength(), 1);
+
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        assertEq(conduit.getFundRequestsLength(), 2);
+
+        vm.startPrank(arranger);
+
+        conduit.drawFunds(address(asset), 100);
+        asset.approve(address(conduit), 100);
+        conduit.returnFunds(0, 40);
+
+        assertEq(conduit.getFundRequestsLength(), 2);  // Returning funds does not change length
+    }
 }
