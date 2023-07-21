@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { stdError } from "../../lib/forge-std/src/StdError.sol";
-
 import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
 
 import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
+import { RevertingERC20 }       from "./RevertingERC20.sol";
 
 contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
 
@@ -33,6 +32,16 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
         vm.expectRevert("ArrangerConduit/insufficient-funds");
         conduit.drawFunds(address(asset), 101);
 
+        conduit.drawFunds(address(asset), 100);
+    }
+
+    function test_drawFunds_transferRevert() external {
+        RevertingERC20 erc20 = new RevertingERC20("erc20", "ERC20", 18);
+
+        vm.etch(address(asset), address(erc20).code);
+
+        vm.prank(arranger);
+        vm.expectRevert("ArrangerConduit/transfer-failed");
         conduit.drawFunds(address(asset), 100);
     }
 
