@@ -20,7 +20,6 @@ import { ArrangerConduit }  from "../../src/ArrangerConduit.sol";
 // TODO: Failure tests for all relevant functions
 // TODO: Assert balance changes in ReturnFunds.t.sol line 213 and wherever else relevant
 // TODO: Try out .tree files
-// TODO: Add tests for maxWithdraw and gerFundRequestsLength()
 
 contract ConduitTestBase is Test {
 
