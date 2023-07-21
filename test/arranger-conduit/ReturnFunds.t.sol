@@ -12,6 +12,31 @@ import { RevertingERC20 }       from "./RevertingERC20.sol";
 
 contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
+    function test_returnFunds_notPending_completed() external {
+        _depositAndDrawFunds(asset, ilk, 100);
+
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        vm.startPrank(arranger);
+
+        conduit.returnFunds(0, 100);
+
+        vm.expectRevert("ArrangerConduit/invalid-status");
+        conduit.returnFunds(0, 100);
+    }
+
+    function test_returnFunds_notPending_canceled() external {
+        _depositAndDrawFunds(asset, ilk, 100);
+
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        conduit.cancelFundRequest(0);
+
+        vm.prank(arranger);
+        vm.expectRevert("ArrangerConduit/invalid-status");
+        conduit.returnFunds(0, 100);
+    }
+
     function test_returnFunds_revertingTransfer() external {
         _depositAndDrawFunds(asset, ilk, 100);
 
