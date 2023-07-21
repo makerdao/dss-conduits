@@ -99,4 +99,41 @@ contract ArrangerConduit_GetFundRequestsLengthTest is ConduitAssetTestBase {
 
         assertEq(conduit.getFundRequestsLength(), 2);  // Returning funds does not change length
     }
+
+}
+
+contract ArrangerConduit_MaxWithdrawTest is ConduitAssetTestBase {
+
+    ArrangerConduitHarness conduitHarness;
+
+    function setUp() public override {
+        UpgradeableProxy       conduitProxy          = new UpgradeableProxy();
+        ArrangerConduitHarness conduitImplementation = new ArrangerConduitHarness();
+
+        conduitProxy.setImplementation(address(conduitImplementation));
+
+        conduitHarness = ArrangerConduitHarness(address(conduitProxy));
+    }
+
+    function testFuzz_maxWithdraw(
+        address asset1,
+        address asset2,
+        uint256 amount1,
+        uint256 amount2
+    )
+        external
+    {
+        conduitHarness.__setWithdrawableFunds(ilk, asset1, amount1);
+        conduitHarness.__setWithdrawableFunds(ilk, asset2, amount2);
+
+        assertEq(conduitHarness.maxWithdraw(ilk, asset1), amount1);
+        assertEq(conduitHarness.maxWithdraw(ilk, asset2), amount2);
+
+        uint256 amount3 = type(uint256).max - amount1;
+
+        conduitHarness.__setWithdrawableFunds(ilk, asset1, amount1 + amount3);
+
+        assertEq(conduitHarness.maxWithdraw(ilk, asset1), amount1 + amount3);
+    }
+
 }

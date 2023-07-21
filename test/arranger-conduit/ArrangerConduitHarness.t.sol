@@ -14,4 +14,10 @@ contract ArrangerConduitHarness is ArrangerConduit {
         fundRequests[fundRequestId].status = status;
     }
 
+    function __setWithdrawableFunds(bytes32 ilk, address asset, uint256 amount)
+        external
+    {
+        withdrawableFunds[ilk][asset] = amount;
+    }
+
 }
