@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import { stdError } from "../../lib/forge-std/src/StdError.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
+import { RevertingERC20 }       from "./RevertingERC20.sol";
 
 contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
@@ -57,6 +58,15 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
         asset.mint(address(this), 1);
 
         conduit.deposit(ilk, address(asset), amount);
+    }
+
+    function test_deposit_transferFromRevert() public {
+        RevertingERC20 erc20 = new RevertingERC20("erc20", "ERC20", 18);
+
+        vm.etch(address(asset), address(erc20).code);
+
+        vm.expectRevert("ArrangerConduit/transfer-failed");
+        conduit.deposit(ilk, address(asset), 100);
     }
 
 }

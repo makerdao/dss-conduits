@@ -8,8 +8,23 @@ import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
 import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
 
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
+import { RevertingERC20 }       from "./RevertingERC20.sol";
 
 contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
+
+    function test_returnFunds_revertingTransfer() external {
+        _depositAndDrawFunds(asset, ilk, 100);
+
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        RevertingERC20 erc20 = new RevertingERC20("erc20", "ERC20", 18);
+
+        vm.etch(address(asset), address(erc20).code);
+
+        vm.prank(arranger);
+        vm.expectRevert("ArrangerConduit/transfer-failed");
+        conduit.returnFunds(0, 100);
+    }
 
     function test_returnFunds_oneRequest_exact() external {
         asset.mint(address(this), 100);

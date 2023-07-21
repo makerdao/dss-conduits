@@ -86,7 +86,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         require(
             ERC20Like(asset).transferFrom(source, address(this), amount),
-            "ArrangerConduit/deposit-transfer-failed"
+            "ArrangerConduit/transfer-failed"
         );
 
         emit Deposit(ilk, asset, source, amount);
@@ -109,7 +109,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         require(
             ERC20Like(asset).transfer(destination, amount),
-            "ArrangerConduit/withdraw-transfer-failed"
+            "ArrangerConduit/transfer-failed"
         );
 
         emit Withdraw(ilk, asset, destination, amount);
