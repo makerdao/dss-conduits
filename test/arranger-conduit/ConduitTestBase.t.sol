@@ -7,6 +7,8 @@ import { AllocatorRoles }    from "../../lib/dss-allocator/src/AllocatorRoles.so
 import { console2 as console } from "../../lib/forge-std/src/console2.sol";
 import { Test }                from "../../lib/forge-std/src/Test.sol";
 
+import { DssTest } from "dss-test/DssTest.sol";
+
 import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
 
 import { UpgradeableProxy } from "../../lib/upgradeable-proxy/src/UpgradeableProxy.sol";
@@ -16,7 +18,7 @@ import { ArrangerConduit }  from "../../src/ArrangerConduit.sol";
 // TODO: Assert balance changes in ReturnFunds.t.sol line 213 and wherever else relevant
 // TODO: Try out .tree files
 
-contract ConduitTestBase is Test {
+contract ConduitTestBase is DssTest {
 
     address admin    = makeAddr("admin");
     address arranger = makeAddr("arranger");

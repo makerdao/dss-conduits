@@ -8,7 +8,6 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
     event CancelFundRequest(uint256 fundRequestId);
     event Deposit(bytes32 indexed ilk, address indexed asset, address origin, uint256 amount);
     event DrawFunds(address indexed asset, uint256 amount);
-    event File(bytes32 indexed what, address data);
     event RequestFunds(
         bytes32 indexed ilk,
         address indexed asset,
