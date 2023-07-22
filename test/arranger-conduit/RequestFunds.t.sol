@@ -11,6 +11,20 @@ import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
 contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
+    function test_requestFunds_noIlkAuth() public {
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
+        conduit.deposit(ilk, address(asset), 100);
+
+        vm.stopPrank();
+
+        vm.expectRevert("ArrangerConduit/not-authorized");
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+    }
+
     function test_requestFunds_singleIlk_singleRequest() public {
         asset.mint(operator, 100);
 

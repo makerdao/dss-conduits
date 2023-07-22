@@ -11,7 +11,7 @@ import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 
 contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
 
-    function test_cancelFundRequest_no_ilkAuth() public {
+    function test_cancelFundRequest_noIlkAuth() public {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
@@ -26,7 +26,7 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
         conduit.cancelFundRequest(0);
     }
 
-    function test_cancelFundRequest_not_initialized() public {
+    function test_cancelFundRequest_notInitialized() public {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);

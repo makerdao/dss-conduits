@@ -16,6 +16,22 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
     // TODO: Determine if failure from insufficient balance is possible
     // TODO: Add test with over-limit request
+    // TODO: Should we allow operators to withdraw from deposits?
+
+    function test_withdraw_noIlkAuth() external {
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
+        conduit.deposit(ilk, address(asset), 100);
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        vm.stopPrank();
+
+        vm.expectRevert("ArrangerConduit/not-authorized");
+        conduit.withdraw(ilk, address(asset), 100);
+    }
 
     function test_withdraw_revertingTransfer() external {
         RevertingERC20 erc20 = new RevertingERC20("erc20", "ERC20", 18);

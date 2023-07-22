@@ -8,6 +8,15 @@ import { RevertingERC20 }       from "./RevertingERC20.sol";
 
 contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
+    function test_deposit_noIlkAuth() public {
+        asset.mint(operator, 100);
+
+        asset.approve(address(conduit), 100);
+
+        vm.expectRevert("ArrangerConduit/not-authorized");
+        conduit.deposit(ilk, address(asset), 100);
+    }
+
     function test_deposit_insufficientApproveBoundary() public {
         asset.mint(operator, 100);
 
