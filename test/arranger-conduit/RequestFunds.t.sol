@@ -13,7 +13,6 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
-
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
@@ -27,9 +26,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
-
         asset.approve(address(conduit), 100);
-
         conduit.deposit(ilk, address(asset), 100);
 
         assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
@@ -127,9 +124,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
-
         asset.approve(address(conduit), 100);
-
         conduit.deposit(ilk, address(asset), 100);
 
         assertEq(conduit.requestedFunds(ilk, address(asset)), 0);

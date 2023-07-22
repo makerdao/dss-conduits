@@ -102,7 +102,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), 100);
 
-        assertEq(asset.balanceOf(operator),    100);
+        assertEq(asset.balanceOf(operator),         100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
         assertEq(conduit.deposits(ilk, address(asset)), 0);
@@ -110,7 +110,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), 100);
 
-        assertEq(asset.balanceOf(operator),    0);
+        assertEq(asset.balanceOf(operator),         0);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
         assertEq(conduit.deposits(ilk, address(asset)), 100);
@@ -126,7 +126,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), amount);
 
-        assertEq(asset.balanceOf(operator),    amount);
+        assertEq(asset.balanceOf(operator),         amount);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
         assertEq(conduit.deposits(ilk, address(asset)), 0);
@@ -134,7 +134,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), amount);
 
-        assertEq(asset.balanceOf(operator),    0);
+        assertEq(asset.balanceOf(operator),         0);
         assertEq(asset.balanceOf(address(conduit)), amount);
 
         assertEq(conduit.deposits(ilk, address(asset)), amount);

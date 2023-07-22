@@ -14,7 +14,6 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
-
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
@@ -195,8 +194,6 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         _assertInvariants(ilk, address(asset));
     }
-
-    // TODO: Write another test with second request getting filled first
 
     function test_returnFunds_oneIlk_twoRequests_exact_under() external {
         asset.mint(operator, 100);
