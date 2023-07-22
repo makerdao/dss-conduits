@@ -127,23 +127,9 @@ contract ArrangerConduit_MaxWithdrawTest is ConduitAssetTestBase {
         external
     {
         vm.assume(asset1 != asset2);
-        // address asset1 = 0x0000000000000000000000000000000000000536;
-        // address asset2 = 0x0000000000000000000000000000000000000536;
-        // uint256 amount1 = 37895166965615977881614845983;
-        // uint256 amount2 = 1664836206;
-        // uint256 amount3 = 37895166965615977881614845983;
 
         conduitHarness.__setWithdrawableFunds(ilk, asset1, amount1);
         conduitHarness.__setWithdrawableFunds(ilk, asset2, amount2);
-
-        console.log("maxWithdraw(ilk, asset1):", conduitHarness.maxWithdraw(ilk, asset1));
-        console.log("maxWithdraw(ilk, asset2):", conduitHarness.maxWithdraw(ilk, asset2));
-
-        console.log("withdrawableFunds(ilk, asset1):", conduitHarness.withdrawableFunds(ilk, asset1));
-        console.log("withdrawableFunds(ilk, asset2):", conduitHarness.withdrawableFunds(ilk, asset2));
-
-        console.log("amount1:", amount1);
-        console.log("amount2:", amount2);
 
         assertEq(conduitHarness.maxWithdraw(ilk, asset1), amount1);
         assertEq(conduitHarness.maxWithdraw(ilk, asset2), amount2);
