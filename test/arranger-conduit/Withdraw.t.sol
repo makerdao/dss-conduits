@@ -3,12 +3,6 @@ pragma solidity ^0.8.13;
 
 import { console2 as console } from "../../lib/forge-std/src/console2.sol";
 
-import { stdError } from "../../lib/forge-std/src/StdError.sol";
-
-import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
-
-import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
-
 import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 import { RevertingERC20 }       from "./RevertingERC20.sol";
 
