@@ -70,28 +70,26 @@ contract ConduitAssetTestBase is ConduitTestBase {
         _assertInvariants(ilk_, "", asset_);
     }
 
-    // TODO: Refactor to use arrays
     function _assertInvariants(bytes32 ilk1, bytes32 ilk2, address asset_) internal {
-        // uint256 totalSupply = MockERC20(asset_).totalSupply();
+        assertEq(
+            conduit.totalDeposits(asset_),
+            conduit.deposits(ilk1, asset_) + conduit.deposits(ilk2, asset_)
+        );
 
-        // assertEq(
-        //     MockERC20(asset_).balanceOf(operator)
-        //         + MockERC20(asset_).balanceOf(operator1)
-        //         + MockERC20(asset_).balanceOf(operator2)
-        //         + MockERC20(asset_).balanceOf(arranger)
-        //         + MockERC20(asset_).balanceOf(address(conduit)),
-        //     totalSupply
-        // );
+        assertEq(
+            conduit.totalRequestedFunds(asset_),
+            conduit.requestedFunds(ilk1, asset_) + conduit.requestedFunds(ilk2, asset_)
+        );
 
-        // assertEq(
-        //     conduit.totalWithdrawableFunds(asset_),
-        //     conduit.withdrawableFunds(ilk1, asset_) + conduit.withdrawableFunds(ilk2, asset_)
-        // );
+        assertEq(
+            conduit.totalWithdrawableFunds(asset_),
+            conduit.withdrawableFunds(ilk1, asset_) + conduit.withdrawableFunds(ilk2, asset_)
+        );
 
-        // assertEq(
-        //     conduit.totalRequestedFunds(asset_),
-        //     conduit.requestedFunds(ilk1, asset_) + conduit.requestedFunds(ilk2, asset_)
-        // );
+        assertEq(
+            conduit.totalWithdrawals(asset_),
+            conduit.withdrawals(ilk1, asset_) + conduit.withdrawals(ilk2, asset_)
+        );
     }
 
     function _depositAndDrawFunds(
