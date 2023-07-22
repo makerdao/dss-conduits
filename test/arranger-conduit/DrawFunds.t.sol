@@ -13,7 +13,10 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
     function setUp() public virtual override {
         super.setUp();
 
-        asset.mint(address(this), 100);
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
 
         conduit.deposit(ilk, address(asset), 100);

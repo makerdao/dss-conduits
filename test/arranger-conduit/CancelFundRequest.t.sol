@@ -12,11 +12,13 @@ import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
 
     function test_cancelFundRequest_no_ilkAuth() public {
-        asset.mint(address(this), 100);
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
 
         conduit.deposit(ilk, address(asset), 100);
-
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         vm.prank(arranger);
@@ -25,9 +27,11 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
     }
 
     function test_cancelFundRequest_not_initialized() public {
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        asset.mint(operator, 100);
 
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
         vm.prank(arranger);
@@ -36,14 +40,17 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
     }
 
     function test_cancelFundRequest_completed() public {
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        asset.mint(operator, 100);
 
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
+        vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         vm.startPrank(arranger);
@@ -53,18 +60,20 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
 
         vm.stopPrank();
 
+        vm.prank(operator);
         vm.expectRevert("ArrangerConduit/invalid-status");
         conduit.cancelFundRequest(0);
     }
 
     function test_cancelFundRequest_cancelled() public {
-        asset.mint(address(this), 100);
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
 
         conduit.deposit(ilk, address(asset), 100);
-
         conduit.requestFunds(ilk, address(asset), 100, "info");
-
         conduit.cancelFundRequest(0);
 
         vm.expectRevert("ArrangerConduit/invalid-status");
@@ -76,9 +85,11 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
 contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
     function test_cancelFundRequest() public {
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        asset.mint(operator, 100);
 
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
         conduit.requestFunds(ilk, address(asset), 100, "info");

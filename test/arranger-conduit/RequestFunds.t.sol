@@ -12,7 +12,10 @@ import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
 contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
     function test_requestFunds_singleIlk_singleRequest() public {
-        asset.mint(address(this), 100);
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
 
         conduit.deposit(ilk, address(asset), 100);
@@ -41,21 +44,30 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, address(this));
-        _setupRoles(ilk2, address(this));
+        address operator1 = makeAddr("operator1");
+        address operator2 = makeAddr("operator2");
 
-        registry.file(ilk1, "buffer", address(this));
-        registry.file(ilk2, "buffer", address(this));
+        _setupOperatorRole(ilk1, operator1);
+        _setupOperatorRole(ilk2, operator2);
 
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        registry.file(ilk1, "buffer", operator1);
+        registry.file(ilk2, "buffer", operator2);
 
+        asset.mint(operator1, 40);
+        asset.mint(operator2, 60);
+
+        vm.startPrank(operator1);
+        asset.approve(address(conduit), 40);
         conduit.deposit(ilk1, address(asset), 40);
+
+        vm.startPrank(operator2);
+        asset.approve(address(conduit), 60);
         conduit.deposit(ilk2, address(asset), 60);
 
         assertEq(conduit.requestedFunds(ilk1, address(asset)), 0);
         assertEq(conduit.requestedFunds(ilk2, address(asset)), 0);
 
+        vm.prank(operator1);
         uint256 returnFundRequestId = conduit.requestFunds(ilk1, address(asset), 40, "info1");
 
         assertEq(returnFundRequestId, 0);
@@ -73,6 +85,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         assertEq(conduit.requestedFunds(ilk1, address(asset)), 40);
         assertEq(conduit.totalRequestedFunds(address(asset)),  40);
 
+        vm.prank(operator2);
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset), 60, "info2");
 
         assertEq(returnFundRequestId, 1);
@@ -99,7 +112,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
     //       multi-ilk multi-asset scenarios.
 
     function test_requestFunds_singleIlk_multiRequest_singleAsset() public {
-        asset.mint(address(this), 100);
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
 
         conduit.deposit(ilk, address(asset), 100);
@@ -125,8 +141,11 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         MockERC20 asset1 = new MockERC20("asset1", "asset1", 18);
         MockERC20 asset2 = new MockERC20("asset2", "asset2", 18);
 
-        asset1.mint(address(this), 100);
-        asset2.mint(address(this), 300);
+        asset1.mint(operator, 100);
+        asset2.mint(operator, 300);
+
+        vm.startPrank(operator);
+
         asset1.approve(address(conduit), 100);
         asset2.approve(address(conduit), 300);
 
@@ -165,30 +184,43 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, address(this));
-        _setupRoles(ilk2, address(this));
+        address operator1 = makeAddr("operator1");
+        address operator2 = makeAddr("operator2");
 
-        registry.file(ilk1, "buffer", address(this));
-        registry.file(ilk2, "buffer", address(this));
+        _setupOperatorRole(ilk1, operator1);
+        _setupOperatorRole(ilk2, operator2);
+
+        registry.file(ilk1, "buffer", operator1);
+        registry.file(ilk2, "buffer", operator2);
 
         /********************************************/
         /*** First round of deposits and requests ***/
         /********************************************/
 
-        asset1.mint(address(this), 100);
-        asset2.mint(address(this), 400);
+        asset1.mint(operator1, 40);
+        asset1.mint(operator2, 60);
+        asset2.mint(operator1, 100);
+        asset2.mint(operator2, 300);
 
-        asset1.approve(address(conduit), 100);
-        asset2.approve(address(conduit), 400);
+        vm.startPrank(operator1);
+        asset1.approve(address(conduit), 40);
+        asset2.approve(address(conduit), 100);
 
+        vm.startPrank(operator2);
+        asset1.approve(address(conduit), 60);
+        asset2.approve(address(conduit), 300);
+
+        vm.startPrank(operator1);
         conduit.deposit(ilk1, address(asset1), 40);
-        conduit.deposit(ilk2, address(asset1), 60);
         conduit.deposit(ilk1, address(asset2), 100);
+
+        vm.startPrank(operator2);
+        conduit.deposit(ilk2, address(asset1), 60);
         conduit.deposit(ilk2, address(asset2), 300);
 
         assertEq(conduit.requestedFunds(ilk1, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 0);
         assertEq(conduit.requestedFunds(ilk1, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 0);
         assertEq(conduit.requestedFunds(ilk2, address(asset2)), 0);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 0);
@@ -199,6 +231,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         // Request Funds for asset1 ilk1
 
+        vm.prank(operator1);
         uint256 returnFundRequestId = conduit.requestFunds(ilk1, address(asset1), 40, "info");
 
         assertEq(returnFundRequestId, 0);
@@ -216,6 +249,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         // Request Funds for asset1 ilk2
 
+        vm.prank(operator2);
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset1), 60, "info");
 
         assertEq(returnFundRequestId, 1);
@@ -233,6 +267,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         // Request Funds for asset2 ilk1
 
+        vm.prank(operator1);
         returnFundRequestId = conduit.requestFunds(ilk1, address(asset2), 100, "info");
 
         assertEq(returnFundRequestId, 2);
@@ -250,6 +285,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         // Request Funds for asset2 ilk2
 
+        vm.prank(operator2);
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset2), 300, "info");
 
         assertEq(returnFundRequestId, 3);
@@ -265,23 +301,34 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         _assertInvariants(ilk1, ilk2, address(asset1));
         _assertInvariants(ilk1, ilk2, address(asset2));
 
-        asset1.mint(address(this), 100);
-        asset2.mint(address(this), 400);
-
-        asset1.approve(address(conduit), 100);
-        asset2.approve(address(conduit), 400);
-
-        conduit.deposit(ilk1, address(asset1), 40);
-        conduit.deposit(ilk2, address(asset1), 60);
-        conduit.deposit(ilk1, address(asset2), 100);
-        conduit.deposit(ilk2, address(asset2), 300);
-
         /*********************************************/
         /*** Second round of deposits and requests ***/
         /*********************************************/
 
+        asset1.mint(operator1, 40);
+        asset1.mint(operator2, 60);
+        asset2.mint(operator1, 100);
+        asset2.mint(operator2, 300);
+
+        vm.startPrank(operator1);
+        asset1.approve(address(conduit), 40);
+        asset2.approve(address(conduit), 100);
+
+        vm.startPrank(operator2);
+        asset1.approve(address(conduit), 60);
+        asset2.approve(address(conduit), 300);
+
+        vm.startPrank(operator1);
+        conduit.deposit(ilk1, address(asset1), 40);
+        conduit.deposit(ilk1, address(asset2), 100);
+
+        vm.startPrank(operator2);
+        conduit.deposit(ilk2, address(asset1), 60);
+        conduit.deposit(ilk2, address(asset2), 300);
+
         // Request Funds for asset1 ilk1
 
+        vm.prank(operator1);
         returnFundRequestId = conduit.requestFunds(ilk1, address(asset1), 40, "info");
 
         assertEq(returnFundRequestId, 4);
@@ -299,6 +346,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         // Request Funds for asset1 ilk2
 
+        vm.prank(operator2);
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset1), 60, "info");
 
         assertEq(returnFundRequestId, 5);
@@ -316,6 +364,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         // Request Funds for asset2 ilk1
 
+        vm.prank(operator1);
         returnFundRequestId = conduit.requestFunds(ilk1, address(asset2), 100, "info");
 
         assertEq(returnFundRequestId, 6);
@@ -333,6 +382,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         // Request Funds for asset2 ilk2
 
+        vm.prank(operator2);
         returnFundRequestId = conduit.requestFunds(ilk2, address(asset2), 300, "info");
 
         assertEq(returnFundRequestId, 7);

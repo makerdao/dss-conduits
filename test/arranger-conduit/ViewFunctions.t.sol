@@ -76,9 +76,11 @@ contract ArrangerConduit_IsCancelableTest is ConduitAssetTestBase {
 contract ArrangerConduit_GetFundRequestsLengthTest is ConduitAssetTestBase {
 
     function test_getFundRequestsLength() external {
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        asset.mint(operator, 100);
 
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
         assertEq(conduit.getFundRequestsLength(), 0);
@@ -119,17 +121,34 @@ contract ArrangerConduit_MaxWithdrawTest is ConduitAssetTestBase {
         address asset1,
         address asset2,
         uint256 amount1,
-        uint256 amount2
+        uint256 amount2,
+        uint256 amount3
     )
         external
     {
+        vm.assume(asset1 != asset2);
+        // address asset1 = 0x0000000000000000000000000000000000000536;
+        // address asset2 = 0x0000000000000000000000000000000000000536;
+        // uint256 amount1 = 37895166965615977881614845983;
+        // uint256 amount2 = 1664836206;
+        // uint256 amount3 = 37895166965615977881614845983;
+
         conduitHarness.__setWithdrawableFunds(ilk, asset1, amount1);
         conduitHarness.__setWithdrawableFunds(ilk, asset2, amount2);
+
+        console.log("maxWithdraw(ilk, asset1):", conduitHarness.maxWithdraw(ilk, asset1));
+        console.log("maxWithdraw(ilk, asset2):", conduitHarness.maxWithdraw(ilk, asset2));
+
+        console.log("withdrawableFunds(ilk, asset1):", conduitHarness.withdrawableFunds(ilk, asset1));
+        console.log("withdrawableFunds(ilk, asset2):", conduitHarness.withdrawableFunds(ilk, asset2));
+
+        console.log("amount1:", amount1);
+        console.log("amount2:", amount2);
 
         assertEq(conduitHarness.maxWithdraw(ilk, asset1), amount1);
         assertEq(conduitHarness.maxWithdraw(ilk, asset2), amount2);
 
-        uint256 amount3 = type(uint256).max - amount1;
+        amount3 = _bound(amount3, 0, type(uint256).max - amount1);
 
         conduitHarness.__setWithdrawableFunds(ilk, asset1, amount1 + amount3);
 

@@ -13,8 +13,9 @@ import { RevertingERC20 }       from "./RevertingERC20.sol";
 contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
     function test_returnFunds_notPending_completed() external {
-        _depositAndDrawFunds(asset, ilk, 100);
+        _depositAndDrawFunds(asset, operator, ilk, 100);
 
+        vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         vm.startPrank(arranger);
@@ -26,8 +27,9 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
     }
 
     function test_returnFunds_notPending_canceled() external {
-        _depositAndDrawFunds(asset, ilk, 100);
+        _depositAndDrawFunds(asset, operator, ilk, 100);
 
+        vm.startPrank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         conduit.cancelFundRequest(0);
@@ -38,8 +40,9 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
     }
 
     function test_returnFunds_revertingTransfer() external {
-        _depositAndDrawFunds(asset, ilk, 100);
+        _depositAndDrawFunds(asset, operator, ilk, 100);
 
+        vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         RevertingERC20 erc20 = new RevertingERC20("erc20", "ERC20", 18);
@@ -52,14 +55,17 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
     }
 
     function test_returnFunds_oneRequest_exact() external {
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        asset.mint(operator, 100);
 
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
+        vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         vm.startPrank(arranger);
@@ -117,14 +123,17 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
     //       for easier auditing.
 
     function test_returnFunds_oneRequest_under() external {
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        asset.mint(operator, 100);
 
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
+        vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         vm.startPrank(arranger);
@@ -174,13 +183,17 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
     // TODO: Write another test with second request getting filled first
 
     function test_returnFunds_oneIlk_twoRequests_exact_under() external {
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        asset.mint(operator, 100);
 
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
+
+        vm.startPrank(operator);
 
         conduit.requestFunds(ilk, address(asset), 20, "info");
         conduit.requestFunds(ilk, address(asset), 80, "info");
@@ -257,22 +270,33 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, address(this));
-        _setupRoles(ilk2, address(this));
+        address operator1 = makeAddr("operator1");
+        address operator2 = makeAddr("operator2");
 
-        registry.file(ilk1, "buffer", address(this));
-        registry.file(ilk2, "buffer", address(this));
+        _setupOperatorRole(ilk1, operator1);
+        _setupOperatorRole(ilk2, operator2);
 
-        asset.mint(address(this), 100);
-        asset.approve(address(conduit), 100);
+        registry.file(ilk1, "buffer", operator1);
+        registry.file(ilk2, "buffer", operator2);
 
+        asset.mint(operator1, 40);
+        asset.mint(operator2, 60);
+
+        vm.startPrank(operator1);
+        asset.approve(address(conduit), 40);
         conduit.deposit(ilk1, address(asset), 40);
+
+        vm.startPrank(operator2);
+        asset.approve(address(conduit), 60);
         conduit.deposit(ilk2, address(asset), 60);
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
+        vm.prank(operator1);
         conduit.requestFunds(ilk1, address(asset), 40, "info");
+
+        vm.prank(operator2);
         conduit.requestFunds(ilk2, address(asset), 60, "info");
 
         vm.startPrank(arranger);
@@ -351,36 +375,53 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, address(this));
-        _setupRoles(ilk2, address(this));
+        address operator1 = makeAddr("operator1");
+        address operator2 = makeAddr("operator2");
 
-        registry.file(ilk1, "buffer", address(this));
-        registry.file(ilk2, "buffer", address(this));
+        _setupOperatorRole(ilk1, operator1);
+        _setupOperatorRole(ilk2, operator2);
+
+        registry.file(ilk1, "buffer", operator1);
+        registry.file(ilk2, "buffer", operator2);
 
         MockERC20 asset1 = new MockERC20("asset1", "asset1", 18);
         MockERC20 asset2 = new MockERC20("asset2", "asset2", 18);
 
-        asset1.mint(address(this), 100);
-        asset2.mint(address(this), 400);
+        asset1.mint(operator1, 40);
+        asset1.mint(operator2, 60);
+        asset2.mint(operator1, 100);
+        asset2.mint(operator2, 300);
 
-        asset1.approve(address(conduit), 100);
-        asset2.approve(address(conduit), 400);
+        vm.startPrank(operator1);
+        asset1.approve(address(conduit), 40);
+        asset2.approve(address(conduit), 100);
 
+        vm.startPrank(operator2);
+        asset1.approve(address(conduit), 60);
+        asset2.approve(address(conduit), 300);
+
+        vm.startPrank(operator1);
         conduit.deposit(ilk1, address(asset1), 40);
-        conduit.deposit(ilk2, address(asset1), 60);
         conduit.deposit(ilk1, address(asset2), 100);
+
+        vm.startPrank(operator2);
+        conduit.deposit(ilk2, address(asset1), 60);
         conduit.deposit(ilk2, address(asset2), 300);
 
         vm.startPrank(arranger);
-
         conduit.drawFunds(address(asset1), 100);
         conduit.drawFunds(address(asset2), 400);
 
-        vm.stopPrank();
-
+        vm.prank(operator1);
         conduit.requestFunds(ilk1, address(asset1), 40,  "info");
+
+        vm.prank(operator2);
         conduit.requestFunds(ilk2, address(asset1), 60,  "info");
+
+        vm.prank(operator1);
         conduit.requestFunds(ilk1, address(asset2), 100, "info");
+
+        vm.prank(operator2);
         conduit.requestFunds(ilk2, address(asset2), 300, "info");
 
         /**************************************/
@@ -448,7 +489,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         _assertInvariants(ilk1, ilk2, address(asset2));
 
         /**************************************************************************/
-        /*** Return funds for FundRequest 1 BEFORE FundRequest 0 (Over request) ***/
+        /*** Return funds for FundRequest 2 BEFORE FundRequest 0 (Over request) ***/
         /**************************************************************************/
 
         vm.startPrank(arranger);
