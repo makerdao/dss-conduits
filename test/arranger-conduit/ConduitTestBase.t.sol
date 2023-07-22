@@ -15,8 +15,6 @@ import { UpgradeableProxy } from "../../lib/upgradeable-proxy/src/UpgradeablePro
 import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
 import { ArrangerConduit }  from "../../src/ArrangerConduit.sol";
 
-// TODO: ilkAuth checks for all relevant functions
-// TODO: Failure tests for all relevant functions
 // TODO: Assert balance changes in ReturnFunds.t.sol line 213 and wherever else relevant
 // TODO: Try out .tree files
 
