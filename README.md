@@ -25,6 +25,20 @@ cd dss-conduits
 forge test
 ```
 
+## Functionality 
+
+### `deposit`
+
+<p align="center">
+  <img src="https://github.com/makerdao/dss-conduits/assets/44272939/ab0b6d46-9e05-40e0-ba6e-2c09244d08f4" height="500" />
+</p>
+
+### `withdraw`
+
+<p align="center">
+  <img src="https://github.com/makerdao/dss-conduits/assets/44272939/fd8fc168-542c-48b8-b987-676a8076a7d9" height="500" />
+</p>
+
 ## Disclaimer
 
 This code belongs to the MakerDAO community and the Copyright for the code belongs to the Dai Foundation.
