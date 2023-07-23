@@ -45,10 +45,16 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
     function test_drawFunds() public {
         assertEq(conduit.drawableFunds(address(asset)), 100);
 
+        assertEq(asset.balanceOf(address(conduit)), 100);
+        assertEq(asset.balanceOf(arranger),         0);
+
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 40);
 
         assertEq(conduit.drawableFunds(address(asset)), 60);
+
+        assertEq(asset.balanceOf(address(conduit)), 60);
+        assertEq(asset.balanceOf(arranger),         40);
 
         _assertInvariants(ilk, address(asset));
     }

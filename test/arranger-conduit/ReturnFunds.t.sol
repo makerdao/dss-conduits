@@ -269,6 +269,9 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 80);
         assertEq(fundRequest.amountFilled,    40);
 
+        assertEq(asset.balanceOf(arranger),         40);
+        assertEq(asset.balanceOf(address(conduit)), 60);
+
         // Goes to zero because amount is reduced by requestedAmount even on partial fills
         assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
         assertEq(conduit.totalRequestedFunds(address(asset)), 0);
