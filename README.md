@@ -7,11 +7,27 @@
 [foundry]: https://getfoundry.sh/
 [foundry-badge]: https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg
 
-This code belongs to the MakerDAO community and the Copyright for the code belongs to the Dai Foundation.
+## Overview
 
-<p align="center">
-  <img src="https://github.com/makerdao/dss-conduits/assets/44272939/da3e7b19-23c5-47f5-bd8c-39a215db48ad" height="500" />
-</p>
+The Conduit is a smart contract that facilitates the deployment of funds to yield bearing strategies as part of the DSS Allocator System. The Conduit has a standard interface, defined in the `dss-allocator` repo [here](https://github.com/makerdao/dss-allocator/blob/dev/src/interfaces/IAllocatorConduit.sol). There are intended to be many Conduit implementations, each with a different use case. All Conduits can be found in the `src` directory.
+
+## Upgradeability
+
+Since Conduits will likely require maintenance as their desired usage evolves, they will be upgradeable contracts, using [`upgradeable-proxy`](https://github.com/marsfoundation/upgradeable-proxy) for upgradeable logic. This is a non-transparent proxy contract that gives upgrade rights to the PauseProxy.
+
+## Testing
+
+To run the tests, do the following:
+
+```
+gcl git@github.com:makerdao/dss-conduits.git
+cd dss-conduits
+forge test
+```
+
+## Disclaimer
+
+This code belongs to the MakerDAO community and the Copyright for the code belongs to the Dai Foundation.
 
 ---
 
