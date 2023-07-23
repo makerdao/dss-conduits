@@ -10,7 +10,7 @@
 This code belongs to the MakerDAO community and the Copyright for the code belongs to the Dai Foundation.
 
 <p align="center">
-  <img src="https://github.com/makerdao/dss-conduits/assets/44272939/5b24a648-3bfb-4f88-aa01-6f3953201067" height="500" />
+  <img src="https://github.com/makerdao/dss-conduits/assets/44272939/da3e7b19-23c5-47f5-bd8c-39a215db48ad" height="500" />
 </p>
 
 ---
