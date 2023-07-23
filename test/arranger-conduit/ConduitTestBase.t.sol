@@ -13,9 +13,8 @@ import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
 
 import { UpgradeableProxy } from "../../lib/upgradeable-proxy/src/UpgradeableProxy.sol";
 
-import { ArrangerConduit }  from "../../src/ArrangerConduit.sol";
+import { ArrangerConduit } from "../../src/ArrangerConduit.sol";
 
-// TODO: Assert balance changes in ReturnFunds.t.sol line 213 and wherever else relevant
 // TODO: Try out .tree files
 
 contract ConduitTestBase is DssTest {
