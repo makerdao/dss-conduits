@@ -20,8 +20,7 @@ Since Conduits will likely require maintenance as their desired usage evolves, t
 To run the tests, do the following:
 
 ```
-gcl git@github.com:makerdao/dss-conduits.git
-cd dss-conduits
+forge install
 forge test
 ```
 
@@ -37,7 +36,7 @@ The `deposit` function is used to move funds from a given `ilk`s `buffer` into t
 
 ### `withdraw`
 
-The `withdraw` function is used to move funds from the Conduit into a given `ilk`s `buffer`. This can pull funds atomically from a yield bearing strategy in the case of DeFi protocols, or can pull the funds directly from the Conduit in the case of a Real World Asset strategy where the permissioned actor has returned the funds manually.
+The `withdraw` function is used to move funds from the Conduit into a given `ilk`s `buffer`. This can pull funds atomically from a yield bearing strategy in the case of DeFi protocols, or can pull the funds directly from the Conduit in the case of a Real World Asset strategy where the permissioned actor has returned the funds manually. Both situations require that there is available liquidity, which is why `maxWithdraw` exists. This view function should report the maximum amount of `asset` that can be withdrawn for a given `ilk`.
 
 <p align="center">
   <img src="https://github.com/makerdao/dss-conduits/assets/44272939/fd8fc168-542c-48b8-b987-676a8076a7d9" height="500" />
