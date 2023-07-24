@@ -20,7 +20,6 @@ Since Conduits will likely require maintenance as their desired usage evolves, t
 To run the tests, do the following:
 
 ```
-forge install
 forge test
 ```
 
