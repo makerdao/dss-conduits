@@ -61,8 +61,11 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
+
+        vm.stopPrank();
 
         vm.prank(arranger);
         vm.expectEmit(address(conduit));
@@ -80,6 +83,7 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
@@ -97,8 +101,11 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
+
+        vm.stopPrank();
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
@@ -107,12 +114,15 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         conduit.requestFunds(ilk, address(asset), 20, "info");
 
         vm.startPrank(arranger);
+
         asset.approve(address(conduit), 30);
 
         // Request 20, return 30
         vm.expectEmit(address(conduit));
         emit ReturnFunds(ilk, address(asset), 0, 20, 30);
         conduit.returnFunds(0, 30);
+
+        vm.stopPrank();
 
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 50, "info");

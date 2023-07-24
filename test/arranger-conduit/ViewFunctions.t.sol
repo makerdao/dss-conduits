@@ -113,6 +113,8 @@ contract ArrangerConduit_GetFundRequestsLengthTest is ConduitAssetTestBase {
 
         assertEq(conduit.getFundRequestsLength(), 2);
 
+        vm.stopPrank();
+
         vm.startPrank(arranger);
 
         conduit.drawFunds(address(asset), 100);

@@ -13,6 +13,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
@@ -26,6 +27,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
@@ -66,12 +68,18 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.mint(operator2, 60);
 
         vm.startPrank(operator1);
+
         asset.approve(address(conduit), 40);
         conduit.deposit(ilk1, address(asset), 40);
 
+        vm.stopPrank();
+
         vm.startPrank(operator2);
+
         asset.approve(address(conduit), 60);
         conduit.deposit(ilk2, address(asset), 60);
+
+        vm.stopPrank();
 
         assertEq(conduit.requestedFunds(ilk1, address(asset)), 0);
         assertEq(conduit.requestedFunds(ilk2, address(asset)), 0);
@@ -124,6 +132,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
@@ -210,20 +219,24 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset2.mint(operator2, 300);
 
         vm.startPrank(operator1);
+
         asset1.approve(address(conduit), 40);
         asset2.approve(address(conduit), 100);
 
-        vm.startPrank(operator2);
-        asset1.approve(address(conduit), 60);
-        asset2.approve(address(conduit), 300);
-
-        vm.startPrank(operator1);
         conduit.deposit(ilk1, address(asset1), 40);
         conduit.deposit(ilk1, address(asset2), 100);
 
+        vm.stopPrank();
+
         vm.startPrank(operator2);
+
+        asset1.approve(address(conduit), 60);
+        asset2.approve(address(conduit), 300);
+
         conduit.deposit(ilk2, address(asset1), 60);
         conduit.deposit(ilk2, address(asset2), 300);
+
+        vm.stopPrank();
 
         assertEq(conduit.requestedFunds(ilk1, address(asset1)), 0);
         assertEq(conduit.requestedFunds(ilk1, address(asset2)), 0);
@@ -318,20 +331,24 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset2.mint(operator2, 300);
 
         vm.startPrank(operator1);
+
         asset1.approve(address(conduit), 40);
         asset2.approve(address(conduit), 100);
 
-        vm.startPrank(operator2);
-        asset1.approve(address(conduit), 60);
-        asset2.approve(address(conduit), 300);
-
-        vm.startPrank(operator1);
         conduit.deposit(ilk1, address(asset1), 40);
         conduit.deposit(ilk1, address(asset2), 100);
 
+        vm.stopPrank();
+
         vm.startPrank(operator2);
+
+        asset1.approve(address(conduit), 60);
+        asset2.approve(address(conduit), 300);
+
         conduit.deposit(ilk2, address(asset1), 60);
         conduit.deposit(ilk2, address(asset2), 300);
+
+        vm.stopPrank();
 
         // Request Funds for asset1 ilk1
 

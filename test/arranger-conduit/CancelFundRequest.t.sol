@@ -15,9 +15,10 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
         vm.startPrank(operator);
 
         asset.approve(address(conduit), 100);
-
         conduit.deposit(ilk, address(asset), 100);
         conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        vm.stopPrank();
 
         vm.prank(arranger);
         vm.expectRevert("ArrangerConduit/not-authorized");
@@ -32,6 +33,8 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
+        vm.stopPrank();
+
         vm.prank(arranger);
         vm.expectRevert(stdError.indexOOBError);
         conduit.cancelFundRequest(0);
@@ -44,6 +47,8 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
+
+        vm.stopPrank();
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
@@ -89,7 +94,6 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
-
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);

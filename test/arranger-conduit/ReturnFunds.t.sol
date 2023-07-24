@@ -14,8 +14,11 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         asset.mint(operator, 100);
 
         vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
+
+        vm.stopPrank();
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
@@ -45,9 +48,12 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         _depositAndDrawFunds(asset, operator, ilk, 100);
 
         vm.startPrank(operator);
+
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         conduit.cancelFundRequest(0);
+
+        vm.stopPrank();
 
         vm.prank(arranger);
         vm.expectRevert("ArrangerConduit/invalid-status");
@@ -76,6 +82,8 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
+
+        vm.stopPrank();
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
@@ -145,6 +153,8 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
+        vm.stopPrank();
+
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
@@ -203,6 +213,8 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
+        vm.stopPrank();
+
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
 
@@ -210,6 +222,8 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         conduit.requestFunds(ilk, address(asset), 20, "info");
         conduit.requestFunds(ilk, address(asset), 80, "info");
+
+        vm.stopPrank();
 
         vm.startPrank(arranger);
 
@@ -299,12 +313,18 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         asset.mint(operator2, 60);
 
         vm.startPrank(operator1);
+
         asset.approve(address(conduit), 40);
         conduit.deposit(ilk1, address(asset), 40);
 
+        vm.stopPrank();
+
         vm.startPrank(operator2);
+
         asset.approve(address(conduit), 60);
         conduit.deposit(ilk2, address(asset), 60);
+
+        vm.stopPrank();
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), 100);
@@ -409,24 +429,29 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         asset2.mint(operator2, 300);
 
         vm.startPrank(operator1);
+
         asset1.approve(address(conduit), 40);
         asset2.approve(address(conduit), 100);
 
-        vm.startPrank(operator2);
-        asset1.approve(address(conduit), 60);
-        asset2.approve(address(conduit), 300);
-
-        vm.startPrank(operator1);
         conduit.deposit(ilk1, address(asset1), 40);
         conduit.deposit(ilk1, address(asset2), 100);
 
+        vm.stopPrank();
+
         vm.startPrank(operator2);
+
+        asset1.approve(address(conduit), 60);
+        asset2.approve(address(conduit), 300);
+
         conduit.deposit(ilk2, address(asset1), 60);
         conduit.deposit(ilk2, address(asset2), 300);
 
         vm.startPrank(arranger);
+
         conduit.drawFunds(address(asset1), 100);
         conduit.drawFunds(address(asset2), 400);
+
+        vm.stopPrank();
 
         vm.prank(operator1);
         conduit.requestFunds(ilk1, address(asset1), 40,  "info");

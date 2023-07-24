@@ -168,8 +168,11 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         assertEq(conduit.totalDeposits(address(asset)),  0);
 
         vm.startPrank(operator1);
+
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk1, address(asset), 100);
+
+        vm.stopPrank();
 
         assertEq(asset.balanceOf(operator1),        0);
         assertEq(asset.balanceOf(operator2),        300);
@@ -182,8 +185,11 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         _assertInvariants(ilk1, ilk2, address(asset));
 
         vm.startPrank(operator2);
+
         asset.approve(address(conduit), 300);
         conduit.deposit(ilk2, address(asset), 300);
+
+        vm.stopPrank();
 
         assertEq(asset.balanceOf(operator1),        0);
         assertEq(asset.balanceOf(operator2),        0);
