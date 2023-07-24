@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { RevertingERC20 } from "./RevertingERC20.sol";
-
 import "./ConduitTestBase.sol";
 
 contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
@@ -27,13 +25,14 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
     }
 
     function test_withdraw_revertingTransfer() external {
-        RevertingERC20 erc20 = new RevertingERC20("erc20", "ERC20", 18);
-
-        vm.etch(address(asset), address(erc20).code);
-
+        vm.mockCall(
+            address(asset),
+            abi.encodeWithSelector(asset.transfer.selector, operator, 0),
+            abi.encode(false)
+        );
         vm.prank(operator);
         vm.expectRevert("ArrangerConduit/transfer-failed");
-        conduit.withdraw(ilk, address(asset), 100);
+        conduit.withdraw(ilk, address(asset), 0);
     }
 
     function test_withdraw_singleIlk() external {

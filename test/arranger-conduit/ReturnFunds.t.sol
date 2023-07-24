@@ -3,8 +3,6 @@ pragma solidity ^0.8.13;
 
 import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
 
-import { RevertingERC20 } from "./RevertingERC20.sol";
-
 import "./ConduitTestBase.sol";
 
 contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
@@ -65,9 +63,11 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
-        RevertingERC20 erc20 = new RevertingERC20("erc20", "ERC20", 18);
-
-        vm.etch(address(asset), address(erc20).code);
+        vm.mockCall(
+            address(asset),
+            abi.encodeWithSelector(asset.transferFrom.selector, arranger, address(conduit), 100),
+            abi.encode(false)
+        );
 
         vm.prank(arranger);
         vm.expectRevert("ArrangerConduit/transfer-failed");
