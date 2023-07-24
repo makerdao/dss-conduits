@@ -1,14 +1,24 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { stdError } from "../../lib/forge-std/src/StdError.sol";
-
-import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
+import "./ConduitTestBase.sol";
 
 contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
+    function test_deposit_noIlkAuth() public {
+        asset.mint(operator, 100);
+
+        asset.approve(address(conduit), 100);
+
+        vm.expectRevert("ArrangerConduit/not-authorized");
+        conduit.deposit(ilk, address(asset), 100);
+    }
+
     function test_deposit_insufficientApproveBoundary() public {
-        asset.mint(address(this), 100);
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), 99);
 
         vm.expectRevert(stdError.arithmeticError);
@@ -22,7 +32,10 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
     function testFuzz_deposit_insufficientApproveBoundary(uint256 amount) public {
         vm.assume(amount != 0);
 
-        asset.mint(address(this), amount);
+        asset.mint(operator, amount);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), amount - 1);
 
         vm.expectRevert(stdError.arithmeticError);
@@ -34,13 +47,16 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
     }
 
     function test_deposit_insufficientFundsBoundary() public {
-        asset.mint(address(this), 99);
+        asset.mint(operator, 99);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
 
         vm.expectRevert(stdError.arithmeticError);
         conduit.deposit(ilk, address(asset), 100);
 
-        asset.mint(address(this), 1);
+        asset.mint(operator, 1);
 
         conduit.deposit(ilk, address(asset), 100);
     }
@@ -48,15 +64,30 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
     function testFuzz_deposit_insufficientFundsBoundary(uint256 amount) public {
         vm.assume(amount != 0);
 
-        asset.mint(address(this), amount - 1);
+        asset.mint(operator, amount - 1);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), amount);
 
         vm.expectRevert(stdError.arithmeticError);
         conduit.deposit(ilk, address(asset), amount);
 
-        asset.mint(address(this), 1);
+        asset.mint(operator, 1);
 
         conduit.deposit(ilk, address(asset), amount);
+    }
+
+    function test_deposit_transferFromRevert() public {
+        vm.mockCall(
+            address(asset),
+            abi.encodeWithSelector(asset.transferFrom.selector, operator, address(conduit), 100),
+            abi.encode(false)
+        );
+
+        vm.prank(operator);
+        vm.expectRevert("ArrangerConduit/transfer-failed");
+        conduit.deposit(ilk, address(asset), 100);
     }
 
 }
@@ -64,10 +95,13 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
     function test_deposit_singleIlk() external {
-        asset.mint(address(this), 100);
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), 100);
 
-        assertEq(asset.balanceOf(address(this)),    100);
+        assertEq(asset.balanceOf(operator),         100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
         assertEq(conduit.deposits(ilk, address(asset)), 0);
@@ -75,7 +109,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), 100);
 
-        assertEq(asset.balanceOf(address(this)),    0);
+        assertEq(asset.balanceOf(operator),         0);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
         assertEq(conduit.deposits(ilk, address(asset)), 100);
@@ -85,10 +119,13 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
     }
 
     function testFuzz_deposit_singleIlk(uint256 amount) external {
-        asset.mint(address(this), amount);
+        asset.mint(operator, amount);
+
+        vm.startPrank(operator);
+
         asset.approve(address(conduit), amount);
 
-        assertEq(asset.balanceOf(address(this)),    amount);
+        assertEq(asset.balanceOf(operator),         amount);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
         assertEq(conduit.deposits(ilk, address(asset)), 0);
@@ -96,7 +133,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
         conduit.deposit(ilk, address(asset), amount);
 
-        assertEq(asset.balanceOf(address(this)),    0);
+        assertEq(asset.balanceOf(operator),         0);
         assertEq(asset.balanceOf(address(conduit)), amount);
 
         assertEq(conduit.deposits(ilk, address(asset)), amount);
@@ -109,26 +146,35 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, address(this));
-        _setupRoles(ilk2, address(this));
+        address operator1 = makeAddr("operator1");
+        address operator2 = makeAddr("operator2");
 
-        registry.file(ilk1, "buffer", address(this));
-        registry.file(ilk2, "buffer", address(this));
+        _setupOperatorRole(ilk1, operator1);
+        _setupOperatorRole(ilk2, operator2);
 
-        asset.mint(address(this), 400);
+        registry.file(ilk1, "buffer", operator1);
+        registry.file(ilk2, "buffer", operator2);
 
-        asset.approve(address(conduit), 400);
+        asset.mint(operator1, 100);
+        asset.mint(operator2, 300);
 
-        assertEq(asset.balanceOf(address(this)),    400);
+        assertEq(asset.balanceOf(operator1),        100);
+        assertEq(asset.balanceOf(operator2),        300);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
         assertEq(conduit.deposits(ilk1, address(asset)), 0);
         assertEq(conduit.deposits(ilk2, address(asset)), 0);
         assertEq(conduit.totalDeposits(address(asset)),  0);
 
+        vm.startPrank(operator1);
+
+        asset.approve(address(conduit), 100);
         conduit.deposit(ilk1, address(asset), 100);
 
-        assertEq(asset.balanceOf(address(this)),    300);
+        vm.stopPrank();
+
+        assertEq(asset.balanceOf(operator1),        0);
+        assertEq(asset.balanceOf(operator2),        300);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
         assertEq(conduit.deposits(ilk1, address(asset)), 100);
@@ -137,9 +183,15 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
         _assertInvariants(ilk1, ilk2, address(asset));
 
+        vm.startPrank(operator2);
+
+        asset.approve(address(conduit), 300);
         conduit.deposit(ilk2, address(asset), 300);
 
-        assertEq(asset.balanceOf(address(this)),    0);
+        vm.stopPrank();
+
+        assertEq(asset.balanceOf(operator1),        0);
+        assertEq(asset.balanceOf(operator2),        0);
         assertEq(asset.balanceOf(address(conduit)), 400);
 
         assertEq(conduit.deposits(ilk1, address(asset)), 100);

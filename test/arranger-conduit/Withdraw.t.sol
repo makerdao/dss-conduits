@@ -1,43 +1,64 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { console2 as console } from "../../lib/forge-std/src/console2.sol";
-
-import { stdError } from "../../lib/forge-std/src/StdError.sol";
-
-import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
-
-import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
-
-import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
+import "./ConduitTestBase.sol";
 
 contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
     // TODO: Determine if failure from insufficient balance is possible
     // TODO: Add test with over-limit request
+    // TODO: Should we allow operators to withdraw from deposits?
+
+    function test_withdraw_noIlkAuth() external {
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
+        conduit.deposit(ilk, address(asset), 100);
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        vm.stopPrank();
+
+        vm.expectRevert("ArrangerConduit/not-authorized");
+        conduit.withdraw(ilk, address(asset), 100);
+    }
+
+    function test_withdraw_revertingTransfer() external {
+        vm.mockCall(
+            address(asset),
+            abi.encodeWithSelector(asset.transfer.selector, operator, 0),
+            abi.encode(false)
+        );
+        vm.prank(operator);
+        vm.expectRevert("ArrangerConduit/transfer-failed");
+        conduit.withdraw(ilk, address(asset), 0);
+    }
 
     function test_withdraw_singleIlk() external {
-        _depositAndDrawFunds(asset, ilk, 100);
+        _depositAndDrawFunds(asset, operator, ilk, 100);
 
+        vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
         vm.prank(arranger);
         conduit.returnFunds(0, 100);
 
         assertEq(asset.balanceOf(address(conduit)), 100);
-        assertEq(asset.balanceOf(address(this)),    0);
+        assertEq(asset.balanceOf(operator),         0);
 
         assertEq(conduit.withdrawableFunds(ilk, address(asset)), 100);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
         assertEq(conduit.withdrawals(ilk, address(asset)),       0);
         assertEq(conduit.totalWithdrawals(address(asset)),       0);
 
+        vm.prank(operator);
         uint256 amount = conduit.withdraw(ilk, address(asset), 100);
 
         assertEq(amount, 100);
 
         assertEq(asset.balanceOf(address(conduit)), 0);
-        assertEq(asset.balanceOf(address(this)),    100);
+        assertEq(asset.balanceOf(operator),         100);
 
         assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
@@ -49,16 +70,22 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
-        _setupRoles(ilk1, address(this));
-        _setupRoles(ilk2, address(this));
+        address operator1 = makeAddr("operator1");
+        address operator2 = makeAddr("operator2");
 
-        registry.file(ilk1, "buffer", address(this));
-        registry.file(ilk2, "buffer", address(this));
+        _setupOperatorRole(ilk1, operator1);
+        _setupOperatorRole(ilk2, operator2);
 
-        _depositAndDrawFunds(asset, ilk1, 100);
-        _depositAndDrawFunds(asset, ilk2, 400);
+        registry.file(ilk1, "buffer", operator1);
+        registry.file(ilk2, "buffer", operator2);
 
+        _depositAndDrawFunds(asset, operator1, ilk1, 100);
+        _depositAndDrawFunds(asset, operator2, ilk2, 400);
+
+        vm.prank(operator1);
         conduit.requestFunds(ilk1, address(asset), 100, "info");
+
+        vm.prank(operator2);
         conduit.requestFunds(ilk2, address(asset), 400, "info");
 
         vm.startPrank(arranger);
@@ -70,7 +97,8 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         assertEq(asset.balanceOf(address(conduit)), 500);
-        assertEq(asset.balanceOf(address(this)),    0);
+        assertEq(asset.balanceOf(operator1),        0);
+        assertEq(asset.balanceOf(operator2),        0);
 
         assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 200);
         assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 300);
@@ -81,12 +109,14 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
         // Partial withdraw ilk 1
 
+        vm.prank(operator1);
         uint256 amount = conduit.withdraw(ilk1, address(asset), 50);
 
         assertEq(amount, 50);
 
         assertEq(asset.balanceOf(address(conduit)), 450);
-        assertEq(asset.balanceOf(address(this)),    50);
+        assertEq(asset.balanceOf(operator1),        50);
+        assertEq(asset.balanceOf(operator2),        0);
 
         assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 150);
         assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 300);
@@ -97,12 +127,14 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
         // Finish withdraw ilk 1
 
+        vm.prank(operator1);
         amount = conduit.withdraw(ilk1, address(asset), 150);
 
         assertEq(amount, 150);
 
         assertEq(asset.balanceOf(address(conduit)), 300);
-        assertEq(asset.balanceOf(address(this)),    200);
+        assertEq(asset.balanceOf(operator1),        200);
+        assertEq(asset.balanceOf(operator2),        0);
 
         assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 0);
         assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 300);
@@ -113,12 +145,14 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
         // Full withdraw ilk 2
 
+        vm.prank(operator2);
         amount = conduit.withdraw(ilk2, address(asset), 300);
 
         assertEq(amount, 300);
 
         assertEq(asset.balanceOf(address(conduit)), 0);
-        assertEq(asset.balanceOf(address(this)),    500);
+        assertEq(asset.balanceOf(operator1),        200);
+        assertEq(asset.balanceOf(operator2),        300);
 
         assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 0);
         assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 0);

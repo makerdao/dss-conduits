@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { DssTest } from "dss-test/DssTest.sol";
+import "./ConduitTestBase.sol";
 
-import { ConduitTestBase } from "./ConduitTestBase.t.sol";
-
-// TODO: Use makeAddr
-
-contract ArrangerConduit_AuthTests is DssTest, ConduitTestBase {
+contract ArrangerConduit_AuthTests is ConduitTestBase {
 
     function test_auth() external {
         checkAuth(address(conduitProxy), "UpgradeableProxy");

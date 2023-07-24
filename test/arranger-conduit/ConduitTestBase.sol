@@ -1,31 +1,24 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
+import "dss-test/DssTest.sol";
+
 import { AllocatorRegistry } from "../../lib/dss-allocator/src/AllocatorRegistry.sol";
 import { AllocatorRoles }    from "../../lib/dss-allocator/src/AllocatorRoles.sol";
-
-import { console2 as console } from "../../lib/forge-std/src/console2.sol";
-import { stdError }            from "../../lib/forge-std/src/StdError.sol";
-import { Test }                from "../../lib/forge-std/src/Test.sol";
 
 import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
 
 import { UpgradeableProxy } from "../../lib/upgradeable-proxy/src/UpgradeableProxy.sol";
 
-import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
-import { ArrangerConduit }  from "../../src/ArrangerConduit.sol";
+import { ArrangerConduit } from "../../src/ArrangerConduit.sol";
 
-// TODO: Refactor all tests to use different operators and ilk admins
-// TODO: ilkAuth checks for all relevant functions
-// TODO: Failure tests for all relevant functions
-// TODO: Assert balance changes in ReturnFunds.t.sol line 213 and wherever else relevant
 // TODO: Try out .tree files
-// TODO: Add tests for maxWithdraw and gerFundRequestsLength()
 
-contract ConduitTestBase is Test {
+contract ConduitTestBase is DssTest {
 
     address admin    = makeAddr("admin");
     address arranger = makeAddr("arranger");
+    address operator = makeAddr("operator");
 
     AllocatorRegistry registry = new AllocatorRegistry();
     AllocatorRoles    roles    = new AllocatorRoles();
@@ -61,9 +54,9 @@ contract ConduitAssetTestBase is ConduitTestBase {
     function setUp() public virtual override {
         super.setUp();
 
-        _setupRoles(ilk, address(this));
+        _setupOperatorRole(ilk, operator);
 
-        registry.file(ilk, "buffer", address(this));  // TODO: Use dedicated buffer addresses
+        registry.file(ilk, "buffer", operator);
     }
 
     function _assertInvariants(bytes32 ilk_, address asset_) internal {
@@ -71,13 +64,14 @@ contract ConduitAssetTestBase is ConduitTestBase {
     }
 
     function _assertInvariants(bytes32 ilk1, bytes32 ilk2, address asset_) internal {
-        uint256 totalSupply = MockERC20(asset_).totalSupply();
+        assertEq(
+            conduit.totalDeposits(asset_),
+            conduit.deposits(ilk1, asset_) + conduit.deposits(ilk2, asset_)
+        );
 
         assertEq(
-            MockERC20(asset_).balanceOf(address(this))
-                + MockERC20(asset_).balanceOf(arranger)
-                + MockERC20(asset_).balanceOf(address(conduit)),
-            totalSupply
+            conduit.totalRequestedFunds(asset_),
+            conduit.requestedFunds(ilk1, asset_) + conduit.requestedFunds(ilk2, asset_)
         );
 
         assertEq(
@@ -86,13 +80,21 @@ contract ConduitAssetTestBase is ConduitTestBase {
         );
 
         assertEq(
-            conduit.totalRequestedFunds(asset_),
-            conduit.requestedFunds(ilk1, asset_) + conduit.requestedFunds(ilk2, asset_)
+            conduit.totalWithdrawals(asset_),
+            conduit.withdrawals(ilk1, asset_) + conduit.withdrawals(ilk2, asset_)
         );
     }
 
-    function _depositAndDrawFunds(MockERC20 asset_, bytes32 ilk_, uint256 amount) internal {
-        asset_.mint(address(this), amount);
+    function _depositAndDrawFunds(
+        MockERC20 asset_,
+        address   operator_,
+        bytes32   ilk_,
+        uint256   amount
+    )
+        internal
+    {
+        vm.startPrank(operator_);
+        asset_.mint(operator_, amount);
         asset_.approve(address(conduit), amount);
 
         conduit.deposit(ilk_, address(asset_), amount);
@@ -100,15 +102,17 @@ contract ConduitAssetTestBase is ConduitTestBase {
         vm.startPrank(arranger);
         conduit.drawFunds(address(asset_), amount);
 
-        uint256 allowance = asset.allowance(address(this), address(conduit));
+        uint256 allowance = asset.allowance(operator_, address(conduit));
 
         asset_.approve(address(conduit), allowance + amount);
 
         vm.stopPrank();
     }
 
-    function _setupRoles(bytes32 ilk_, address operator_) internal {
+    function _setupOperatorRole(bytes32 ilk_, address operator_) internal {
+        // Ensure address(this) can always set for a new ilk
         roles.setIlkAdmin(ilk_, address(this));
+
         roles.setUserRole(ilk_, operator_, ROLE, true);
 
         address conduit_ = address(conduit);
