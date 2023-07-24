@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
+import "dss-test/DssTest.sol";
+
 import { AllocatorRegistry } from "../../lib/dss-allocator/src/AllocatorRegistry.sol";
 import { AllocatorRoles }    from "../../lib/dss-allocator/src/AllocatorRoles.sol";
-
-import { console2 as console } from "../../lib/forge-std/src/console2.sol";
-import { Test }                from "../../lib/forge-std/src/Test.sol";
-
-import { DssTest } from "dss-test/DssTest.sol";
 
 import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
 

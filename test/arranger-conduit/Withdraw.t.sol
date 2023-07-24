@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { console2 as console } from "../../lib/forge-std/src/console2.sol";
+import { RevertingERC20 } from "./RevertingERC20.sol";
 
-import { ConduitAssetTestBase } from "./ConduitTestBase.t.sol";
-import { RevertingERC20 }       from "./RevertingERC20.sol";
+import "./ConduitTestBase.sol";
 
 contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
