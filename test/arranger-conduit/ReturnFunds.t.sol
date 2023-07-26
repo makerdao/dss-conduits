@@ -18,7 +18,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
 
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
@@ -85,7 +85,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
 
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
@@ -155,7 +155,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
 
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
@@ -215,7 +215,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
 
         vm.startPrank(operator);
 
@@ -326,7 +326,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
 
         vm.prank(operator1);
         conduit.requestFunds(ilk1, address(asset), 40, "info");
@@ -410,6 +410,9 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         bytes32 ilk1 = "ilk1";
         bytes32 ilk2 = "ilk2";
 
+        address broker1 = makeAddr("broker1");
+        address broker2 = makeAddr("broker2");
+
         address operator1 = makeAddr("operator1");
         address operator2 = makeAddr("operator2");
 
@@ -447,8 +450,8 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         vm.startPrank(arranger);
 
-        conduit.drawFunds(address(asset1), 100);
-        conduit.drawFunds(address(asset2), 400);
+        conduit.drawFunds(address(asset1), broker1, 100);
+        conduit.drawFunds(address(asset2), broker2, 400);
 
         vm.stopPrank();
 

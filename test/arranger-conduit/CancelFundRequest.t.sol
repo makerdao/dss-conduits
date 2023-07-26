@@ -49,17 +49,16 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
 
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
-        vm.startPrank(arranger);
+        vm.prank(broker);
+        asset.transfer(address(conduit), 100);
 
-        asset.approve(address(conduit), 100);
+        vm.prank(arranger);
         conduit.returnFunds(0, 100);
-
-        vm.stopPrank();
 
         vm.prank(operator);
         vm.expectRevert("ArrangerConduit/invalid-status");
