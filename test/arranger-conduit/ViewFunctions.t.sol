@@ -115,7 +115,7 @@ contract ArrangerConduit_GetFundRequestsLengthTest is ConduitAssetTestBase {
         vm.startPrank(arranger);
 
         conduit.drawFunds(address(asset), broker, 100);
-        asset.approve(address(conduit), 100);
+        asset.mint(address(conduit), 100);
         conduit.returnFunds(0, 40);
 
         assertEq(conduit.getFundRequestsLength(), 2);  // Returning funds does not change length

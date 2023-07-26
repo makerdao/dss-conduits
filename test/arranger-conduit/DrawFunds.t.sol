@@ -23,6 +23,13 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
         conduit.drawFunds(address(asset), broker, 100);
     }
 
+    function test_drawFunds_invalidBroker() external {
+        vm.startPrank(arranger);
+
+        vm.expectRevert("ArrangerConduit/invalid-broker");
+        conduit.drawFunds(address(asset), makeAddr("non-broker"), 100);
+    }
+
     function test_drawFunds_insufficientDrawableBoundary() external {
         assertEq(conduit.availableFunds(address(asset)), 100);
 
@@ -37,7 +44,7 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
     function test_drawFunds_transferRevert() external {
         vm.mockCall(
             address(asset),
-            abi.encodeWithSelector(asset.transfer.selector, arranger, 0),
+            abi.encodeWithSelector(asset.transfer.selector, broker, 0),
             abi.encode(false)
         );
 
@@ -50,7 +57,7 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
         assertEq(conduit.availableFunds(address(asset)), 100);
 
         assertEq(asset.balanceOf(address(conduit)), 100);
-        assertEq(asset.balanceOf(arranger),         0);
+        assertEq(asset.balanceOf(broker),           0);
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset), broker, 40);
@@ -58,7 +65,7 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
         assertEq(conduit.availableFunds(address(asset)), 60);
 
         assertEq(asset.balanceOf(address(conduit)), 60);
-        assertEq(asset.balanceOf(arranger),         40);
+        assertEq(asset.balanceOf(broker),           40);
 
         _assertInvariants(ilk, address(asset));
     }

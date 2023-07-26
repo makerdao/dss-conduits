@@ -110,6 +110,8 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         vm.prank(arranger);
         conduit.drawFunds(address(asset), broker, 100);
 
+        asset.mint(address(conduit), 100);
+
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 20, "info");
 
@@ -141,6 +143,8 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        asset.mint(address(conduit), 100);
 
         vm.prank(arranger);
         conduit.returnFunds(0, 100);
