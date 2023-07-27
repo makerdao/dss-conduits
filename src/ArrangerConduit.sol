@@ -82,7 +82,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     }
 
     /**********************************************************************************************/
-    /*** Router Functions                                                                       ***/
+    /*** Operator Functions                                                                     ***/
     /**********************************************************************************************/
 
     function deposit(bytes32 ilk, address asset, uint256 amount) external override ilkAuth(ilk) {

@@ -62,6 +62,8 @@ contract ArrangerConduit_AuthTests is ConduitTestBase {
         assertTrue(conduit.isBroker(broker, asset));
 
         conduit.setBroker(broker, asset, false);
+
+        assertTrue(!conduit.isBroker(broker, asset));
     }
 
 }

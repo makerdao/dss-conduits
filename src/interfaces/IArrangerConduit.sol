@@ -172,8 +172,8 @@ interface IArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev    Returns if an address is a valid broker for a given asset.
-     *  @param  broker    The address of the asset.
-     *  @param  asset     The total amount that can be withdrawn from the asset.
+     *  @param  broker    The address of the broker to check.
+     *  @param  asset     The address of the asset that the broker is valid for.
      *  @return isBroker_ Boolean value indicating if the broker is valid or not.
      */
     function isBroker(address broker, address asset) external view returns (bool isBroker_);
@@ -224,7 +224,7 @@ interface IArrangerConduit is IAllocatorConduit {
     function file(bytes32 what, address data) external;
 
     /**********************************************************************************************/
-    /*** Allocator Functions                                                                    ***/
+    /*** Operator Functions                                                                     ***/
     /**********************************************************************************************/
 
     /**
@@ -249,7 +249,8 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
 
     /**
-     * @notice Draw funds from the contract to the Arranger.
+     * @notice Draw funds from the contract to a `destination` that the Arranger specifies. This
+     *         destination MUST be a whitelisted `broker` address for the given `asset`.
      * @dev    Only the Arranger is authorized to call this function.
      * @param  asset       The ERC20 token contract address from which funds are being drawn.
      * @param  destination The destination to transfer the funds to.
