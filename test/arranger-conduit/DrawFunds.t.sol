@@ -20,45 +20,52 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
 
     function test_drawFunds_notArranger() external {
         vm.expectRevert("ArrangerConduit/not-arranger");
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
+    }
+
+    function test_drawFunds_invalidBroker() external {
+        vm.startPrank(arranger);
+
+        vm.expectRevert("ArrangerConduit/invalid-broker");
+        conduit.drawFunds(address(asset), makeAddr("non-broker"), 100);
     }
 
     function test_drawFunds_insufficientDrawableBoundary() external {
-        assertEq(conduit.drawableFunds(address(asset)), 100);
+        assertEq(conduit.availableFunds(address(asset)), 100);
 
         vm.startPrank(arranger);
 
         vm.expectRevert("ArrangerConduit/insufficient-funds");
-        conduit.drawFunds(address(asset), 101);
+        conduit.drawFunds(address(asset), broker, 101);
 
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
     }
 
     function test_drawFunds_transferRevert() external {
         vm.mockCall(
             address(asset),
-            abi.encodeWithSelector(asset.transfer.selector, arranger, 0),
+            abi.encodeWithSelector(asset.transfer.selector, broker, 0),
             abi.encode(false)
         );
 
         vm.prank(arranger);
         vm.expectRevert("ArrangerConduit/transfer-failed");
-        conduit.drawFunds(address(asset), 0);
+        conduit.drawFunds(address(asset), broker, 0);
     }
 
     function test_drawFunds() public {
-        assertEq(conduit.drawableFunds(address(asset)), 100);
+        assertEq(conduit.availableFunds(address(asset)), 100);
 
         assertEq(asset.balanceOf(address(conduit)), 100);
-        assertEq(asset.balanceOf(arranger),         0);
+        assertEq(asset.balanceOf(broker),           0);
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), 40);
+        conduit.drawFunds(address(asset), broker, 40);
 
-        assertEq(conduit.drawableFunds(address(asset)), 60);
+        assertEq(conduit.availableFunds(address(asset)), 60);
 
         assertEq(asset.balanceOf(address(conduit)), 60);
-        assertEq(asset.balanceOf(arranger),         40);
+        assertEq(asset.balanceOf(broker),           40);
 
         _assertInvariants(ilk, address(asset));
     }

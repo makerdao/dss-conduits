@@ -23,6 +23,14 @@ interface IArrangerConduit is IAllocatorConduit {
      */
     event File(bytes32 indexed what, address data);
 
+    /**
+     *  @dev   Event emitted when a broker is added or removed from the whitelist.
+     *  @param broker The address of the broker.
+     *  @param asset  The address of the asset.
+     *  @param valid  Boolean value indicating if the broker is whitelisted or not.
+     */
+    event SetBroker(address indexed broker, address indexed asset, bool valid);
+
     /**********************************************************************************************/
     /*** Fund Events                                                                            ***/
     /**********************************************************************************************/
@@ -35,10 +43,11 @@ interface IArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev   Event emitted when funds are drawn from the Conduit by the Arranger.
-     *  @param asset         The address of the asset to be withdrawn.
-     *  @param amount        The amount of asset to be withdrawn.
+     *  @param asset       The address of the asset to be withdrawn.
+     *  @param destination The address to transfer the funds to.
+     *  @param amount      The amount of asset to be withdrawn.
      */
-    event DrawFunds(address indexed asset, uint256 amount);
+    event DrawFunds(address indexed asset, address indexed destination, uint256 amount);
 
     /**
      *  @dev   Event emitted when a fund request is made.
@@ -162,6 +171,14 @@ interface IArrangerConduit is IAllocatorConduit {
         external view returns (uint256 totalWithdrawals_);
 
     /**
+     *  @dev    Returns if an address is a valid broker for a given asset.
+     *  @param  broker    The address of the broker to check.
+     *  @param  asset     The address of the asset that the broker is valid for.
+     *  @return isBroker_ Boolean value indicating if the broker is valid or not.
+     */
+    function isBroker(address broker, address asset) external view returns (bool isBroker_);
+
+    /**
      *  @dev    Returns the aggregate deposits for a given ilk and asset.
      *  @param  ilk        The unique identifier for a particular ilk.
      *  @param  asset      The address of the asset.
@@ -207,7 +224,7 @@ interface IArrangerConduit is IAllocatorConduit {
     function file(bytes32 what, address data) external;
 
     /**********************************************************************************************/
-    /*** Allocator Functions                                                                    ***/
+    /*** Operator Functions                                                                     ***/
     /**********************************************************************************************/
 
     /**
@@ -232,12 +249,14 @@ interface IArrangerConduit is IAllocatorConduit {
     /**********************************************************************************************/
 
     /**
-     * @notice Draw funds from the contract to the Arranger.
+     * @notice Draw funds from the contract to a `destination` that the Arranger specifies. This
+     *         destination MUST be a whitelisted `broker` address for the given `asset`.
      * @dev    Only the Arranger is authorized to call this function.
-     * @param  asset  The ERC20 token contract address from which funds are being drawn.
-     * @param  amount The amount of tokens to be drawn.
+     * @param  asset       The ERC20 token contract address from which funds are being drawn.
+     * @param  destination The destination to transfer the funds to.
+     * @param  amount      The amount of tokens to be drawn.
      */
-    function drawFunds(address asset, uint256 amount) external;
+    function drawFunds(address asset, address destination, uint256 amount) external;
 
     /**
      * @notice Return funds (principal only) from the Arranger back to the contract.
@@ -254,10 +273,10 @@ interface IArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev    Function to get the amount of funds that can be drawn by the Arranger.
-     *  @param  asset          The asset to check.
-     *  @return drawableFunds_ The amount of funds that can be drawn by the Arranger.
+     *  @param  asset           The asset to check.
+     *  @return availableFunds_ The amount of funds that can be drawn by the Arranger.
      */
-    function drawableFunds(address asset) external view returns (uint256 drawableFunds_);
+    function availableFunds(address asset) external view returns (uint256 availableFunds_);
 
     /**
      *  @dev    Returns a FundRequest struct at a given fundRequestId.

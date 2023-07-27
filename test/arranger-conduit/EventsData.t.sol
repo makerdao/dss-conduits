@@ -7,7 +7,7 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
     event CancelFundRequest(uint256 fundRequestId);
     event Deposit(bytes32 indexed ilk, address indexed asset, address origin, uint256 amount);
-    event DrawFunds(address indexed asset, uint256 amount);
+    event DrawFunds(address indexed asset, address indexed destination, uint256 amount);
     event RequestFunds(
         bytes32 indexed ilk,
         address indexed asset,
@@ -69,8 +69,8 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
         vm.prank(arranger);
         vm.expectEmit(address(conduit));
-        emit DrawFunds(address(asset), 40);
-        conduit.drawFunds(address(asset), 40);
+        emit DrawFunds(address(asset), broker, 40);
+        conduit.drawFunds(address(asset), broker, 40);
     }
 
     function test_file() public {
@@ -108,7 +108,9 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), 100);
+        conduit.drawFunds(address(asset), broker, 100);
+
+        asset.mint(address(conduit), 100);
 
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 20, "info");
@@ -141,6 +143,8 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
         vm.prank(operator);
         conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        asset.mint(address(conduit), 100);
 
         vm.prank(arranger);
         conduit.returnFunds(0, 100);

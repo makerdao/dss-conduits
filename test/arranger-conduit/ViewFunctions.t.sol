@@ -42,11 +42,11 @@ contract ArrangerConduit_DrawableFundsTest is ConduitAssetTestBase {
         conduitHarness.__setTotalWithdrawableFunds(address(asset2), withdrawableFundsAmount2);
 
         assertEq(
-            conduitHarness.drawableFunds(address(asset1)),
+            conduitHarness.availableFunds(address(asset1)),
             asset1.balanceOf(address(conduitHarness)) - withdrawableFundsAmount1
         );
         assertEq(
-            conduitHarness.drawableFunds(address(asset2)),
+            conduitHarness.availableFunds(address(asset2)),
             asset2.balanceOf(address(conduitHarness)) - withdrawableFundsAmount2
         );
     }
@@ -114,8 +114,8 @@ contract ArrangerConduit_GetFundRequestsLengthTest is ConduitAssetTestBase {
 
         vm.startPrank(arranger);
 
-        conduit.drawFunds(address(asset), 100);
-        asset.approve(address(conduit), 100);
+        conduit.drawFunds(address(asset), broker, 100);
+        asset.mint(address(conduit), 100);
         conduit.returnFunds(0, 40);
 
         assertEq(conduit.getFundRequestsLength(), 2);  // Returning funds does not change length

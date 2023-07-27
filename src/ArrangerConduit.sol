@@ -39,6 +39,8 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     mapping(address => uint256) public override totalWithdrawableFunds;
     mapping(address => uint256) public override totalWithdrawals;
 
+    mapping(address => mapping(address => bool)) public override isBroker;
+
     mapping(bytes32 => mapping(address => uint256)) public override deposits;
     mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
     mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
@@ -74,8 +76,13 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
         emit File(what, data);
     }
 
+    function setBroker(address broker, address asset, bool valid) external auth {
+        isBroker[broker][asset] = valid;
+        emit SetBroker(broker, asset, valid);
+    }
+
     /**********************************************************************************************/
-    /*** Router Functions                                                                       ***/
+    /*** Operator Functions                                                                     ***/
     /**********************************************************************************************/
 
     function deposit(bytes32 ilk, address asset, uint256 amount) external override ilkAuth(ilk) {
@@ -159,12 +166,19 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     /*** Fund Manager Functions                                                                 ***/
     /**********************************************************************************************/
 
-    function drawFunds(address asset, uint256 amount) external override isArranger {
-        require(amount <= drawableFunds(asset), "ArrangerConduit/insufficient-funds");
+    function drawFunds(
+        address asset,
+        address destination,
+        uint256 amount
+    )
+        external override isArranger
+    {
+        require(amount <= availableFunds(asset), "ArrangerConduit/insufficient-funds");
+        require(isBroker[destination][asset],    "ArrangerConduit/invalid-broker");
 
-        require(ERC20Like(asset).transfer(msg.sender, amount), "ArrangerConduit/transfer-failed");
+        require(ERC20Like(asset).transfer(destination, amount), "ArrangerConduit/transfer-failed");
 
-        emit DrawFunds(asset, amount);
+        emit DrawFunds(asset, destination, amount);
     }
 
     function returnFunds(uint256 fundRequestId, uint256 returnAmount)
@@ -172,15 +186,17 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     {
         FundRequest storage fundRequest = fundRequests[fundRequestId];
 
-        require(fundRequest.status == StatusEnum.PENDING, "ArrangerConduit/invalid-status");
-
         address asset = fundRequest.asset;
-        bytes32 ilk   = fundRequest.ilk;
 
-        uint256 amountRequested = fundRequest.amountRequested;
+        require(fundRequest.status == StatusEnum.PENDING, "ArrangerConduit/invalid-status");
+        require(returnAmount <= availableFunds(asset),    "ArrangerConduit/insufficient-funds");
+
+        bytes32 ilk = fundRequest.ilk;
 
         withdrawableFunds[ilk][asset] += returnAmount;
         totalWithdrawableFunds[asset] += returnAmount;
+
+        uint256 amountRequested = fundRequest.amountRequested;
 
         requestedFunds[ilk][asset] -= amountRequested;
         totalRequestedFunds[asset] -= amountRequested;
@@ -189,11 +205,6 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         fundRequest.status = StatusEnum.COMPLETED;
 
-        require(
-            ERC20Like(fundRequest.asset).transferFrom(msg.sender, address(this), returnAmount),
-            "ArrangerConduit/transfer-failed"
-        );
-
         emit ReturnFunds(ilk, asset, fundRequestId, amountRequested, returnAmount);
     }
 
@@ -201,8 +212,8 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     /*** View Functions                                                                         ***/
     /**********************************************************************************************/
 
-    function drawableFunds(address asset) public view override returns (uint256 drawableFunds_) {
-        drawableFunds_ = ERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
+    function availableFunds(address asset) public view override returns (uint256 availableFunds_) {
+        availableFunds_ = ERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
     }
 
     function getFundRequest(uint256 fundRequestId)

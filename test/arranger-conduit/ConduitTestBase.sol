@@ -47,6 +47,8 @@ contract ConduitAssetTestBase is ConduitTestBase {
 
     uint8 ROLE = 0;
 
+    address broker = makeAddr("broker");
+
     bytes32 ilk = "ilk";
 
     MockERC20 asset = new MockERC20("asset", "ASSET", 18);
@@ -57,6 +59,8 @@ contract ConduitAssetTestBase is ConduitTestBase {
         _setupOperatorRole(ilk, operator);
 
         registry.file(ilk, "buffer", operator);
+
+        conduit.setBroker(broker, address(asset), true);
     }
 
     function _assertInvariants(bytes32 ilk_, address asset_) internal {
@@ -100,11 +104,7 @@ contract ConduitAssetTestBase is ConduitTestBase {
         conduit.deposit(ilk_, address(asset_), amount);
 
         vm.startPrank(arranger);
-        conduit.drawFunds(address(asset_), amount);
-
-        uint256 allowance = asset.allowance(operator_, address(conduit));
-
-        asset_.approve(address(conduit), allowance + amount);
+        conduit.drawFunds(address(asset_), broker, amount);
 
         vm.stopPrank();
     }
