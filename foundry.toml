@@ -16,5 +16,4 @@ depth          = 10
 call_override  = false
 fail_on_revert = true   # Fail the test if the contract reverts
 
-
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
