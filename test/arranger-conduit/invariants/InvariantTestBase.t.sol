@@ -12,6 +12,7 @@ import { UpgradeableProxy } from "../../../lib/upgradeable-proxy/src/Upgradeable
 
 import { ArrangerConduit } from "../../../src/ArrangerConduit.sol";
 
+import { ArrangerHandlerBoundedBase } from "./handlers/Arranger.sol";
 import { OperatorHandlerBoundedBase } from "./handlers/Operator.sol";
 
 contract InvariantTestBase is Test {
@@ -19,11 +20,13 @@ contract InvariantTestBase is Test {
     uint8 ROLE = 0;
 
     address[] public assets;
+    address[] public brokers;
 
     bytes32[] public ilks;
 
     ArrangerConduit public conduit;
 
+    ArrangerHandlerBoundedBase public arrangerHandler;
     OperatorHandlerBoundedBase public operatorHandler;
 
     AllocatorRegistry public registry              = new AllocatorRegistry();
@@ -36,22 +39,25 @@ contract InvariantTestBase is Test {
 
         conduit = ArrangerConduit(address(conduitProxy));
 
+        arrangerHandler = new ArrangerHandlerBoundedBase(address(conduit), address(this));
         operatorHandler = new OperatorHandlerBoundedBase(address(conduit), address(this));
 
         // TODO: temporary
         _addAsset();
+        _addBroker(assets[0]);
         _addIlk();
 
         // TODO: This is temporary
         _setupOperatorRole(ilks[0], address(operatorHandler));
 
-        // conduit.file("arranger", arranger); TODO: Use handler
+        conduit.file("arranger", address(arrangerHandler));
         conduit.file("registry", address(registry));
         conduit.file("roles",    address(roles));
 
         // NOTE: Buffer == operator here, should change with broader integration testing
         registry.file(ilks[0], "buffer", address(operatorHandler));
 
+        targetContract(address(arrangerHandler));
         targetContract(address(operatorHandler));
     }
 
@@ -71,6 +77,10 @@ contract InvariantTestBase is Test {
         return assets.length;
     }
 
+    function getBrokersLength() public view returns (uint256) {
+        return brokers.length;
+    }
+
     function getIlksLength() public view returns (uint256) {
         return ilks.length;
     }
@@ -81,6 +91,12 @@ contract InvariantTestBase is Test {
 
     function _addAsset() internal {
         assets.push(address(new MockERC20("asset", "ASSET", 18)));
+    }
+
+    function _addBroker(address asset) internal {
+        address broker = makeAddr(string(abi.encode("broker", brokers.length)));
+        brokers.push(broker);
+        conduit.setBroker(broker, asset, true);  // TODO: Use handler
     }
 
     function _addIlk() internal {
