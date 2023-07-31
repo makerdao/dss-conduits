@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { console2 as console } from "../lib/forge-std/src/console2.sol";
-
 import { UpgradeableProxied } from "../lib/upgradeable-proxy/src/UpgradeableProxied.sol";
 
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
