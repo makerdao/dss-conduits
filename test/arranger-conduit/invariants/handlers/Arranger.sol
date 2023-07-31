@@ -5,7 +5,7 @@ import "../../../../lib/forge-std/src/Test.sol";
 
 import { MockERC20 } from "../../../../lib/mock-erc20/src/MockERC20.sol";
 
-import { HandlerBase } from "./HandlerBase.sol";
+import { ArrangerConduit, HandlerBase } from "./HandlerBase.sol";
 
 contract ArrangerHandlerBase is HandlerBase, Test {
 
@@ -19,6 +19,14 @@ contract ArrangerHandlerBase is HandlerBase, Test {
         arrangerConduit.drawFunds(asset, broker, amount);
     }
 
+    function returnFunds(uint256 indexSeed, uint256 amount) public virtual {
+        uint256 length = arrangerConduit.getFundRequestsLength();
+
+        uint256 fundRequestId = indexSeed % length;
+
+        arrangerConduit.returnFunds(fundRequestId, amount);
+    }
+
 }
 
 contract ArrangerHandlerBoundedBase is ArrangerHandlerBase {
@@ -30,6 +38,21 @@ contract ArrangerHandlerBoundedBase is ArrangerHandlerBase {
         address asset = _getAsset(indexSeed);
         amount = _bound(amount, 0, arrangerConduit.availableFunds(asset));
         super.drawFunds(indexSeed, amount);
+    }
+
+    function returnFunds(uint256 indexSeed, uint256 amount) public virtual override {
+        if (arrangerConduit.getFundRequestsLength() == 0) return;
+
+        ( bool active, uint256 fundRequestId ) = _getActiveFundRequestId(indexSeed);
+
+        if (!active) return;
+
+        ArrangerConduit.FundRequest memory fundRequest
+            = arrangerConduit.getFundRequest(fundRequestId);
+
+        amount = _bound(amount, 0, arrangerConduit.availableFunds(fundRequest.asset));
+
+        arrangerConduit.returnFunds(fundRequestId, amount);
     }
 
 }

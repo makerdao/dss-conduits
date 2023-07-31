@@ -11,7 +11,7 @@ runs = 5_000
 runs = 250_000
 
 [invariant]
-runs           = 10
+runs           = 1000
 depth          = 10
 call_override  = false
 fail_on_revert = true   # Fail the test if the contract reverts

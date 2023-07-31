@@ -12,8 +12,9 @@ import { UpgradeableProxy } from "../../../lib/upgradeable-proxy/src/Upgradeable
 
 import { ArrangerConduit } from "../../../src/ArrangerConduit.sol";
 
-import { ArrangerHandlerBoundedBase } from "./handlers/Arranger.sol";
-import { OperatorHandlerBoundedBase } from "./handlers/Operator.sol";
+import { ArrangerHandlerBoundedBase }   from "./handlers/Arranger.sol";
+import { OperatorHandlerBoundedBase }   from "./handlers/Operator.sol";
+import { TransfererHandlerBoundedBase } from "./handlers/Transferer.sol";
 
 contract InvariantTestBase is Test {
 
@@ -26,8 +27,9 @@ contract InvariantTestBase is Test {
 
     ArrangerConduit public conduit;
 
-    ArrangerHandlerBoundedBase public arrangerHandler;
-    OperatorHandlerBoundedBase public operatorHandler;
+    ArrangerHandlerBoundedBase   public arrangerHandler;
+    OperatorHandlerBoundedBase   public operatorHandler;
+    TransfererHandlerBoundedBase public transfererHandler;
 
     AllocatorRegistry public registry              = new AllocatorRegistry();
     AllocatorRoles    public roles                 = new AllocatorRoles();
@@ -39,8 +41,9 @@ contract InvariantTestBase is Test {
 
         conduit = ArrangerConduit(address(conduitProxy));
 
-        arrangerHandler = new ArrangerHandlerBoundedBase(address(conduit), address(this));
-        operatorHandler = new OperatorHandlerBoundedBase(address(conduit), address(this));
+        arrangerHandler   = new ArrangerHandlerBoundedBase(address(conduit), address(this));
+        operatorHandler   = new OperatorHandlerBoundedBase(address(conduit), address(this));
+        transfererHandler = new TransfererHandlerBoundedBase(address(conduit), address(this));
 
         // TODO: temporary
         _addAsset();
@@ -59,6 +62,7 @@ contract InvariantTestBase is Test {
 
         targetContract(address(arrangerHandler));
         targetContract(address(operatorHandler));
+        targetContract(address(transfererHandler));
     }
 
     /**********************************************************************************************/

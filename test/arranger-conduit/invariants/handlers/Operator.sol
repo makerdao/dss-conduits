@@ -16,10 +16,21 @@ contract OperatorHandlerBase is HandlerBase, Test {
         address asset = _getAsset(indexSeed);
         bytes32 ilk   = _getIlk(indexSeed);
 
-        MockERC20(asset).mint(address(this), amount);
-        MockERC20(asset).approve(address(arrangerConduit), amount);
-
         arrangerConduit.deposit(ilk , asset, amount);
+    }
+
+    function requestFunds(uint256 indexSeed, uint256 amount, string memory info) public virtual {
+        address asset = _getAsset(indexSeed);
+        bytes32 ilk   = _getIlk(indexSeed);
+
+        arrangerConduit.requestFunds(ilk, asset, amount, info);
+    }
+
+    function withdraw(uint256 indexSeed, uint256 amount) public virtual {
+        address asset = _getAsset(indexSeed);
+        bytes32 ilk   = _getIlk(indexSeed);
+
+        arrangerConduit.withdraw(ilk, asset, amount);
     }
 
 }
@@ -31,7 +42,30 @@ contract OperatorHandlerBoundedBase is OperatorHandlerBase {
 
     function deposit(uint256 indexSeed, uint256 amount) public virtual override {
         amount = _bound(amount, 0, 1e45);
+
+        address asset = _getAsset(indexSeed);
+
+        MockERC20(asset).mint(address(this), amount);
+        MockERC20(asset).approve(address(arrangerConduit), amount);
+
         super.deposit(indexSeed, amount);
+    }
+
+    function requestFunds(uint256 indexSeed, uint256 amount, string memory info)
+        public virtual override
+    {
+        amount = _bound(amount, 0, 1e45);
+
+        super.requestFunds(indexSeed, amount, info);
+    }
+
+    function withdraw(uint256 indexSeed, uint256 amount) public virtual override {
+        address asset = _getAsset(indexSeed);
+        bytes32 ilk   = _getIlk(indexSeed);
+
+        amount = _bound(amount, 0, arrangerConduit.withdrawableFunds(ilk, asset));
+
+        super.withdraw(indexSeed, amount);
     }
 
 }
