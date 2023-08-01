@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
@@ -64,6 +65,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
         require(msg.sender == arranger, "ArrangerConduit/not-arranger");
         _;
     }
+
     /**********************************************************************************************/
     /*** Administrative Functions                                                               ***/
     /**********************************************************************************************/
