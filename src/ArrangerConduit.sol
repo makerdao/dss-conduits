@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { UpgradeableProxied } from "../lib/upgradeable-proxy/src/UpgradeableProxied.sol";
+import { UpgradeableProxied } from "upgradeable-proxy/UpgradeableProxied.sol";
+
+import { IERC20, SafeERC20 } from "erc20-helpers/SafeERC20.sol";
 
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
