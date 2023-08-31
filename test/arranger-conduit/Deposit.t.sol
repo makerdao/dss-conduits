@@ -201,6 +201,4 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         _assertInvariants(ilk1, ilk2, address(asset));
     }
 
-    // TODO: Fuzz test multiIlk multiAsset
-
 }
