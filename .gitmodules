@@ -10,3 +10,6 @@
 [submodule "lib/erc20-helpers"]
 	path = lib/erc20-helpers
 	url = https://github.com/marsfoundation/erc20-helpers
+[submodule "lib/dss-allocator"]
+	path = lib/dss-allocator
+	url = https://github.com/makerdao/dss-allocator
