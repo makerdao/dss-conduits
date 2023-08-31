@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "./ConduitTestBase.sol";
 
-contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
+contract ArrangerConduit_DrawFundsTests is ConduitAssetTestBase {
 
     function setUp() public virtual override {
         super.setUp();
