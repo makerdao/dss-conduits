@@ -7,7 +7,6 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
     // TODO: Determine if failure from insufficient balance is possible
     // TODO: Add test with over-limit request
-    // TODO: Should we allow operators to withdraw from deposits?
 
     function test_withdraw_noIlkAuth() external {
         asset.mint(operator, 100);

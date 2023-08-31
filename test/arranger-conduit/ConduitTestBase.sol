@@ -3,16 +3,16 @@ pragma solidity ^0.8.13;
 
 import "dss-test/DssTest.sol";
 
-import { AllocatorRegistry } from "../../lib/dss-allocator/src/AllocatorRegistry.sol";
-import { AllocatorRoles }    from "../../lib/dss-allocator/src/AllocatorRoles.sol";
+import { AllocatorRegistry } from "dss-allocator/AllocatorRegistry.sol";
+import { AllocatorRoles }    from "dss-allocator/AllocatorRoles.sol";
 
-import { MockERC20 } from "../../lib/mock-erc20/src/MockERC20.sol";
+import { MockERC20 } from "mock-erc20/MockERC20.sol";
 
-import { UpgradeableProxy } from "../../lib/upgradeable-proxy/src/UpgradeableProxy.sol";
+import { UpgradeableProxy } from "upgradeable-proxy/UpgradeableProxy.sol";
 
 import { ArrangerConduit } from "../../src/ArrangerConduit.sol";
 
-// TODO: Try out .tree files
+// TODO: Add test for deposit and returnFunds without request
 
 contract ConduitTestBase is DssTest {
 
