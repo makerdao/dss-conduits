@@ -31,7 +31,7 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
             abi.encode(false)
         );
         vm.prank(operator);
-        vm.expectRevert("ArrangerConduit/transfer-failed");
+        vm.expectRevert("SafeERC20/transfer-failed");
         conduit.withdraw(ilk, address(asset), 0);
     }
 

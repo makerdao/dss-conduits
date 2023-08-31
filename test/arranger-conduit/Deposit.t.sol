@@ -21,7 +21,7 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), 99);
 
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert("SafeERC20/transfer-from-failed");
         conduit.deposit(ilk, address(asset), 100);
 
         asset.approve(address(conduit), 100);
@@ -38,7 +38,7 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), amount - 1);
 
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert("SafeERC20/transfer-from-failed");
         conduit.deposit(ilk, address(asset), amount);
 
         asset.approve(address(conduit), amount);
@@ -53,7 +53,7 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), 100);
 
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert("SafeERC20/transfer-from-failed");
         conduit.deposit(ilk, address(asset), 100);
 
         asset.mint(operator, 1);
@@ -70,7 +70,7 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
         asset.approve(address(conduit), amount);
 
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert("SafeERC20/transfer-from-failed");
         conduit.deposit(ilk, address(asset), amount);
 
         asset.mint(operator, 1);
@@ -86,7 +86,7 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
         );
 
         vm.prank(operator);
-        vm.expectRevert("ArrangerConduit/transfer-failed");
+        vm.expectRevert("SafeERC20/transfer-from-failed");
         conduit.deposit(ilk, address(asset), 100);
     }
 

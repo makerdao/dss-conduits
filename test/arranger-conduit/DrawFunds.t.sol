@@ -49,7 +49,7 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
         );
 
         vm.prank(arranger);
-        vm.expectRevert("ArrangerConduit/transfer-failed");
+        vm.expectRevert("SafeERC20/transfer-failed");
         conduit.drawFunds(address(asset), broker, 0);
     }
 
