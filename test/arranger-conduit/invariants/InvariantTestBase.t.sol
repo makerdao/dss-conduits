@@ -69,8 +69,24 @@ contract InvariantTestBase is Test {
     /*** Invariants                                                                             ***/
     /**********************************************************************************************/
 
-    function invariant_A() external {
-        assertTrue(true);
+    function invariant_A_B_C_D() external {
+        uint256 sumDeposits;
+        uint256 sumRequestedFunds;
+        uint256 sumWithdrawableFunds;
+        uint256 sumWithdrawals;
+
+        for (uint256 i = 0; i < assets.length; i++) {
+            for (uint256 j = 0; j < ilks.length; j++) {
+                sumDeposits          += conduit.deposits(ilks[j], assets[i]);
+                sumRequestedFunds    += conduit.requestedFunds(ilks[j], assets[i]);
+                sumWithdrawableFunds += conduit.withdrawableFunds(ilks[j], assets[i]);
+                sumWithdrawals       += conduit.withdrawals(ilks[j], assets[i]);
+            }
+            assertEq(conduit.totalDeposits(assets[i]),          sumDeposits);
+            assertEq(conduit.totalRequestedFunds(assets[i]),    sumRequestedFunds);
+            assertEq(conduit.totalWithdrawableFunds(assets[i]), sumWithdrawableFunds);
+            assertEq(conduit.totalWithdrawals(assets[i]),       sumWithdrawals);
+        }
     }
 
     /**********************************************************************************************/
