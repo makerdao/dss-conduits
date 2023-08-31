@@ -6,7 +6,7 @@ import "dss-test/DssTest.sol";
 import { AllocatorRegistry } from "dss-allocator/AllocatorRegistry.sol";
 import { AllocatorRoles }    from "dss-allocator/AllocatorRoles.sol";
 
-import { MockERC20 } from "mock-erc20/MockERC20.sol";
+import { MockERC20 } from "erc20-helpers/MockERC20.sol";
 
 import { UpgradeableProxy } from "upgradeable-proxy/UpgradeableProxy.sol";
 
