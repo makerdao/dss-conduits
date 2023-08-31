@@ -3,8 +3,9 @@ pragma solidity ^0.8.13;
 
 import "dss-test/DssTest.sol";
 
-import { AllocatorRegistry } from "dss-allocator/AllocatorRegistry.sol";
-import { AllocatorRoles }    from "dss-allocator/AllocatorRoles.sol";
+// TODO: Remove src
+import { AllocatorRegistry } from "dss-allocator/src/AllocatorRegistry.sol";
+import { AllocatorRoles }    from "dss-allocator/src/AllocatorRoles.sol";
 
 import { MockERC20 } from "erc20-helpers/MockERC20.sol";
 
