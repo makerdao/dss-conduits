@@ -9,6 +9,9 @@ import { ArrangerConduit, HandlerBase } from "./HandlerBase.sol";
 
 contract ArrangerHandlerBase is HandlerBase, Test {
 
+    mapping(address => uint256) public drawnFunds;     // Ghost variable for drawn funds
+    mapping(address => uint256) public returnedFunds;  // Ghost variable for returned funds
+
     constructor(address arrangerConduit_, address testContract_)
         HandlerBase(arrangerConduit_, testContract_) {}
 
@@ -17,6 +20,8 @@ contract ArrangerHandlerBase is HandlerBase, Test {
         address broker = _getBroker(indexSeed);
 
         arrangerConduit.drawFunds(asset, broker, amount);
+
+        drawnFunds[asset] += amount;
     }
 
     function returnFunds(uint256 indexSeed, uint256 amount) public virtual {
@@ -25,6 +30,8 @@ contract ArrangerHandlerBase is HandlerBase, Test {
         uint256 fundRequestId = indexSeed % length;
 
         arrangerConduit.returnFunds(fundRequestId, amount);
+
+        returnedFunds[arrangerConduit.getFundRequest(fundRequestId).asset] += amount;
     }
 
 }
@@ -50,9 +57,11 @@ contract ArrangerHandlerBoundedBase is ArrangerHandlerBase {
         ArrangerConduit.FundRequest memory fundRequest
             = arrangerConduit.getFundRequest(fundRequestId);
 
-        amount = _bound(amount, 0, arrangerConduit.availableFunds(fundRequest.asset));
+        amount = _bound(amount, 0, fundRequest.amountRequested * 2);
 
-        arrangerConduit.returnFunds(fundRequestId, amount);
+        MockERC20(fundRequest.asset).mint(address(arrangerConduit), amount);
+
+        super.returnFunds(fundRequestId, amount);
     }
 
 }

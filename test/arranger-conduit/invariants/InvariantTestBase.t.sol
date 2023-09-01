@@ -62,7 +62,7 @@ contract InvariantTestBase is Test {
 
         targetContract(address(arrangerHandler));
         targetContract(address(operatorHandler));
-        targetContract(address(transfererHandler));
+        // targetContract(address(transfererHandler));  TODO: Add back after assertEq is done for balance
     }
 
     /**********************************************************************************************/
@@ -88,6 +88,37 @@ contract InvariantTestBase is Test {
             assertEq(conduit.totalWithdrawals(assets[i]),       sumWithdrawals);
         }
     }
+
+    function invariant_E() external {
+        for (uint256 i = 0; i < assets.length; i++) {
+            MockERC20 asset = MockERC20(assets[i]);
+
+            assertGe(asset.balanceOf(address(conduit)), conduit.totalWithdrawableFunds(assets[i]));
+        }
+    }
+
+    function invariant_F() external {
+        for (uint256 i = 0; i < assets.length; i++) {
+            uint256 netBalance =
+                conduit.totalDeposits(assets[i])
+                - arrangerHandler.drawnFunds(assets[i])
+                + arrangerHandler.returnedFunds(assets[i])
+                - conduit.totalWithdrawals(assets[i]);
+
+            assertEq(MockERC20(assets[i]).balanceOf(address(conduit)), netBalance);
+        }
+    }
+
+    function invariant_G() external {
+        for (uint256 i = 0; i < assets.length; i++) {
+            assertEq(
+                conduit.totalWithdrawableFunds(assets[i]),
+                arrangerHandler.returnedFunds(assets[i]) - conduit.totalWithdrawals(assets[i])
+            );
+        }
+    }
+
+    // availableFunds + drawableFunds
 
     /**********************************************************************************************/
     /*** View Functions                                                                         ***/
