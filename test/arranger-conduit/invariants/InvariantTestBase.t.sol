@@ -28,7 +28,9 @@ contract InvariantTestBase is Test {
     ArrangerConduit public conduit;
 
     ArrangerHandlerBoundedBase   public arrangerHandler;
-    OperatorHandlerBoundedBase   public operatorHandler;
+    OperatorHandlerBoundedBase   public operatorHandler1;
+    OperatorHandlerBoundedBase   public operatorHandler2;
+    OperatorHandlerBoundedBase   public operatorHandler3;
     TransfererHandlerBoundedBase public transfererHandler;
 
     AllocatorRegistry public registry              = new AllocatorRegistry();
@@ -42,26 +44,40 @@ contract InvariantTestBase is Test {
         conduit = ArrangerConduit(address(conduitProxy));
 
         arrangerHandler   = new ArrangerHandlerBoundedBase(address(conduit), address(this));
-        operatorHandler   = new OperatorHandlerBoundedBase(address(conduit), address(this));
+        operatorHandler1  = new OperatorHandlerBoundedBase(address(conduit), address(this));
+        operatorHandler2  = new OperatorHandlerBoundedBase(address(conduit), address(this));
+        operatorHandler3  = new OperatorHandlerBoundedBase(address(conduit), address(this));
         transfererHandler = new TransfererHandlerBoundedBase(address(conduit), address(this));
 
         // TODO: temporary
         _addAsset();
+        _addAsset();
+        _addAsset();
         _addBroker(assets[0]);
+        _addBroker(assets[1]);
+        _addBroker(assets[2]);
+        _addIlk();
+        _addIlk();
         _addIlk();
 
         // TODO: This is temporary
-        _setupOperatorRole(ilks[0], address(operatorHandler));
+        _setupOperatorRole(ilks[0], address(operatorHandler1));
+        _setupOperatorRole(ilks[1], address(operatorHandler2));
+        _setupOperatorRole(ilks[2], address(operatorHandler3));
 
         conduit.file("arranger", address(arrangerHandler));
         conduit.file("registry", address(registry));
         conduit.file("roles",    address(roles));
 
         // NOTE: Buffer == operator here, should change with broader integration testing
-        registry.file(ilks[0], "buffer", address(operatorHandler));
+        registry.file(ilks[0], "buffer", address(operatorHandler1));
+        registry.file(ilks[1], "buffer", address(operatorHandler2));
+        registry.file(ilks[2], "buffer", address(operatorHandler3));
 
         targetContract(address(arrangerHandler));
-        targetContract(address(operatorHandler));
+        targetContract(address(operatorHandler1));
+        targetContract(address(operatorHandler2));
+        targetContract(address(operatorHandler3));
         // targetContract(address(transfererHandler));  TODO: Add back after assertEq is done for balance
     }
 
@@ -70,18 +86,19 @@ contract InvariantTestBase is Test {
     /**********************************************************************************************/
 
     function invariant_A_B_C_D() external {
-        uint256 sumDeposits;
-        uint256 sumRequestedFunds;
-        uint256 sumWithdrawableFunds;
-        uint256 sumWithdrawals;
-
         for (uint256 i = 0; i < assets.length; i++) {
+            uint256 sumDeposits;
+            uint256 sumRequestedFunds;
+            uint256 sumWithdrawableFunds;
+            uint256 sumWithdrawals;
+
             for (uint256 j = 0; j < ilks.length; j++) {
                 sumDeposits          += conduit.deposits(ilks[j], assets[i]);
                 sumRequestedFunds    += conduit.requestedFunds(ilks[j], assets[i]);
                 sumWithdrawableFunds += conduit.withdrawableFunds(ilks[j], assets[i]);
                 sumWithdrawals       += conduit.withdrawals(ilks[j], assets[i]);
             }
+
             assertEq(conduit.totalDeposits(assets[i]),          sumDeposits);
             assertEq(conduit.totalRequestedFunds(assets[i]),    sumRequestedFunds);
             assertEq(conduit.totalWithdrawableFunds(assets[i]), sumWithdrawableFunds);
@@ -118,7 +135,14 @@ contract InvariantTestBase is Test {
         }
     }
 
-    // availableFunds + drawableFunds
+    function invariant_H() external {
+        for (uint256 i = 0; i < assets.length; i++) {
+            assertEq(
+                MockERC20(assets[i]).balanceOf(address(conduit)),
+                conduit.availableFunds(assets[i]) + conduit.totalWithdrawableFunds(assets[i])
+            );
+        }
+    }
 
     /**********************************************************************************************/
     /*** View Functions                                                                         ***/
@@ -151,7 +175,7 @@ contract InvariantTestBase is Test {
     }
 
     function _addIlk() internal {
-        ilks.push(bytes32(abi.encode("ilk", ilks.length)));
+        ilks.push(bytes32(bytes(string.concat("ilk", vm.toString(ilks.length)))));
     }
 
     function _setupOperatorRole(bytes32 ilk_, address operator_) internal {
