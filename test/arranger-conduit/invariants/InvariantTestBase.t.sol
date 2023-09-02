@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import "../../../lib/forge-std/src/Test.sol";
+import "forge-std/Test.sol";
 
-import { AllocatorRegistry } from "../../../lib/dss-allocator/src/AllocatorRegistry.sol";
-import { AllocatorRoles }    from "../../../lib/dss-allocator/src/AllocatorRoles.sol";
+import { AllocatorRegistry } from "dss-allocator/AllocatorRegistry.sol";
+import { AllocatorRoles }    from "dss-allocator/AllocatorRoles.sol";
 
-import { MockERC20 } from "../../../lib/mock-erc20/src/MockERC20.sol";
+import { MockERC20 } from "erc20-helpers/MockERC20.sol";
 
-import { UpgradeableProxy } from "../../../lib/upgradeable-proxy/src/UpgradeableProxy.sol";
+import { UpgradeableProxy } from "upgradeable-proxy/UpgradeableProxy.sol";
 
 import { ArrangerConduit } from "../../../src/ArrangerConduit.sol";
 

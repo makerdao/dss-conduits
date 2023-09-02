@@ -758,4 +758,63 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         _assertInvariants(ilk1, ilk2, address(asset2));
     }
 
+    function test_returnFundsWithoutDrawing() external {
+        asset.mint(operator, 100);
+
+        vm.startPrank(operator);
+
+        asset.approve(address(conduit), 100);
+        conduit.deposit(ilk, address(asset), 100);
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        vm.stopPrank();
+
+        IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
+
+        assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.PENDING);
+
+        assertEq(fundRequest.asset,           address(asset));
+        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.amountRequested, 100);
+        assertEq(fundRequest.amountFilled,    0);
+        assertEq(fundRequest.info,            "info");
+
+        assertEq(asset.balanceOf(address(conduit)), 100);
+
+        assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
+        assertEq(conduit.totalRequestedFunds(address(asset)), 100);
+
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
+
+        assertEq(conduit.availableFunds(address(asset)), 100);
+
+        _assertInvariants(ilk, address(asset));
+
+        vm.prank(arranger);
+        conduit.returnFunds(0, 100);
+
+        fundRequest = conduit.getFundRequest(0);
+
+        assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.COMPLETED);
+
+        assertEq(fundRequest.asset,           address(asset));
+        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.amountRequested, 100);
+        assertEq(fundRequest.amountFilled,    100);
+        assertEq(fundRequest.info,            "info");
+
+        assertEq(asset.balanceOf(address(conduit)), 100);
+
+        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.totalRequestedFunds(address(asset)), 0);
+
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 100);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
+
+        assertEq(conduit.availableFunds(address(asset)), 0);
+
+        _assertInvariants(ilk, address(asset));
+    }
+
 }

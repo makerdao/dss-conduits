@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import "../../../../lib/forge-std/src/Test.sol";
+import "forge-std/Test.sol";
 
-import { MockERC20 } from "../../../../lib/mock-erc20/src/MockERC20.sol";
+import { MockERC20 } from "erc20-helpers/MockERC20.sol";
 
 import { ArrangerConduit, HandlerBase } from "./HandlerBase.sol";
 

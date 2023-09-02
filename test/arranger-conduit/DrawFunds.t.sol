@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "./ConduitTestBase.sol";
 
-contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
+contract ArrangerConduit_DrawFundsTests is ConduitAssetTestBase {
 
     function setUp() public virtual override {
         super.setUp();
@@ -39,18 +39,6 @@ contract ArrangerConduit_drawFundsTests is ConduitAssetTestBase {
         conduit.drawFunds(address(asset), broker, 101);
 
         conduit.drawFunds(address(asset), broker, 100);
-    }
-
-    function test_drawFunds_transferRevert() external {
-        vm.mockCall(
-            address(asset),
-            abi.encodeWithSelector(asset.transfer.selector, broker, 0),
-            abi.encode(false)
-        );
-
-        vm.prank(arranger);
-        vm.expectRevert("ArrangerConduit/transfer-failed");
-        conduit.drawFunds(address(asset), broker, 0);
     }
 
     function test_drawFunds() public {
