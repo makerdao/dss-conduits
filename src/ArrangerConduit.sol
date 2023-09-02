@@ -3,9 +3,13 @@ pragma solidity ^0.8.13;
 
 import { UpgradeableProxied } from "upgradeable-proxy/UpgradeableProxied.sol";
 
-import { IERC20, SafeERC20 } from "erc20-helpers/SafeERC20.sol";
-
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
+
+interface IERC20Like {
+    function balanceOf(address) external view returns (uint256);
+    function transfer(address, uint256) external;
+    function transferFrom(address, address, uint256) external;
+}
 
 interface RolesLike {
     function canCall(bytes32, address, address, bytes4) external view returns (bool);
@@ -16,8 +20,6 @@ interface RegistryLike {
 }
 
 contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
-
-    using SafeERC20 for address;
 
     /**********************************************************************************************/
     /*** Declarations and Constructor                                                           ***/
@@ -86,7 +88,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         address source = RegistryLike(registry).buffers(ilk);
 
-        asset.safeTransferFrom(source, address(this), amount);
+        IERC20Like(asset).transferFrom(source, address(this), amount);
 
         emit Deposit(ilk, asset, source, amount);
     }
@@ -106,7 +108,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         address destination = RegistryLike(registry).buffers(ilk);
 
-        asset.safeTransfer(destination, amount);
+        IERC20Like(asset).transfer(destination, amount);
 
         emit Withdraw(ilk, asset, destination, amount);
     }
@@ -165,7 +167,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
         require(amount <= availableFunds(asset), "ArrangerConduit/insufficient-funds");
         require(isBroker[destination][asset],    "ArrangerConduit/invalid-broker");
 
-        asset.safeTransfer(destination, amount);
+        IERC20Like(asset).transfer(destination, amount);
 
         emit DrawFunds(asset, destination, amount);
     }
@@ -202,7 +204,8 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     /**********************************************************************************************/
 
     function availableFunds(address asset) public view override returns (uint256 availableFunds_) {
-        availableFunds_ = IERC20(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
+        availableFunds_
+            = IERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
     }
 
     function getFundRequest(uint256 fundRequestId)

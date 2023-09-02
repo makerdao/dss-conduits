@@ -41,18 +41,6 @@ contract ArrangerConduit_DrawFundsTests is ConduitAssetTestBase {
         conduit.drawFunds(address(asset), broker, 100);
     }
 
-    function test_drawFunds_transferRevert() external {
-        vm.mockCall(
-            address(asset),
-            abi.encodeWithSelector(asset.transfer.selector, broker, 0),
-            abi.encode(false)
-        );
-
-        vm.prank(arranger);
-        vm.expectRevert("SafeERC20/transfer-failed");
-        conduit.drawFunds(address(asset), broker, 0);
-    }
-
     function test_drawFunds() public {
         assertEq(conduit.availableFunds(address(asset)), 100);
 

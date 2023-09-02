@@ -20,17 +20,6 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         conduit.withdraw(ilk, address(asset), 100);
     }
 
-    function test_withdraw_revertingTransfer() external {
-        vm.mockCall(
-            address(asset),
-            abi.encodeWithSelector(asset.transfer.selector, operator, 0),
-            abi.encode(false)
-        );
-        vm.prank(operator);
-        vm.expectRevert("SafeERC20/transfer-failed");
-        conduit.withdraw(ilk, address(asset), 0);
-    }
-
     function test_withdraw_moreThanWithdrawable() external {
         _depositAndDrawFunds(asset, operator, ilk, 100);
 
