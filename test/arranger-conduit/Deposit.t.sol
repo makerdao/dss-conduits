@@ -78,18 +78,6 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
         conduit.deposit(ilk, address(asset), amount);
     }
 
-    function test_deposit_transferFromRevert() public {
-        vm.mockCall(
-            address(asset),
-            abi.encodeWithSelector(asset.transferFrom.selector, operator, address(conduit), 100),
-            abi.encode(false)
-        );
-
-        vm.prank(operator);
-        vm.expectRevert("ArrangerConduit/transfer-failed");
-        conduit.deposit(ilk, address(asset), 100);
-    }
-
 }
 
 contract ArrangerConduit_DepositTests is ConduitAssetTestBase {

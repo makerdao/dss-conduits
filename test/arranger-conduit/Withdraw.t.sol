@@ -7,7 +7,6 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
     // TODO: Determine if failure from insufficient balance is possible
     // TODO: Add test with over-limit request
-    // TODO: Should we allow operators to withdraw from deposits?
 
     function test_withdraw_noIlkAuth() external {
         asset.mint(operator, 100);
@@ -22,17 +21,6 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
         vm.expectRevert("ArrangerConduit/not-authorized");
         conduit.withdraw(ilk, address(asset), 100);
-    }
-
-    function test_withdraw_revertingTransfer() external {
-        vm.mockCall(
-            address(asset),
-            abi.encodeWithSelector(asset.transfer.selector, operator, 0),
-            abi.encode(false)
-        );
-        vm.prank(operator);
-        vm.expectRevert("ArrangerConduit/transfer-failed");
-        conduit.withdraw(ilk, address(asset), 0);
     }
 
     function test_withdraw_singleIlk() external {

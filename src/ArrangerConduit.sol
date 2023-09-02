@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { UpgradeableProxied } from "../lib/upgradeable-proxy/src/UpgradeableProxied.sol";
+import { UpgradeableProxied } from "upgradeable-proxy/UpgradeableProxied.sol";
 
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
-interface ERC20Like {
-    function balanceOf(address src) external view returns (uint256 wad);
-    function transfer(address dst, uint wad) external returns (bool);
-    function transferFrom(address src, address dst, uint wad) external returns (bool);
+interface IERC20Like {
+    function balanceOf(address) external view returns (uint256);
+    function transfer(address, uint256) external;
+    function transferFrom(address, address, uint256) external;
 }
 
 interface RolesLike {
@@ -18,9 +18,6 @@ interface RolesLike {
 interface RegistryLike {
     function buffers(bytes32 ilk) external view returns (address buffer);
 }
-
-// TODO: Use ERC20Helper
-// TODO: Figure out optimal way to structure natspec
 
 contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
@@ -91,10 +88,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         address source = RegistryLike(registry).buffers(ilk);
 
-        require(
-            ERC20Like(asset).transferFrom(source, address(this), amount),
-            "ArrangerConduit/transfer-failed"
-        );
+        IERC20Like(asset).transferFrom(source, address(this), amount);
 
         emit Deposit(ilk, asset, source, amount);
     }
@@ -114,10 +108,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         address destination = RegistryLike(registry).buffers(ilk);
 
-        require(
-            ERC20Like(asset).transfer(destination, amount),
-            "ArrangerConduit/transfer-failed"
-        );
+        IERC20Like(asset).transfer(destination, amount);
 
         emit Withdraw(ilk, asset, destination, amount);
     }
@@ -176,7 +167,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
         require(amount <= availableFunds(asset), "ArrangerConduit/insufficient-funds");
         require(isBroker[destination][asset],    "ArrangerConduit/invalid-broker");
 
-        require(ERC20Like(asset).transfer(destination, amount), "ArrangerConduit/transfer-failed");
+        IERC20Like(asset).transfer(destination, amount);
 
         emit DrawFunds(asset, destination, amount);
     }
@@ -213,7 +204,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     /**********************************************************************************************/
 
     function availableFunds(address asset) public view override returns (uint256 availableFunds_) {
-        availableFunds_ = ERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
+        availableFunds_ = IERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
     }
 
     function getFundRequest(uint256 fundRequestId)
