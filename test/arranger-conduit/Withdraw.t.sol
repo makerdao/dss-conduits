@@ -5,9 +5,6 @@ import "./ConduitTestBase.sol";
 
 contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
-    // TODO: Determine if failure from insufficient balance is possible
-    // TODO: Add test with over-limit request
-
     function test_withdraw_noIlkAuth() external {
         asset.mint(operator, 100);
 
@@ -21,6 +18,41 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
 
         vm.expectRevert("ArrangerConduit/not-authorized");
         conduit.withdraw(ilk, address(asset), 100);
+    }
+
+    function test_withdraw_moreThanWithdrawable() external {
+        _depositAndDrawFunds(asset, operator, ilk, 100);
+
+        vm.prank(operator);
+        conduit.requestFunds(ilk, address(asset), 100, "info");
+
+        asset.mint(address(conduit), 100);
+
+        vm.prank(arranger);
+        conduit.returnFunds(0, 100);
+
+        assertEq(asset.balanceOf(address(conduit)), 100);
+        assertEq(asset.balanceOf(operator),         0);
+
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 100);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
+        assertEq(conduit.withdrawals(ilk, address(asset)),       0);
+        assertEq(conduit.totalWithdrawals(address(asset)),       0);
+
+        // Try to withdraw 200 when only 100 is available
+        // (using instead of 101 to show its not because of rounding)
+        vm.prank(operator);
+        uint256 amount = conduit.withdraw(ilk, address(asset), 200);
+
+        assertEq(amount, 100);  // Receive max, which is 100
+
+        assertEq(asset.balanceOf(address(conduit)), 0);
+        assertEq(asset.balanceOf(operator),         100);
+
+        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
+        assertEq(conduit.withdrawals(ilk, address(asset)),       100);
+        assertEq(conduit.totalWithdrawals(address(asset)),       100);
     }
 
     function test_withdraw_singleIlk() external {

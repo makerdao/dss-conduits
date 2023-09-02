@@ -12,8 +12,6 @@ import { UpgradeableProxy } from "upgradeable-proxy/UpgradeableProxy.sol";
 
 import { ArrangerConduit } from "../../src/ArrangerConduit.sol";
 
-// TODO: Add test for deposit and returnFunds without request
-
 contract ConduitTestBase is DssTest {
 
     address admin    = makeAddr("admin");

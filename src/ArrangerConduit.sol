@@ -204,7 +204,8 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     /**********************************************************************************************/
 
     function availableFunds(address asset) public view override returns (uint256 availableFunds_) {
-        availableFunds_ = IERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
+        availableFunds_
+            = IERC20Like(asset).balanceOf(address(this)) - totalWithdrawableFunds[asset];
     }
 
     function getFundRequest(uint256 fundRequestId)
