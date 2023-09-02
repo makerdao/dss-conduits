@@ -25,14 +25,12 @@ contract ArrangerHandlerBase is HandlerBase, Test {
     }
 
     function returnFunds(uint256 indexSeed, uint256 amount) public virtual {
-        uint256 length = arrangerConduit.getFundRequestsLength();
-
-        uint256 fundRequestId = indexSeed % length;
-
-        console.log("id2", fundRequestId);
+        // Get a random fundRequestId
+        uint256 fundRequestId = indexSeed % arrangerConduit.getFundRequestsLength();
 
         arrangerConduit.returnFunds(fundRequestId, amount);
 
+        // Add to the returnedFunds ghost var for the fundRequest's asset
         returnedFunds[arrangerConduit.getFundRequest(fundRequestId).asset] += amount;
     }
 
@@ -44,8 +42,8 @@ contract ArrangerHandlerBoundedBase is ArrangerHandlerBase {
         ArrangerHandlerBase(arrangerConduit_, testContract_) {}
 
     function drawFunds(uint256 indexSeed, uint256 amount) public virtual override {
-        address asset = _getAsset(indexSeed);
-        amount = _bound(amount, 0, arrangerConduit.availableFunds(asset));
+        // Draw funds for an amount between zero and the full available amount
+        amount = _bound(amount, 0, arrangerConduit.availableFunds(_getAsset(indexSeed)));
         super.drawFunds(indexSeed, amount);
     }
 
@@ -54,23 +52,20 @@ contract ArrangerHandlerBoundedBase is ArrangerHandlerBase {
 
         ( bool active, uint256 fundRequestId ) = _getActiveFundRequestId(indexSeed);
 
-        console2.log("active", active);
-
-        if (!active) return;
+        if (!active) return;  // Only returnFunds for active fund requests
 
         ArrangerConduit.FundRequest memory fundRequest
             = arrangerConduit.getFundRequest(fundRequestId);
 
-        console2.log("fundRequest.amountRequested", fundRequest.amountRequested);
-
+        // Get exposure to amounts above and below the requested amount
         amount = _bound(amount, 0, fundRequest.amountRequested * 2);
 
         MockERC20(fundRequest.asset).mint(address(arrangerConduit), amount);
 
-        console2.log("id1", fundRequestId);
-        console2.log("available", arrangerConduit.availableFunds(fundRequest.asset));
+        // NOTE: Not using `super.returnFunds` because IDs are derived in different ways
+        arrangerConduit.returnFunds(fundRequestId, amount);
 
-        super.returnFunds(indexSeed, amount);
+        returnedFunds[arrangerConduit.getFundRequest(fundRequestId).asset] += amount;
     }
 
 }
