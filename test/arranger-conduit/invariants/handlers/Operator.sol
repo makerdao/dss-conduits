@@ -9,26 +9,28 @@ import { HandlerBase } from "./HandlerBase.sol";
 
 contract OperatorHandlerBase is HandlerBase, Test {
 
-    constructor(address arrangerConduit_, address testContract_)
-        HandlerBase(arrangerConduit_, testContract_) {}
+    bytes32 ilk;
+
+    constructor(address arrangerConduit_, bytes32 ilk_, address testContract_)
+        HandlerBase(arrangerConduit_, testContract_)
+    {
+        ilk = ilk_;
+    }
 
     function deposit(uint256 indexSeed, uint256 amount) public virtual {
         address asset = _getAsset(indexSeed);
-        bytes32 ilk   = _getIlk(indexSeed);
 
         arrangerConduit.deposit(ilk , asset, amount);
     }
 
     function requestFunds(uint256 indexSeed, uint256 amount, string memory info) public virtual {
         address asset = _getAsset(indexSeed);
-        bytes32 ilk   = _getIlk(indexSeed);
 
         arrangerConduit.requestFunds(ilk, asset, amount, info);
     }
 
     function withdraw(uint256 indexSeed, uint256 amount) public virtual {
         address asset = _getAsset(indexSeed);
-        bytes32 ilk   = _getIlk(indexSeed);
 
         arrangerConduit.withdraw(ilk, asset, amount);
     }
@@ -37,8 +39,8 @@ contract OperatorHandlerBase is HandlerBase, Test {
 
 contract OperatorHandlerBoundedBase is OperatorHandlerBase {
 
-    constructor(address arrangerConduit_, address testContract_)
-        OperatorHandlerBase(arrangerConduit_, testContract_) {}
+    constructor(address arrangerConduit_, bytes32 ilk_, address testContract_)
+        OperatorHandlerBase(arrangerConduit_, ilk_, testContract_) {}
 
     function deposit(uint256 indexSeed, uint256 amount) public virtual override {
         amount = _bound(amount, 0, 1e45);
@@ -61,7 +63,6 @@ contract OperatorHandlerBoundedBase is OperatorHandlerBase {
 
     function withdraw(uint256 indexSeed, uint256 amount) public virtual override {
         address asset = _getAsset(indexSeed);
-        bytes32 ilk   = _getIlk(indexSeed);
 
         amount = _bound(amount, 0, arrangerConduit.withdrawableFunds(ilk, asset));
 

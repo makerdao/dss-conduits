@@ -29,6 +29,8 @@ contract ArrangerHandlerBase is HandlerBase, Test {
 
         uint256 fundRequestId = indexSeed % length;
 
+        console.log("id2", fundRequestId);
+
         arrangerConduit.returnFunds(fundRequestId, amount);
 
         returnedFunds[arrangerConduit.getFundRequest(fundRequestId).asset] += amount;
@@ -52,16 +54,23 @@ contract ArrangerHandlerBoundedBase is ArrangerHandlerBase {
 
         ( bool active, uint256 fundRequestId ) = _getActiveFundRequestId(indexSeed);
 
+        console2.log("active", active);
+
         if (!active) return;
 
         ArrangerConduit.FundRequest memory fundRequest
             = arrangerConduit.getFundRequest(fundRequestId);
 
+        console2.log("fundRequest.amountRequested", fundRequest.amountRequested);
+
         amount = _bound(amount, 0, fundRequest.amountRequested * 2);
 
         MockERC20(fundRequest.asset).mint(address(arrangerConduit), amount);
 
-        super.returnFunds(fundRequestId, amount);
+        console2.log("id1", fundRequestId);
+        console2.log("available", arrangerConduit.availableFunds(fundRequest.asset));
+
+        super.returnFunds(indexSeed, amount);
     }
 
 }

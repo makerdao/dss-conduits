@@ -43,12 +43,6 @@ contract InvariantTestBase is Test {
 
         conduit = ArrangerConduit(address(conduitProxy));
 
-        arrangerHandler   = new ArrangerHandlerBoundedBase(address(conduit), address(this));
-        operatorHandler1  = new OperatorHandlerBoundedBase(address(conduit), address(this));
-        operatorHandler2  = new OperatorHandlerBoundedBase(address(conduit), address(this));
-        operatorHandler3  = new OperatorHandlerBoundedBase(address(conduit), address(this));
-        transfererHandler = new TransfererHandlerBoundedBase(address(conduit), address(this));
-
         // TODO: temporary
         _addAsset();
         _addAsset();
@@ -59,6 +53,12 @@ contract InvariantTestBase is Test {
         _addIlk();
         _addIlk();
         _addIlk();
+
+        arrangerHandler   = new ArrangerHandlerBoundedBase(address(conduit), address(this));
+        operatorHandler1  = new OperatorHandlerBoundedBase(address(conduit), ilks[0], address(this));
+        operatorHandler2  = new OperatorHandlerBoundedBase(address(conduit), ilks[1], address(this));
+        operatorHandler3  = new OperatorHandlerBoundedBase(address(conduit), ilks[2], address(this));
+        transfererHandler = new TransfererHandlerBoundedBase(address(conduit), address(this));
 
         // TODO: This is temporary
         _setupOperatorRole(ilks[0], address(operatorHandler1));
@@ -169,7 +169,7 @@ contract InvariantTestBase is Test {
     }
 
     function _addBroker(address asset) internal {
-        address broker = makeAddr(string(abi.encode("broker", brokers.length)));
+        address broker = makeAddr(string.concat("ilk", vm.toString(ilks.length)));
         brokers.push(broker);
         conduit.setBroker(broker, asset, true);  // TODO: Use handler
     }
