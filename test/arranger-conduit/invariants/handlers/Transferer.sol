@@ -7,7 +7,9 @@ import { MockERC20 } from "erc20-helpers/MockERC20.sol";
 
 import { HandlerBase } from "./HandlerBase.sol";
 
-contract TransfererHandlerBase is HandlerBase, Test {
+contract TransfererBase is HandlerBase, Test {
+
+    mapping(address => uint256) public transferredFunds;
 
     constructor(address arrangerConduit_, address testContract_)
         HandlerBase(arrangerConduit_, testContract_) {}
@@ -16,14 +18,16 @@ contract TransfererHandlerBase is HandlerBase, Test {
         address asset = _getAsset(indexSeed);
 
         MockERC20(asset).transfer(address(arrangerConduit), amount);
+
+        transferredFunds[asset] += amount;
     }
 
 }
 
-contract TransfererHandlerBounded is TransfererHandlerBase {
+contract TransfererBounded is TransfererBase {
 
     constructor(address arrangerConduit_, address testContract_)
-        TransfererHandlerBase(arrangerConduit_, testContract_) {}
+        TransfererBase(arrangerConduit_, testContract_) {}
 
     function transfer(uint256 indexSeed, uint256 amount) public virtual override {
         address asset = _getAsset(indexSeed);

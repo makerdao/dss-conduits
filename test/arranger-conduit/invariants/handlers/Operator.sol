@@ -7,7 +7,7 @@ import { MockERC20 } from "erc20-helpers/MockERC20.sol";
 
 import { HandlerBase } from "./HandlerBase.sol";
 
-contract OperatorHandlerBase is HandlerBase, Test {
+contract OperatorBase is HandlerBase, Test {
 
     bytes32 ilk;
 
@@ -43,13 +43,15 @@ contract OperatorHandlerBase is HandlerBase, Test {
 
 }
 
-contract OperatorHandlerBounded is OperatorHandlerBase {
+contract OperatorBounded is OperatorBase {
 
     constructor(address arrangerConduit_, bytes32 ilk_, address testContract_)
-        OperatorHandlerBase(arrangerConduit_, ilk_, testContract_) {}
+        OperatorBase(arrangerConduit_, ilk_, testContract_) {}
 
     function cancelFundRequest(uint256 indexSeed) public virtual override {
         uint256[] memory activeFundRequestIds = _getActiveFundRequestIdsForIlk(ilk);
+
+        if (activeFundRequestIds.length == 0) return;
 
         uint256 fundRequestId = activeFundRequestIds[indexSeed % activeFundRequestIds.length];
 

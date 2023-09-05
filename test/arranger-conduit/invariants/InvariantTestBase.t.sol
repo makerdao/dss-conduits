@@ -12,13 +12,14 @@ import { UpgradeableProxy } from "upgradeable-proxy/UpgradeableProxy.sol";
 
 import { ArrangerConduit } from "../../../src/ArrangerConduit.sol";
 
-import { ArrangerHandlerBounded }   from "./handlers/Arranger.sol";
-import { OperatorHandlerBounded }   from "./handlers/Operator.sol";
-import { TransfererHandlerBounded } from "./handlers/Transferer.sol";
+import { IArrangerHandlerLike, ITransfererHandlerLike } from "./interfaces/Interfaces.sol";
 
 contract InvariantTestBase is Test {
 
     uint8 ROLE = 0;
+
+    uint256 NUM_ASSETS = 3;
+    uint256 NUM_ILKS   = 3;
 
     address[] public assets;
     address[] public brokers;
@@ -26,12 +27,6 @@ contract InvariantTestBase is Test {
     bytes32[] public ilks;
 
     ArrangerConduit public conduit;
-
-    ArrangerHandlerBounded   public arrangerHandler;
-    OperatorHandlerBounded   public operatorHandler1;
-    OperatorHandlerBounded   public operatorHandler2;
-    OperatorHandlerBounded   public operatorHandler3;
-    TransfererHandlerBounded public transfererHandler;
 
     AllocatorRegistry public registry              = new AllocatorRegistry();
     AllocatorRoles    public roles                 = new AllocatorRoles();
@@ -43,48 +38,26 @@ contract InvariantTestBase is Test {
 
         conduit = ArrangerConduit(address(conduitProxy));
 
-        // TODO: temporary
-        _addAsset();
-        _addAsset();
-        _addAsset();
-        _addBroker(assets[0]);
-        _addBroker(assets[1]);
-        _addBroker(assets[2]);
-        _addIlk();
-        _addIlk();
-        _addIlk();
+        for (uint256 i; i < NUM_ASSETS; i++) {
+            assets.push(address(new MockERC20("asset", "ASSET", 18)));
+            address broker = makeAddr(string.concat("ilk", vm.toString(ilks.length)));
+            brokers.push(broker);
+            conduit.setBroker(broker, assets[i], true);  // TODO: Use handler
+        }
 
-        arrangerHandler   = new ArrangerHandlerBounded(address(conduit), address(this));
-        operatorHandler1  = new OperatorHandlerBounded(address(conduit), ilks[0], address(this));
-        operatorHandler2  = new OperatorHandlerBounded(address(conduit), ilks[1], address(this));
-        operatorHandler3  = new OperatorHandlerBounded(address(conduit), ilks[2], address(this));
-        transfererHandler = new TransfererHandlerBounded(address(conduit), address(this));
+        for (uint256 i; i < NUM_ILKS; i++) {
+            ilks.push(bytes32(bytes(string.concat("ilk", vm.toString(i)))));
+        }
 
-        // TODO: This is temporary
-        _setupOperatorRole(ilks[0], address(operatorHandler1));
-        _setupOperatorRole(ilks[1], address(operatorHandler2));
-        _setupOperatorRole(ilks[2], address(operatorHandler3));
-
-        conduit.file("arranger", address(arrangerHandler));
         conduit.file("registry", address(registry));
         conduit.file("roles",    address(roles));
-
-        // NOTE: Buffer == operator here, should change with broader integration testing
-        registry.file(ilks[0], "buffer", address(operatorHandler1));
-        registry.file(ilks[1], "buffer", address(operatorHandler2));
-        registry.file(ilks[2], "buffer", address(operatorHandler3));
-
-        targetContract(address(arrangerHandler));
-        targetContract(address(operatorHandler1));
-        targetContract(address(operatorHandler2));
-        targetContract(address(operatorHandler3));
     }
 
     /**********************************************************************************************/
     /*** Core Invariants (should hold in any situation)                                         ***/
     /**********************************************************************************************/
 
-    function invariant_A_B_C_D() external {
+    function assert_invariant_A_B_C_D() internal {
         for (uint256 i = 0; i < assets.length; i++) {
             uint256 sumDeposits;
             uint256 sumRequestedFunds;
@@ -105,7 +78,7 @@ contract InvariantTestBase is Test {
         }
     }
 
-    function invariant_E() external {
+    function assert_invariant_E() internal {
         for (uint256 i = 0; i < assets.length; i++) {
             MockERC20 asset = MockERC20(assets[i]);
 
@@ -113,11 +86,42 @@ contract InvariantTestBase is Test {
         }
     }
 
-    function invariant_F() external {
+    function assert_invariant_F(address arrangerHandler_) internal {
+        IArrangerHandlerLike arrangerHandler = IArrangerHandlerLike(arrangerHandler_);
         for (uint256 i = 0; i < assets.length; i++) {
             assertEq(
                 conduit.totalWithdrawableFunds(assets[i]),
                 arrangerHandler.returnedFunds(assets[i]) - conduit.totalWithdrawals(assets[i])
+            );
+        }
+    }
+
+    // NOTE: Interesting finding, if there are transfers and returnFunds calls before
+    //       the first deposit, there can be a situation where returnedFunds > totalDeposits
+    //       very early in a sequence.
+    // NOTE: Had to add a transferredFunds ghost variable because drawnFunds can actually be higher
+    //       than totalDeposits and returnedFunds if transfer + draw happens early enough.
+    function assert_invariant_G(address arrangerHandler_, address transfererHandler_) internal {
+        IArrangerHandlerLike   arrangerHandler   = IArrangerHandlerLike(arrangerHandler_);
+        ITransfererHandlerLike transfererHandler = ITransfererHandlerLike(transfererHandler_);
+
+        for (uint256 i = 0; i < assets.length; i++) {
+            uint256 netBalance =
+                conduit.totalDeposits(assets[i])
+                + arrangerHandler.returnedFunds(assets[i])
+                + transfererHandler.transferredFunds(assets[i])
+                - arrangerHandler.drawnFunds(assets[i])
+                - conduit.totalWithdrawals(assets[i]);
+
+            assertEq(MockERC20(assets[i]).balanceOf(address(conduit)), netBalance);
+        }
+    }
+
+    function assert_invariant_H() internal {
+        for (uint256 i = 0; i < assets.length; i++) {
+            assertEq(
+                MockERC20(assets[i]).balanceOf(address(conduit)),
+                conduit.availableFunds(assets[i]) + conduit.totalWithdrawableFunds(assets[i])
             );
         }
     }
@@ -141,20 +145,6 @@ contract InvariantTestBase is Test {
     /**********************************************************************************************/
     /*** Utility Functions                                                                      ***/
     /**********************************************************************************************/
-
-    function _addAsset() internal {
-        assets.push(address(new MockERC20("asset", "ASSET", 18)));
-    }
-
-    function _addBroker(address asset) internal {
-        address broker = makeAddr(string.concat("ilk", vm.toString(ilks.length)));
-        brokers.push(broker);
-        conduit.setBroker(broker, asset, true);  // TODO: Use handler
-    }
-
-    function _addIlk() internal {
-        ilks.push(bytes32(bytes(string.concat("ilk", vm.toString(ilks.length)))));
-    }
 
     function _setupOperatorRole(bytes32 ilk_, address operator_) internal {
         // Ensure address(this) can always set for a new ilk

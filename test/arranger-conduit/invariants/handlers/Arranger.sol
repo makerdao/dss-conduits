@@ -7,7 +7,7 @@ import { MockERC20 } from "erc20-helpers/MockERC20.sol";
 
 import { ArrangerConduit, HandlerBase } from "./HandlerBase.sol";
 
-contract ArrangerHandlerBase is HandlerBase, Test {
+contract ArrangerBase is HandlerBase, Test {
 
     mapping(address => uint256) public drawnFunds;     // Ghost variable for drawn funds
     mapping(address => uint256) public returnedFunds;  // Ghost variable for returned funds
@@ -36,10 +36,10 @@ contract ArrangerHandlerBase is HandlerBase, Test {
 
 }
 
-contract ArrangerHandlerBounded is ArrangerHandlerBase {
+contract ArrangerBounded is ArrangerBase {
 
     constructor(address arrangerConduit_, address testContract_)
-        ArrangerHandlerBase(arrangerConduit_, testContract_) {}
+        ArrangerBase(arrangerConduit_, testContract_) {}
 
     function drawFunds(uint256 indexSeed, uint256 amount) public virtual override {
         // Draw funds for an amount between zero and the full available amount
