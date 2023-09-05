@@ -36,7 +36,7 @@ contract ArrangerHandlerBase is HandlerBase, Test {
 
 }
 
-contract ArrangerHandlerBoundedBase is ArrangerHandlerBase {
+contract ArrangerHandlerBounded is ArrangerHandlerBase {
 
     constructor(address arrangerConduit_, address testContract_)
         ArrangerHandlerBase(arrangerConduit_, testContract_) {}

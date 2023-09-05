@@ -20,7 +20,7 @@ contract TransfererHandlerBase is HandlerBase, Test {
 
 }
 
-contract TransfererHandlerBoundedBase is TransfererHandlerBase {
+contract TransfererHandlerBounded is TransfererHandlerBase {
 
     constructor(address arrangerConduit_, address testContract_)
         TransfererHandlerBase(arrangerConduit_, testContract_) {}

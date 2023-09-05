@@ -12,9 +12,9 @@ import { UpgradeableProxy } from "upgradeable-proxy/UpgradeableProxy.sol";
 
 import { ArrangerConduit } from "../../../src/ArrangerConduit.sol";
 
-import { ArrangerHandlerBoundedBase }   from "./handlers/Arranger.sol";
-import { OperatorHandlerBoundedBase }   from "./handlers/Operator.sol";
-import { TransfererHandlerBoundedBase } from "./handlers/Transferer.sol";
+import { ArrangerHandlerBounded }   from "./handlers/Arranger.sol";
+import { OperatorHandlerBounded }   from "./handlers/Operator.sol";
+import { TransfererHandlerBounded } from "./handlers/Transferer.sol";
 
 contract InvariantTestBase is Test {
 
@@ -27,11 +27,11 @@ contract InvariantTestBase is Test {
 
     ArrangerConduit public conduit;
 
-    ArrangerHandlerBoundedBase   public arrangerHandler;
-    OperatorHandlerBoundedBase   public operatorHandler1;
-    OperatorHandlerBoundedBase   public operatorHandler2;
-    OperatorHandlerBoundedBase   public operatorHandler3;
-    TransfererHandlerBoundedBase public transfererHandler;
+    ArrangerHandlerBounded   public arrangerHandler;
+    OperatorHandlerBounded   public operatorHandler1;
+    OperatorHandlerBounded   public operatorHandler2;
+    OperatorHandlerBounded   public operatorHandler3;
+    TransfererHandlerBounded public transfererHandler;
 
     AllocatorRegistry public registry              = new AllocatorRegistry();
     AllocatorRoles    public roles                 = new AllocatorRoles();
@@ -54,11 +54,11 @@ contract InvariantTestBase is Test {
         _addIlk();
         _addIlk();
 
-        arrangerHandler   = new ArrangerHandlerBoundedBase(address(conduit), address(this));
-        operatorHandler1  = new OperatorHandlerBoundedBase(address(conduit), ilks[0], address(this));
-        operatorHandler2  = new OperatorHandlerBoundedBase(address(conduit), ilks[1], address(this));
-        operatorHandler3  = new OperatorHandlerBoundedBase(address(conduit), ilks[2], address(this));
-        transfererHandler = new TransfererHandlerBoundedBase(address(conduit), address(this));
+        arrangerHandler   = new ArrangerHandlerBounded(address(conduit), address(this));
+        operatorHandler1  = new OperatorHandlerBounded(address(conduit), ilks[0], address(this));
+        operatorHandler2  = new OperatorHandlerBounded(address(conduit), ilks[1], address(this));
+        operatorHandler3  = new OperatorHandlerBounded(address(conduit), ilks[2], address(this));
+        transfererHandler = new TransfererHandlerBounded(address(conduit), address(this));
 
         // TODO: This is temporary
         _setupOperatorRole(ilks[0], address(operatorHandler1));

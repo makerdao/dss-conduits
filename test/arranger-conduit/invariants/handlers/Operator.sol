@@ -37,7 +37,7 @@ contract OperatorHandlerBase is HandlerBase, Test {
 
 }
 
-contract OperatorHandlerBoundedBase is OperatorHandlerBase {
+contract OperatorHandlerBounded is OperatorHandlerBase {
 
     constructor(address arrangerConduit_, bytes32 ilk_, address testContract_)
         OperatorHandlerBase(arrangerConduit_, ilk_, testContract_) {}
