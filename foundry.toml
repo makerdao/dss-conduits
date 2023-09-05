@@ -24,9 +24,4 @@ optimizer = true
 runs      = 250  # The number of times to run the invariant tests
 depth     = 250  # The number of calls to make in the invariant tests
 
-# [profile.super_deep.invariant]
-# optimizer = true
-# runs      = 200  # The number of calls to make in the invariant tests
-# depth     = 250  # The number of times to run the invariant tests
-
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
