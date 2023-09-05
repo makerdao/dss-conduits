@@ -21,6 +21,12 @@ contract InvariantTestBase is Test {
     uint256 NUM_ASSETS = 3;
     uint256 NUM_ILKS   = 3;
 
+    address public arrangerHandler;
+    address public operatorHandler1;
+    address public operatorHandler2;
+    address public operatorHandler3;
+    address public transfererHandler;
+
     address[] public assets;
     address[] public brokers;
 
@@ -53,8 +59,28 @@ contract InvariantTestBase is Test {
         conduit.file("roles",    address(roles));
     }
 
+    // NOTE: Requires handlers to be deployed in child contract
+    function configureHandlers() internal {
+        _setupOperatorRole(ilks[0], operatorHandler1);
+        _setupOperatorRole(ilks[1], operatorHandler2);
+        _setupOperatorRole(ilks[2], operatorHandler3);
+
+        conduit.file("arranger", arrangerHandler);
+
+        // NOTE: Buffer == operator here, should change with broader integration testing
+        registry.file(ilks[0], "buffer", operatorHandler1);
+        registry.file(ilks[1], "buffer", operatorHandler2);
+        registry.file(ilks[2], "buffer", operatorHandler3);
+
+        targetContract(arrangerHandler);
+        targetContract(operatorHandler1);
+        targetContract(operatorHandler2);
+        targetContract(operatorHandler3);
+        targetContract(transfererHandler);
+    }
+
     /**********************************************************************************************/
-    /*** Core Invariants (should hold in any situation)                                         ***/
+    /*** Invariant Assertion Helpers                                                            ***/
     /**********************************************************************************************/
 
     function assert_invariant_A_B_C_D() internal {
@@ -86,12 +112,12 @@ contract InvariantTestBase is Test {
         }
     }
 
-    function assert_invariant_F(address arrangerHandler_) internal {
-        IArrangerHandlerLike arrangerHandler = IArrangerHandlerLike(arrangerHandler_);
+    function assert_invariant_F() internal {
+        IArrangerHandlerLike arrangerHandler_ = IArrangerHandlerLike(arrangerHandler);
         for (uint256 i = 0; i < assets.length; i++) {
             assertEq(
                 conduit.totalWithdrawableFunds(assets[i]),
-                arrangerHandler.returnedFunds(assets[i]) - conduit.totalWithdrawals(assets[i])
+                arrangerHandler_.returnedFunds(assets[i]) - conduit.totalWithdrawals(assets[i])
             );
         }
     }
@@ -101,16 +127,16 @@ contract InvariantTestBase is Test {
     //       very early in a sequence.
     // NOTE: Had to add a transferredFunds ghost variable because drawnFunds can actually be higher
     //       than totalDeposits and returnedFunds if transfer + draw happens early enough.
-    function assert_invariant_G(address arrangerHandler_, address transfererHandler_) internal {
-        IArrangerHandlerLike   arrangerHandler   = IArrangerHandlerLike(arrangerHandler_);
-        ITransfererHandlerLike transfererHandler = ITransfererHandlerLike(transfererHandler_);
+    function assert_invariant_G() internal {
+        IArrangerHandlerLike   arrangerHandler_   = IArrangerHandlerLike(arrangerHandler);
+        ITransfererHandlerLike transfererHandler_ = ITransfererHandlerLike(transfererHandler);
 
         for (uint256 i = 0; i < assets.length; i++) {
             uint256 netBalance =
                 conduit.totalDeposits(assets[i])
-                + arrangerHandler.returnedFunds(assets[i])
-                + transfererHandler.transferredFunds(assets[i])
-                - arrangerHandler.drawnFunds(assets[i])
+                + arrangerHandler_.returnedFunds(assets[i])
+                + transfererHandler_.transferredFunds(assets[i])
+                - arrangerHandler_.drawnFunds(assets[i])
                 - conduit.totalWithdrawals(assets[i]);
 
             assertEq(MockERC20(assets[i]).balanceOf(address(conduit)), netBalance);

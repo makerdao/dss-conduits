@@ -1,52 +1,56 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
+import "forge-std/Test.sol";
+
 import { MockERC20 } from "erc20-helpers/MockERC20.sol";
 
 import { InvariantTestBase } from "./InvariantTestBase.t.sol";
 
-import { ArrangerBounded }   from "./handlers/Arranger.sol";
-import { OperatorBounded }   from "./handlers/Operator.sol";
-import { TransfererBounded } from "./handlers/Transferer.sol";
+import { ArrangerBase, ArrangerBounded }     from "./handlers/Arranger.sol";
+import { OperatorBase, OperatorBounded }     from "./handlers/Operator.sol";
+import { TransfererBase, TransfererBounded } from "./handlers/Transferer.sol";
 
 // These invariants assume external transfers into the contract, so balance-based
 // invariants are asserted with with gt/lt checks
-contract BoundedInvariants is InvariantTestBase {
-
-    // TODO: Move to base
-    address public arrangerHandler;
-    address public operatorHandler1;
-    address public operatorHandler2;
-    address public operatorHandler3;
-    address public transfererHandler;
+contract InvariantTest is InvariantTestBase {
 
     function setUp() public override {
-        arrangerHandler   = address(new ArrangerBounded(address(conduit), address(this)));
-        operatorHandler1  = address(new OperatorBounded(address(conduit), ilks[0], address(this)));
-        operatorHandler2  = address(new OperatorBounded(address(conduit), ilks[1], address(this)));
-        operatorHandler3  = address(new OperatorBounded(address(conduit), ilks[2], address(this)));
-        transfererHandler = address(new TransfererBounded(address(conduit), address(this)));
+        super.setUp();
 
-        // TODO: This is temporary
-        _setupOperatorRole(ilks[0], operatorHandler1);
-        _setupOperatorRole(ilks[1], operatorHandler2);
-        _setupOperatorRole(ilks[2], operatorHandler3);
+        // Get string from env and hash for comparison
+        bytes32 foundryProfile
+            = keccak256(abi.encodePacked(vm.envOr("FOUNDRY_PROFILE", string(""))));
 
-        conduit.file("arranger", arrangerHandler);
-        conduit.file("registry", address(registry));
-        conduit.file("roles",    address(roles));
+        address conduit_ = address(conduit);
 
-        // NOTE: Buffer == operator here, should change with broader integration testing
-        registry.file(ilks[0], "buffer", operatorHandler1);
-        registry.file(ilks[1], "buffer", operatorHandler2);
-        registry.file(ilks[2], "buffer", operatorHandler3);
+        // Set up testing suite with bounded handlers unless otherwise specified.
+        // This is necessary because unbounded testing requires specific env configuration.
+        if (
+            foundryProfile == keccak256(abi.encodePacked("unbounded")) ||
+            foundryProfile == keccak256(abi.encodePacked("unbounded-ci"))
+        ) {
+            arrangerHandler   = address(new ArrangerBase(conduit_, address(this)));
+            operatorHandler1  = address(new OperatorBase(conduit_, ilks[0], address(this)));
+            operatorHandler2  = address(new OperatorBase(conduit_, ilks[1], address(this)));
+            operatorHandler3  = address(new OperatorBase(conduit_, ilks[2], address(this)));
+            transfererHandler = address(new TransfererBase(conduit_, address(this)));
+        } else {
+            arrangerHandler   = address(new ArrangerBounded(conduit_, address(this)));
+            operatorHandler1  = address(new OperatorBounded(conduit_, ilks[0], address(this)));
+            operatorHandler2  = address(new OperatorBounded(conduit_, ilks[1], address(this)));
+            operatorHandler3  = address(new OperatorBounded(conduit_, ilks[2], address(this)));
+            transfererHandler = address(new TransfererBounded(conduit_, address(this)));
+        }
 
-        targetContract(arrangerHandler);
-        targetContract(operatorHandler1);
-        targetContract(operatorHandler2);
-        targetContract(operatorHandler3);
-        targetContract(transfererHandler);
+        super.configureHandlers();
     }
+
+    function invariant_A_B_C_D() external { assert_invariant_A_B_C_D(); }
+    function invariant_E()       external { assert_invariant_E(); }
+    function invariant_F()       external { assert_invariant_F(); }
+    function invariant_G()       external { assert_invariant_G(); }
+    function invariant_H()       external { assert_invariant_H(); }
 
 }
 
