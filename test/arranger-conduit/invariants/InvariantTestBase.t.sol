@@ -38,7 +38,7 @@ contract InvariantTestBase is Test {
     ArrangerConduit   public conduitImplementation = new ArrangerConduit();
     UpgradeableProxy  public conduitProxy          = new UpgradeableProxy();
 
-    function setUp() external {
+    function setUp() public virtual {
         conduitProxy.setImplementation(address(conduitImplementation));
 
         conduit = ArrangerConduit(address(conduitProxy));
@@ -78,11 +78,10 @@ contract InvariantTestBase is Test {
         targetContract(address(operatorHandler1));
         targetContract(address(operatorHandler2));
         targetContract(address(operatorHandler3));
-        // targetContract(address(transfererHandler));  TODO: Add back after assertEq is done for balance
     }
 
     /**********************************************************************************************/
-    /*** Invariants                                                                             ***/
+    /*** Core Invariants (should hold in any situation)                                         ***/
     /**********************************************************************************************/
 
     function invariant_A_B_C_D() external {
@@ -116,30 +115,9 @@ contract InvariantTestBase is Test {
 
     function invariant_F() external {
         for (uint256 i = 0; i < assets.length; i++) {
-            uint256 netBalance =
-                conduit.totalDeposits(assets[i])
-                - arrangerHandler.drawnFunds(assets[i])
-                + arrangerHandler.returnedFunds(assets[i])
-                - conduit.totalWithdrawals(assets[i]);
-
-            assertEq(MockERC20(assets[i]).balanceOf(address(conduit)), netBalance);
-        }
-    }
-
-    function invariant_G() external {
-        for (uint256 i = 0; i < assets.length; i++) {
             assertEq(
                 conduit.totalWithdrawableFunds(assets[i]),
                 arrangerHandler.returnedFunds(assets[i]) - conduit.totalWithdrawals(assets[i])
-            );
-        }
-    }
-
-    function invariant_H() external {
-        for (uint256 i = 0; i < assets.length; i++) {
-            assertEq(
-                MockERC20(assets[i]).balanceOf(address(conduit)),
-                conduit.availableFunds(assets[i]) + conduit.totalWithdrawableFunds(assets[i])
             );
         }
     }
