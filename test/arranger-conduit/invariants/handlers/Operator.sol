@@ -17,6 +17,12 @@ contract OperatorHandlerBase is HandlerBase, Test {
         ilk = ilk_;
     }
 
+    function cancelFundRequest(uint256 indexSeed) public virtual {
+        uint256 fundRequestId = indexSeed % arrangerConduit.getFundRequestsLength();
+
+        arrangerConduit.cancelFundRequest(fundRequestId);
+    }
+
     function deposit(uint256 indexSeed, uint256 amount) public virtual {
         address asset = _getAsset(indexSeed);
 
@@ -41,6 +47,15 @@ contract OperatorHandlerBounded is OperatorHandlerBase {
 
     constructor(address arrangerConduit_, bytes32 ilk_, address testContract_)
         OperatorHandlerBase(arrangerConduit_, ilk_, testContract_) {}
+
+    function cancelFundRequest(uint256 indexSeed) public virtual override {
+        uint256[] memory activeFundRequestIds = _getActiveFundRequestIdsForIlk(ilk);
+
+        uint256 fundRequestId = activeFundRequestIds[indexSeed % activeFundRequestIds.length];
+
+        // NOTE: Not using super because id is obtained differently
+        arrangerConduit.cancelFundRequest(fundRequestId);
+    }
 
     function deposit(uint256 indexSeed, uint256 amount) public virtual override {
         amount = _bound(amount, 0, 1e45);

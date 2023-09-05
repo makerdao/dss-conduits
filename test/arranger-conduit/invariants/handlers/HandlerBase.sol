@@ -17,14 +17,13 @@ contract HandlerBase {
 
     // TODO: Investigate persisting in storage
     function _getActiveFundRequestIds()
-        internal view returns (
-            uint256 activeFundRequestsCount,
-            uint256[] memory activeFundRequestIds
-        )
+        internal view returns (uint256[] memory activeFundRequestIds)
     {
         uint256 fundRequestsLength = arrangerConduit.getFundRequestsLength();
 
         activeFundRequestIds = new uint256[](fundRequestsLength);
+
+        uint256 activeFundRequestsCount;
 
         // Iterate through all fundRequests and make a new array of activeFundRequestIds
         for (uint256 i = 0; i < fundRequestsLength; i++) {
@@ -32,6 +31,34 @@ contract HandlerBase {
 
             // If status == PENDING
             if (uint256(fundRequest.status) == uint256(1)) {
+                activeFundRequestIds[activeFundRequestsCount] = i;
+                activeFundRequestsCount++;
+            }
+        }
+
+        // Adjust the activeFundRequestIds array to the correct size, removing empty elements
+        assembly {
+            mstore(activeFundRequestIds, activeFundRequestsCount)
+        }
+    }
+
+    // NOTE: Duplicating code in the function because its more efficient than
+    //       calling _getActiveFundRequestIds() and then iterating again
+    function _getActiveFundRequestIdsForIlk(bytes32 ilk)
+        internal view returns (uint256[] memory activeFundRequestIds)
+    {
+        uint256 fundRequestsLength = arrangerConduit.getFundRequestsLength();
+
+        activeFundRequestIds = new uint256[](fundRequestsLength);
+
+        uint256 activeFundRequestsCount;
+
+        // Iterate through all fundRequests and make a new array of activeFundRequestIds
+        for (uint256 i = 0; i < fundRequestsLength; i++) {
+            ArrangerConduit.FundRequest memory fundRequest = arrangerConduit.getFundRequest(i);
+
+            // If status == PENDING and matches ilk
+            if (uint256(fundRequest.status) == uint256(1) && fundRequest.ilk == ilk) {
                 activeFundRequestIds[activeFundRequestsCount] = i;
                 activeFundRequestsCount++;
             }
@@ -61,16 +88,15 @@ contract HandlerBase {
     function _getActiveFundRequestId(uint256 indexSeed)
         internal view returns (bool active, uint256 fundRequestId)
     {
-        ( uint256 activeFundRequestsCount, uint256[] memory activeFundRequests )
-            = _getActiveFundRequestIds();
+        uint256[] memory activeFundRequests = _getActiveFundRequestIds();
 
-        if (activeFundRequestsCount == 0) return (active, 0);  // Return false
+        if (activeFundRequests.length == 0) return (active, 0);  // Return false
 
         active = true;
 
         // Pick a random fund request from list of active fundRequests
         uint256 seed = _hash(indexSeed, "activeFundRequest");
-        fundRequestId = activeFundRequests[seed % activeFundRequestsCount];
+        fundRequestId = activeFundRequests[seed % activeFundRequests.length];
     }
 
     function _hash(uint256 number_, string memory salt) internal pure returns (uint256 hash_) {
