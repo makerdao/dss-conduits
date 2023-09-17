@@ -180,37 +180,37 @@ interface IArrangerConduit is IAllocatorConduit {
 
     /**
      *  @dev    Returns the aggregate deposits for a given ilk and asset.
-     *  @param  ilk        The unique identifier for a particular ilk.
-     *  @param  asset      The address of the asset.
+     *  @param  asset     The address of the asset.
+     *  @param  ilk       The unique identifier for a particular ilk.
      *  @return deposits_ The deposits for the given ilk and asset.
      */
-    function deposits(bytes32 ilk, address asset) external view returns (uint256 deposits_);
+    function deposits(address asset, bytes32 ilk) external view returns (uint256 deposits_);
 
     /**
      *  @dev    Returns the aggregate requested funds for a given ilk and asset.
-     *  @param  ilk             The unique identifier for a particular ilk.
      *  @param  asset           The address of the asset.
+     *  @param  ilk             The unique identifier for a particular ilk.
      *  @return requestedFunds_ The requested funds for the given ilk and asset.
      */
-    function requestedFunds(bytes32 ilk, address asset)
+    function requestedFunds(address asset, bytes32 ilk)
         external view returns (uint256 requestedFunds_);
 
     /**
      *  @dev    Returns the aggregate withdrawable funds for a given ilk and asset.
-     *  @param  ilk           The unique identifier for a particular ilk.
-     *  @param  asset         The address of the asset.
+     *  @param  asset              The address of the asset.
+     *  @param  ilk                The unique identifier for a particular ilk.
      *  @return withdrawableFunds_ The withdrawableFunds funds for the given ilk and asset.
      */
-    function withdrawableFunds(bytes32 ilk, address asset)
+    function withdrawableFunds(address asset, bytes32 ilk)
         external view returns (uint256 withdrawableFunds_);
 
     /**
      *  @dev    Returns the aggregate cumulative withdraws for a given ilk and asset.
-     *  @param  ilk          The unique identifier for a particular ilk.
      *  @param  asset        The address of the asset.
+     *  @param  ilk          The unique identifier for a particular ilk.
      *  @return withdrawals_ The withdrawals funds for the given ilk and asset.
      */
-    function withdrawals(bytes32 ilk, address asset) external view returns (uint256 withdrawals_);
+    function withdrawals(address asset, bytes32 ilk) external view returns (uint256 withdrawals_);
 
     /**********************************************************************************************/
     /*** Administrative Functions                                                               ***/

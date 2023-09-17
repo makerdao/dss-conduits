@@ -34,9 +34,9 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 100);
         assertEq(asset.balanceOf(operator),         0);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 100);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 100);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
-        assertEq(conduit.withdrawals(ilk, address(asset)),       0);
+        assertEq(conduit.withdrawals(address(asset), ilk),       0);
         assertEq(conduit.totalWithdrawals(address(asset)),       0);
 
         // Try to withdraw 200 when only 100 is available
@@ -49,9 +49,9 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 0);
         assertEq(asset.balanceOf(operator),         100);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
-        assertEq(conduit.withdrawals(ilk, address(asset)),       100);
+        assertEq(conduit.withdrawals(address(asset), ilk),       100);
         assertEq(conduit.totalWithdrawals(address(asset)),       100);
     }
 
@@ -69,9 +69,9 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 100);
         assertEq(asset.balanceOf(operator),         0);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 100);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 100);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
-        assertEq(conduit.withdrawals(ilk, address(asset)),       0);
+        assertEq(conduit.withdrawals(address(asset), ilk),       0);
         assertEq(conduit.totalWithdrawals(address(asset)),       0);
 
         vm.prank(operator);
@@ -82,9 +82,9 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 0);
         assertEq(asset.balanceOf(operator),         100);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
-        assertEq(conduit.withdrawals(ilk, address(asset)),       100);
+        assertEq(conduit.withdrawals(address(asset), ilk),       100);
         assertEq(conduit.totalWithdrawals(address(asset)),       100);
     }
 
@@ -123,11 +123,11 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator1),        0);
         assertEq(asset.balanceOf(operator2),        0);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 200);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 300);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 200);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 300);
         assertEq(conduit.totalWithdrawableFunds(address(asset)),  500);
-        assertEq(conduit.withdrawals(ilk1, address(asset)),       0);
-        assertEq(conduit.withdrawals(ilk2, address(asset)),       0);
+        assertEq(conduit.withdrawals(address(asset), ilk1),       0);
+        assertEq(conduit.withdrawals(address(asset), ilk2),       0);
         assertEq(conduit.totalWithdrawals(address(asset)),        0);
 
         // Partial withdraw ilk 1
@@ -141,11 +141,11 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator1),        50);
         assertEq(asset.balanceOf(operator2),        0);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 150);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 300);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 150);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 300);
         assertEq(conduit.totalWithdrawableFunds(address(asset)),  450);
-        assertEq(conduit.withdrawals(ilk1, address(asset)),       50);
-        assertEq(conduit.withdrawals(ilk2, address(asset)),       0);
+        assertEq(conduit.withdrawals(address(asset), ilk1),       50);
+        assertEq(conduit.withdrawals(address(asset), ilk2),       0);
         assertEq(conduit.totalWithdrawals(address(asset)),        50);
 
         // Finish withdraw ilk 1
@@ -159,11 +159,11 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator1),        200);
         assertEq(asset.balanceOf(operator2),        0);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 300);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 300);
         assertEq(conduit.totalWithdrawableFunds(address(asset)),  300);
-        assertEq(conduit.withdrawals(ilk1, address(asset)),       200);
-        assertEq(conduit.withdrawals(ilk2, address(asset)),       0);
+        assertEq(conduit.withdrawals(address(asset), ilk1),       200);
+        assertEq(conduit.withdrawals(address(asset), ilk2),       0);
         assertEq(conduit.totalWithdrawals(address(asset)),        200);
 
         // Full withdraw ilk 2
@@ -177,11 +177,11 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator1),        200);
         assertEq(asset.balanceOf(operator2),        300);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)),  0);
-        assertEq(conduit.withdrawals(ilk1, address(asset)),       200);
-        assertEq(conduit.withdrawals(ilk2, address(asset)),       300);
+        assertEq(conduit.withdrawals(address(asset), ilk1),       200);
+        assertEq(conduit.withdrawals(address(asset), ilk2),       300);
         assertEq(conduit.totalWithdrawals(address(asset)),        500);
     }
 

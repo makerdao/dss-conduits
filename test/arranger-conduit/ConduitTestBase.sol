@@ -68,22 +68,22 @@ contract ConduitAssetTestBase is ConduitTestBase {
     function _assertInvariants(bytes32 ilk1, bytes32 ilk2, address asset_) internal {
         assertEq(
             conduit.totalDeposits(asset_),
-            conduit.deposits(ilk1, asset_) + conduit.deposits(ilk2, asset_)
+            conduit.deposits(asset_, ilk1) + conduit.deposits(asset_, ilk2)
         );
 
         assertEq(
             conduit.totalRequestedFunds(asset_),
-            conduit.requestedFunds(ilk1, asset_) + conduit.requestedFunds(ilk2, asset_)
+            conduit.requestedFunds(asset_, ilk1) + conduit.requestedFunds(asset_, ilk2)
         );
 
         assertEq(
             conduit.totalWithdrawableFunds(asset_),
-            conduit.withdrawableFunds(ilk1, asset_) + conduit.withdrawableFunds(ilk2, asset_)
+            conduit.withdrawableFunds(asset_, ilk1) + conduit.withdrawableFunds(asset_, ilk2)
         );
 
         assertEq(
             conduit.totalWithdrawals(asset_),
-            conduit.withdrawals(ilk1, asset_) + conduit.withdrawals(ilk2, asset_)
+            conduit.withdrawals(asset_, ilk1) + conduit.withdrawals(asset_, ilk2)
         );
     }
 

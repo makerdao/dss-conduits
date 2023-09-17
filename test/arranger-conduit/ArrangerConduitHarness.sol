@@ -17,7 +17,7 @@ contract ArrangerConduitHarness is ArrangerConduit {
     function __setWithdrawableFunds(bytes32 ilk, address asset, uint256 amount)
         external
     {
-        withdrawableFunds[ilk][asset] = amount;
+        withdrawableFunds[asset][ilk] = amount;
     }
 
     function __setTotalWithdrawableFunds(address asset, uint256 amount)
