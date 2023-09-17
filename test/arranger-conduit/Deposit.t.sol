@@ -92,7 +92,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator),         100);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.deposits(ilk, address(asset)), 0);
+        assertEq(conduit.deposits(address(asset), ilk), 0);
         assertEq(conduit.totalDeposits(address(asset)), 0);
 
         conduit.deposit(ilk, address(asset), 100);
@@ -100,7 +100,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator),         0);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.deposits(ilk, address(asset)), 100);
+        assertEq(conduit.deposits(address(asset), ilk), 100);
         assertEq(conduit.totalDeposits(address(asset)), 100);
 
         _assertInvariants(ilk, address(asset));
@@ -116,7 +116,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator),         amount);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.deposits(ilk, address(asset)), 0);
+        assertEq(conduit.deposits(address(asset), ilk), 0);
         assertEq(conduit.totalDeposits(address(asset)), 0);
 
         conduit.deposit(ilk, address(asset), amount);
@@ -124,7 +124,7 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator),         0);
         assertEq(asset.balanceOf(address(conduit)), amount);
 
-        assertEq(conduit.deposits(ilk, address(asset)), amount);
+        assertEq(conduit.deposits(address(asset), ilk), amount);
         assertEq(conduit.totalDeposits(address(asset)), amount);
 
         _assertInvariants(ilk, address(asset));
@@ -150,8 +150,8 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator2),        300);
         assertEq(asset.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.deposits(ilk1, address(asset)), 0);
-        assertEq(conduit.deposits(ilk2, address(asset)), 0);
+        assertEq(conduit.deposits(address(asset), ilk1), 0);
+        assertEq(conduit.deposits(address(asset), ilk2), 0);
         assertEq(conduit.totalDeposits(address(asset)),  0);
 
         vm.startPrank(operator1);
@@ -165,8 +165,8 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator2),        300);
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.deposits(ilk1, address(asset)), 100);
-        assertEq(conduit.deposits(ilk2, address(asset)), 0);
+        assertEq(conduit.deposits(address(asset), ilk1), 100);
+        assertEq(conduit.deposits(address(asset), ilk2), 0);
         assertEq(conduit.totalDeposits(address(asset)),  100);
 
         _assertInvariants(ilk1, ilk2, address(asset));
@@ -182,8 +182,8 @@ contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(operator2),        0);
         assertEq(asset.balanceOf(address(conduit)), 400);
 
-        assertEq(conduit.deposits(ilk1, address(asset)), 100);
-        assertEq(conduit.deposits(ilk2, address(asset)), 300);
+        assertEq(conduit.deposits(address(asset), ilk1), 100);
+        assertEq(conduit.deposits(address(asset), ilk2), 300);
         assertEq(conduit.totalDeposits(address(asset)),  400);
 
         _assertInvariants(ilk1, ilk2, address(asset));

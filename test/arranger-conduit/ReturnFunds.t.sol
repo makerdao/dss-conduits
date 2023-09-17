@@ -134,10 +134,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
 
         assertEq(conduit.availableFunds(address(asset)), 100);
@@ -159,10 +159,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
         assertEq(conduit.totalRequestedFunds(address(asset)), 0);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 100);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 100);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
 
         assertEq(conduit.availableFunds(address(asset)), 0);
@@ -202,10 +202,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 40);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
 
         assertEq(conduit.availableFunds(address(asset)), 40);
@@ -225,10 +225,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 40);
 
         // Goes to zero because amount is reduced by requestedAmount even on partial fills
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
         assertEq(conduit.totalRequestedFunds(address(asset)), 0);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 40);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 40);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 40);
 
         assertEq(conduit.availableFunds(address(asset)), 0);
@@ -274,10 +274,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 20);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
 
         assertEq(conduit.availableFunds(address(asset)), 20);
@@ -296,10 +296,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 20);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 80);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 80);
         assertEq(conduit.totalRequestedFunds(address(asset)), 80);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 20);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 20);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 20);
 
         assertEq(conduit.availableFunds(address(asset)), 0);
@@ -321,10 +321,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 60);
 
         // Goes to zero because amount is reduced by requestedAmount even on partial fills
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
         assertEq(conduit.totalRequestedFunds(address(asset)), 0);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 60);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 60);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 60);
 
         assertEq(conduit.availableFunds(address(asset)), 0);
@@ -382,12 +382,12 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 20);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset)), 40);
-        assertEq(conduit.requestedFunds(ilk2, address(asset)), 60);
+        assertEq(conduit.requestedFunds(address(asset), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset), ilk2), 60);
         assertEq(conduit.totalRequestedFunds(address(asset)),  100);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)),  0);
 
         assertEq(conduit.availableFunds(address(asset)), 20);
@@ -407,12 +407,12 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(asset.balanceOf(address(conduit)), 20);
 
         // Gets reduced by full ilk1 request
-        assertEq(conduit.requestedFunds(ilk1, address(asset)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset)), 60);
+        assertEq(conduit.requestedFunds(address(asset), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk2), 60);
         assertEq(conduit.totalRequestedFunds(address(asset)),  60);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 20);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 20);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)),  20);
 
         assertEq(conduit.availableFunds(address(asset)), 0);
@@ -433,12 +433,12 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk2), 0);
         assertEq(conduit.totalRequestedFunds(address(asset)),  0);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset)), 20);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset)), 80);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 20);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 80);
         assertEq(conduit.totalWithdrawableFunds(address(asset)),  100);
 
         assertEq(conduit.availableFunds(address(asset)), 0);
@@ -561,18 +561,18 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(asset1.balanceOf(address(conduit)), 100);
         assertEq(asset2.balanceOf(address(conduit)), 400);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 40);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 60);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 100);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 300);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 60);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 300);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 400);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset1)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset1)), 0);
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset2)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalWithdrawableFunds(address(asset1)), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset2)), 0);
@@ -609,18 +609,18 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(asset1.balanceOf(address(conduit)), 100);
         assertEq(asset2.balanceOf(address(conduit)), 400);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 40);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 100);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 300);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 300);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 40);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 400);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset1)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset1)), 70);
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset2)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk2), 70);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalWithdrawableFunds(address(asset1)), 70);
         assertEq(conduit.totalWithdrawableFunds(address(asset2)), 0);
@@ -657,18 +657,18 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(asset1.balanceOf(address(conduit)), 100);
         assertEq(asset2.balanceOf(address(conduit)), 400);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 40);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 100);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 40);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 100);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset1)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset1)), 70);
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset2)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset2)), 150);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk2), 70);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk2), 150);
 
         assertEq(conduit.totalWithdrawableFunds(address(asset1)), 70);
         assertEq(conduit.totalWithdrawableFunds(address(asset2)), 150);
@@ -696,18 +696,18 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(asset1.balanceOf(address(conduit)), 100);
         assertEq(asset2.balanceOf(address(conduit)), 400);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 100);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 0);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 100);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset1)), 30);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset1)), 70);
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset2)), 0);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset2)), 150);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 30);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk2), 70);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk2), 150);
 
         assertEq(conduit.totalWithdrawableFunds(address(asset1)), 100);
         assertEq(conduit.totalWithdrawableFunds(address(asset2)), 150);
@@ -735,18 +735,18 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(asset1.balanceOf(address(conduit)), 100);
         assertEq(asset2.balanceOf(address(conduit)), 400);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 0);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 0);
 
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset1)), 30);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset1)), 70);
-        assertEq(conduit.withdrawableFunds(ilk1, address(asset2)), 60);
-        assertEq(conduit.withdrawableFunds(ilk2, address(asset2)), 150);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 30);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk2), 70);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk1), 60);
+        assertEq(conduit.withdrawableFunds(address(asset2), ilk2), 150);
 
         assertEq(conduit.totalWithdrawableFunds(address(asset1)), 100);
         assertEq(conduit.totalWithdrawableFunds(address(asset2)), 210);
@@ -781,10 +781,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
 
         assertEq(conduit.availableFunds(address(asset)), 100);
@@ -806,10 +806,10 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertEq(asset.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
         assertEq(conduit.totalRequestedFunds(address(asset)), 0);
 
-        assertEq(conduit.withdrawableFunds(ilk, address(asset)), 100);
+        assertEq(conduit.withdrawableFunds(address(asset), ilk), 100);
         assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
 
         assertEq(conduit.availableFunds(address(asset)), 0);

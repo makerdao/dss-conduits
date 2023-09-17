@@ -103,7 +103,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
 
         _assertInvariants(ilk, address(asset));
@@ -120,7 +120,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
         assertEq(conduit.totalRequestedFunds(address(asset)), 0);
 
         _assertInvariants(ilk, address(asset));
