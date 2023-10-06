@@ -78,6 +78,25 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
         conduit.deposit(ilk, address(asset), amount);
     }
 
+    function test_deposit_noBufferRegistered() external {
+        asset.mint(operator, 100);
+
+        registry.file(ilk, "buffer", address(0));
+
+        vm.startPrank(operator);
+        asset.approve(address(conduit), 100);
+
+        vm.expectRevert("ArrangerConduit/no-buffer-registered");
+        conduit.deposit(ilk, address(asset), 100);
+
+        vm.stopPrank();
+
+        registry.file(ilk, "buffer", operator);
+
+        vm.prank(operator);
+        conduit.deposit(ilk, address(asset), 100);
+    }
+
 }
 
 contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
