@@ -3,8 +3,6 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 
-import { MockERC20 } from "erc20-helpers/MockERC20.sol";
-
 import { InvariantTestBase } from "./InvariantTestBase.t.sol";
 
 import { ArrangerBase, ArrangerBounded }     from "./handlers/Arranger.sol";

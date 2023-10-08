@@ -45,7 +45,9 @@ contract InvariantTestBase is Test {
         conduit = ArrangerConduit(address(conduitProxy));
 
         for (uint256 i; i < NUM_ASSETS; i++) {
-            assets.push(address(new MockERC20("asset", "ASSET", 18)));
+            uint8 decimals = uint8(_bound(uint256(keccak256(abi.encodePacked(bytes32(i)))), 4, 18));
+
+            assets.push(address(new MockERC20("asset", "ASSET", decimals)));
             address broker = makeAddr(string.concat("ilk", vm.toString(ilks.length)));
             brokers.push(broker);
             conduit.setBroker(broker, assets[i], true);  // TODO: Use handler
