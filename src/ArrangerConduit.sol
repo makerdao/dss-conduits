@@ -38,10 +38,10 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
     mapping(address => mapping(address => bool)) public override isBroker;
 
-    mapping(bytes32 => mapping(address => uint256)) public override deposits;
-    mapping(bytes32 => mapping(address => uint256)) public override requestedFunds;
-    mapping(bytes32 => mapping(address => uint256)) public override withdrawableFunds;
-    mapping(bytes32 => mapping(address => uint256)) public override withdrawals;
+    mapping(address => mapping(bytes32 => uint256)) public override deposits;
+    mapping(address => mapping(bytes32 => uint256)) public override requestedFunds;
+    mapping(address => mapping(bytes32 => uint256)) public override withdrawableFunds;
+    mapping(address => mapping(bytes32 => uint256)) public override withdrawals;
 
     /**********************************************************************************************/
     /*** Modifiers                                                                              ***/
@@ -84,7 +84,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     /**********************************************************************************************/
 
     function deposit(bytes32 ilk, address asset, uint256 amount) external override ilkAuth(ilk) {
-        deposits[ilk][asset] += amount;
+        deposits[asset][ilk] += amount;
         totalDeposits[asset] += amount;
 
         address source = RegistryLike(registry).buffers(ilk);
@@ -97,14 +97,14 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     function withdraw(bytes32 ilk, address asset, uint256 maxAmount)
         external override ilkAuth(ilk) returns (uint256 amount)
     {
-        uint256 withdrawableFunds_ = withdrawableFunds[ilk][asset];
+        uint256 withdrawableFunds_ = withdrawableFunds[asset][ilk];
 
         amount = maxAmount > withdrawableFunds_ ? withdrawableFunds_ : maxAmount;
 
-        withdrawableFunds[ilk][asset] -= amount;
+        withdrawableFunds[asset][ilk] -= amount;
         totalWithdrawableFunds[asset] -= amount;
 
-        withdrawals[ilk][asset] += amount;
+        withdrawals[asset][ilk] += amount;
         totalWithdrawals[asset] += amount;
 
         address destination = RegistryLike(registry).buffers(ilk);
@@ -128,7 +128,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
             info:            info
         }));
 
-        requestedFunds[ilk][asset] += amount;
+        requestedFunds[asset][ilk] += amount;
         totalRequestedFunds[asset] += amount;
 
         emit RequestFunds(ilk, asset, fundRequestId, amount, info);
@@ -148,7 +148,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         fundRequests[fundRequestId].status = StatusEnum.CANCELLED;
 
-        requestedFunds[ilk][asset] -= amountRequested;
+        requestedFunds[asset][ilk] -= amountRequested;
         totalRequestedFunds[asset] -= amountRequested;
 
         emit CancelFundRequest(fundRequestId);
@@ -185,12 +185,12 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         bytes32 ilk = fundRequest.ilk;
 
-        withdrawableFunds[ilk][asset] += returnAmount;
+        withdrawableFunds[asset][ilk] += returnAmount;
         totalWithdrawableFunds[asset] += returnAmount;
 
         uint256 amountRequested = fundRequest.amountRequested;
 
-        requestedFunds[ilk][asset] -= amountRequested;
+        requestedFunds[asset][ilk] -= amountRequested;
         totalRequestedFunds[asset] -= amountRequested;
 
         fundRequest.amountFilled = returnAmount;
@@ -234,7 +234,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
     function maxWithdraw(bytes32 ilk, address asset)
         external override view returns (uint256 maxWithdraw_)
     {
-        maxWithdraw_ = withdrawableFunds[ilk][asset];
+        maxWithdraw_ = withdrawableFunds[asset][ilk];
     }
 
     /**********************************************************************************************/

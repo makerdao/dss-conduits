@@ -29,7 +29,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
 
         conduit.requestFunds(ilk, address(asset), 100, "info");
 
@@ -43,7 +43,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
 
         _assertInvariants(ilk, address(asset));
@@ -79,8 +79,8 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         vm.stopPrank();
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk2), 0);
 
         vm.prank(operator1);
         uint256 returnFundRequestId = conduit.requestFunds(ilk1, address(asset), 40, "info1");
@@ -97,7 +97,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info1");
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset)), 40);
+        assertEq(conduit.requestedFunds(address(asset), ilk1), 40);
         assertEq(conduit.totalRequestedFunds(address(asset)),  40);
 
         vm.prank(operator2);
@@ -115,7 +115,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info2");
 
-        assertEq(conduit.requestedFunds(ilk2, address(asset)), 60);
+        assertEq(conduit.requestedFunds(address(asset), ilk2), 60);
         assertEq(conduit.totalRequestedFunds(address(asset)),  100);
 
         _assertInvariants(ilk1, ilk2, address(asset));
@@ -134,18 +134,18 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         asset.approve(address(conduit), 100);
         conduit.deposit(ilk, address(asset), 100);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
 
         uint256 returnFundRequestId = conduit.requestFunds(ilk, address(asset), 40, "info");
 
         assertEq(returnFundRequestId, 0);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 40);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 40);
         assertEq(conduit.totalRequestedFunds(address(asset)), 40);
 
         returnFundRequestId = conduit.requestFunds(ilk, address(asset), 60, "info");
 
-        assertEq(conduit.requestedFunds(ilk, address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
         assertEq(conduit.totalRequestedFunds(address(asset)), 100);
 
         _assertInvariants(ilk, address(asset));
@@ -166,15 +166,15 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         conduit.deposit(ilk, address(asset1), 100);
         conduit.deposit(ilk, address(asset2), 300);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk), 0);
 
         uint256 returnFundRequestId = conduit.requestFunds(ilk, address(asset1), 100, "info1");
 
         assertEq(returnFundRequestId, 0);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset1)), 100);
-        assertEq(conduit.requestedFunds(ilk, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk), 0);
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 0);
 
@@ -182,8 +182,8 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 1);
 
-        assertEq(conduit.requestedFunds(ilk, address(asset1)), 100);
-        assertEq(conduit.requestedFunds(ilk, address(asset2)), 300);
+        assertEq(conduit.requestedFunds(address(asset1), ilk), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk), 300);
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 300);
 
@@ -236,10 +236,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         vm.stopPrank();
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 0);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 0);
@@ -254,10 +254,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 0);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 40);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 0);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 40);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 0);
@@ -272,10 +272,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 1);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 40);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 60);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 0);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 60);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 0);
@@ -290,10 +290,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 2);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 40);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 60);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 100);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 60);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 0);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 100);
@@ -308,10 +308,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 3);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 40);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 60);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 100);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 300);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 60);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 300);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 400);
@@ -355,10 +355,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 4);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 80);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 60);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 100);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 300);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 80);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 60);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 300);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 140);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 400);
@@ -373,10 +373,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 5);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 80);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 120);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 100);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 300);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 80);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 120);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 100);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 300);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 200);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 400);
@@ -391,10 +391,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 6);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 80);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 120);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 200);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 300);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 80);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 120);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 200);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 300);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 200);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 500);
@@ -409,10 +409,10 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertEq(returnFundRequestId, 7);
 
-        assertEq(conduit.requestedFunds(ilk1, address(asset1)), 80);
-        assertEq(conduit.requestedFunds(ilk2, address(asset1)), 120);
-        assertEq(conduit.requestedFunds(ilk1, address(asset2)), 200);
-        assertEq(conduit.requestedFunds(ilk2, address(asset2)), 600);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 80);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 120);
+        assertEq(conduit.requestedFunds(address(asset2), ilk1), 200);
+        assertEq(conduit.requestedFunds(address(asset2), ilk2), 600);
 
         assertEq(conduit.totalRequestedFunds(address(asset1)), 200);
         assertEq(conduit.totalRequestedFunds(address(asset2)), 800);
