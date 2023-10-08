@@ -81,7 +81,7 @@ contract OperatorBounded is OperatorBase {
     function withdraw(uint256 indexSeed, uint256 amount) public virtual override {
         address asset = _getAsset(indexSeed);
 
-        amount = _bound(amount, 0, arrangerConduit.withdrawableFunds(ilk, asset));
+        amount = _bound(amount, 0, arrangerConduit.withdrawableFunds(asset, ilk));
 
         super.withdraw(indexSeed, amount);
     }

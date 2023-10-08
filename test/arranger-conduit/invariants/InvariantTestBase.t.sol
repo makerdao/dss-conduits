@@ -93,10 +93,10 @@ contract InvariantTestBase is Test {
             uint256 sumWithdrawals;
 
             for (uint256 j = 0; j < ilks.length; j++) {
-                sumDeposits          += conduit.deposits(ilks[j], assets[i]);
-                sumRequestedFunds    += conduit.requestedFunds(ilks[j], assets[i]);
-                sumWithdrawableFunds += conduit.withdrawableFunds(ilks[j], assets[i]);
-                sumWithdrawals       += conduit.withdrawals(ilks[j], assets[i]);
+                sumDeposits          += conduit.deposits(assets[i], ilks[j]);
+                sumRequestedFunds    += conduit.requestedFunds(assets[i], ilks[j]);
+                sumWithdrawableFunds += conduit.withdrawableFunds(assets[i], ilks[j]);
+                sumWithdrawals       += conduit.withdrawals(assets[i], ilks[j]);
             }
 
             assertEq(conduit.totalDeposits(assets[i]),          sumDeposits);
