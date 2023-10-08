@@ -12,6 +12,7 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
         conduit.deposit(ilk1, address(asset1), 100);
     }
 
+    // NOTE: This test doesn't apply really in practice because of buffer setup, but being thorough
     function test_deposit_insufficientApproveBoundary() public {
         asset1.mint(buffer1, 100);
 
@@ -29,6 +30,7 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
         conduit.deposit(ilk1, address(asset1), 100);
     }
 
+    // NOTE: This test doesn't apply really in practice because of buffer setup, but being thorough
     function testFuzz_deposit_insufficientApproveBoundary(uint256 amount) public {
         vm.assume(amount != 0);
 

@@ -99,7 +99,7 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
     // NOTE: Removing all struct-level assertions for below tests since they have been adequately
     //       asserted in above tests and FundRequest structs are mutually exclusive to each other
     //       as proven in the above test. Below tests are only testing the mapping-level handling of
-    //       multi-ilk1 multi-asset scenarios.
+    //       multi-ilk multi-asset scenarios.
 
     function test_requestFunds_singleIlk_multiRequest_singleAsset() public {
         asset1.mint(buffer1, 100);
@@ -115,12 +115,12 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
         assertEq(returnFundRequestId, 0);
 
         assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
-        assertEq(conduit.totalRequestedFunds(address(asset1)), 40);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  40);
 
         returnFundRequestId = conduit.requestFunds(ilk1, address(asset1), 60, "info");
 
         assertEq(conduit.requestedFunds(address(asset1), ilk1), 100);
-        assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  100);
 
         _assertInvariants();
     }

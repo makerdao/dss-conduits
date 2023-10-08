@@ -67,8 +67,6 @@ contract ConduitAssetTestBase is ConduitTestBase {
         registry.file(ilk2, "buffer", buffer2);
 
         conduit.setBroker(broker1, address(asset1), true);
-        conduit.setBroker(broker1, address(asset2), true);
-        conduit.setBroker(broker2, address(asset1), true);
         conduit.setBroker(broker2, address(asset2), true);
 
         vm.startPrank(buffer1);
@@ -114,7 +112,7 @@ contract ConduitAssetTestBase is ConduitTestBase {
         address   operator_,
         address   buffer_,
         address   broker_,
-        bytes32   ilk1_,
+        bytes32   ilk_,
         uint256   amount
     )
         internal
@@ -122,7 +120,7 @@ contract ConduitAssetTestBase is ConduitTestBase {
         asset_.mint(buffer_, amount);
 
         vm.prank(operator_);
-        conduit.deposit(ilk1_, address(asset_), amount);
+        conduit.deposit(ilk_, address(asset_), amount);
 
         vm.prank(arranger);
         conduit.drawFunds(address(asset_), broker_, amount);
@@ -133,18 +131,18 @@ contract ConduitAssetTestBase is ConduitTestBase {
         _depositAndDrawFunds(asset1, operator1, buffer1, broker1, ilk1, amount);
     }
 
-    function _setupOperatorRole(bytes32 ilk1_, address operator_) internal {
+    function _setupOperatorRole(bytes32 ilk_, address operator_) internal {
         // Ensure address(this) can always set for a new ilk1
-        roles.setIlkAdmin(ilk1_, address(this));
+        roles.setIlkAdmin(ilk_, address(this));
 
-        roles.setUserRole(ilk1_, operator_, ROLE, true);
+        roles.setUserRole(ilk_, operator_, ROLE, true);
 
         address conduit_ = address(conduit);
 
-        roles.setRoleAction(ilk1_, ROLE, conduit_, conduit.deposit.selector,           true);
-        roles.setRoleAction(ilk1_, ROLE, conduit_, conduit.withdraw.selector,          true);
-        roles.setRoleAction(ilk1_, ROLE, conduit_, conduit.requestFunds.selector,      true);
-        roles.setRoleAction(ilk1_, ROLE, conduit_, conduit.cancelFundRequest.selector, true);
+        roles.setRoleAction(ilk_, ROLE, conduit_, conduit.deposit.selector,           true);
+        roles.setRoleAction(ilk_, ROLE, conduit_, conduit.withdraw.selector,          true);
+        roles.setRoleAction(ilk_, ROLE, conduit_, conduit.requestFunds.selector,      true);
+        roles.setRoleAction(ilk_, ROLE, conduit_, conduit.cancelFundRequest.selector, true);
     }
 
 }

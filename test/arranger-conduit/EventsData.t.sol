@@ -6,23 +6,23 @@ import "./ConduitTestBase.sol";
 contract ArrangerConduit_EventTests is ConduitAssetTestBase {
 
     event CancelFundRequest(uint256 fundRequestId);
-    event Deposit(bytes32 indexed ilk1, address indexed asset, address origin, uint256 amount);
+    event Deposit(bytes32 indexed ilk, address indexed asset, address origin, uint256 amount);
     event DrawFunds(address indexed asset, address indexed destination, uint256 amount);
     event RequestFunds(
-        bytes32 indexed ilk1,
+        bytes32 indexed ilk,
         address indexed asset,
         uint256 fundRequestId,
         uint256 amount,
         string  info
     );
     event ReturnFunds(
-        bytes32 indexed ilk1,
+        bytes32 indexed ilk,
         address indexed asset,
         uint256 fundRequestId,
         uint256 amountRequested,
         uint256 returnAmount
     );
-    event Withdraw(bytes32 indexed ilk1, address indexed asset, address destination, uint256 amount);
+    event Withdraw(bytes32 indexed ilk, address indexed asset, address destination, uint256 amount);
 
     function test_cancelFundRequest() public {
         asset1.mint(buffer1, 200);

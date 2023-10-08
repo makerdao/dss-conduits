@@ -26,8 +26,9 @@ contract ArrangerConduit_DrawFundsTests is ConduitAssetTestBase {
     function test_drawFunds_invalidBroker() external {
         vm.startPrank(arranger);
 
+        // NOTE: `broker2` was not configured in setup for `asset1`
         vm.expectRevert("ArrangerConduit/invalid-broker");
-        conduit.drawFunds(address(asset1), makeAddr("non-broker1"), 100);
+        conduit.drawFunds(address(asset1), broker2, 100);
     }
 
     function test_drawFunds_insufficientDrawableBoundary() external {

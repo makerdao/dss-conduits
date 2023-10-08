@@ -118,62 +118,50 @@ contract ArrangerConduit_GetFundRequestsLengthTest is ConduitAssetTestBase {
 
 }
 
-// TODO: See if you can etch the harness and use super.setUp
-// contract ArrangerConduit_IsCancelableTest is ConduitAssetTestBase {
+contract ArrangerConduit_IsCancelableTest is ConduitAssetTestBase {
 
-//     ArrangerConduitHarness conduitHarness;
+    ArrangerConduitHarness conduitHarness;
 
-//     function setUp() public override {
-//         UpgradeableProxy       conduitProxy          = new UpgradeableProxy();
-//         ArrangerConduitHarness conduitImplementation = new ArrangerConduitHarness();
+    function setUp() public override {
+        super.setUp();
 
-//         conduitProxy.setImplementation(address(conduitImplementation));
+        ArrangerConduitHarness conduitImplementation = new ArrangerConduitHarness();
 
-//         conduitHarness = ArrangerConduitHarness(address(conduitProxy));
+        conduitProxy.setImplementation(address(conduitImplementation));
 
-//         registry.file(ilk1, "buffer", address(this));
+        conduitHarness = ArrangerConduitHarness(address(conduitProxy));
+    }
 
-//         conduitHarness.file("registry", address(registry));
-//         conduitHarness.file("roles",   address(roles));
+    function test_isCancelable() external {
+        asset1.mint(buffer1, 100);
 
-//         roles.setIlkAdmin(ilk1, address(this));
-//         roles.setUserRole(ilk1, address(this), ROLE, true);
+        vm.startPrank(operator1);
 
-//         address conduit_ = address(conduitHarness);
+        conduitHarness.deposit(ilk1, address(asset1), 100);
 
-//         roles.setRoleAction(ilk1, ROLE, conduit_, conduit.deposit.selector,      true);
-//         roles.setRoleAction(ilk1, ROLE, conduit_, conduit.requestFunds.selector, true);
-//     }
+        conduitHarness.requestFunds(ilk1, address(asset1), 100, "info");
 
-//     function test_isCancelable() external {
-//         asset1.mint(address(this), 100);
-//         asset1.approve(address(conduitHarness), 100);
+        IArrangerConduit.FundRequest memory fundRequest = conduitHarness.getFundRequest(0);
 
-//         conduitHarness.deposit(ilk1, address(asset1), 100);
+        assertEq(uint256(fundRequest.status), uint256(IArrangerConduit.StatusEnum.PENDING));
 
-//         conduitHarness.requestFunds(ilk1, address(asset1), 100, "info");
+        assertEq(conduitHarness.isCancelable(0), true);
 
-//         IArrangerConduit.FundRequest memory fundRequest = conduitHarness.getFundRequest(0);
+        conduitHarness.__setFundRequestStatus(0, IArrangerConduit.StatusEnum.CANCELLED);
 
-//         assertEq(uint256(fundRequest.status), uint256(IArrangerConduit.StatusEnum.PENDING));
+        assertEq(conduitHarness.isCancelable(0), false);
 
-//         assertEq(conduitHarness.isCancelable(0), true);
+        conduitHarness.__setFundRequestStatus(0, IArrangerConduit.StatusEnum.COMPLETED);
 
-//         conduitHarness.__setFundRequestStatus(0, IArrangerConduit.StatusEnum.CANCELLED);
+        assertEq(conduitHarness.isCancelable(0), false);
+    }
 
-//         assertEq(conduitHarness.isCancelable(0), false);
-
-//         conduitHarness.__setFundRequestStatus(0, IArrangerConduit.StatusEnum.COMPLETED);
-
-//         assertEq(conduitHarness.isCancelable(0), false);
-//     }
-
-// }
+}
 
 contract ArrangerConduit_MaxDepositTests is ConduitTestBase {
 
-    function testFuzz_maxDepositTest(bytes32 ilk1, address asset) external {
-        assertEq(conduit.maxDeposit(ilk1, asset), type(uint256).max);
+    function testFuzz_maxDepositTest(bytes32 ilk, address asset) external {
+        assertEq(conduit.maxDeposit(ilk, asset), type(uint256).max);
     }
 
 }
@@ -192,27 +180,27 @@ contract ArrangerConduit_MaxWithdrawTest is ConduitAssetTestBase {
     }
 
     function testFuzz_maxWithdraw(
-        address asset1,
-        address asset2,
+        address asset1_,
+        address asset2_,
         uint256 amount1,
         uint256 amount2,
         uint256 amount3
     )
         external
     {
-        vm.assume(asset1 != asset2);
+        vm.assume(asset1_ != asset2_);
 
-        conduitHarness.__setWithdrawableFunds(ilk1, asset1, amount1);
-        conduitHarness.__setWithdrawableFunds(ilk1, asset2, amount2);
+        conduitHarness.__setWithdrawableFunds(ilk1, asset1_, amount1);
+        conduitHarness.__setWithdrawableFunds(ilk1, asset2_, amount2);
 
-        assertEq(conduitHarness.maxWithdraw(ilk1, asset1), amount1);
-        assertEq(conduitHarness.maxWithdraw(ilk1, asset2), amount2);
+        assertEq(conduitHarness.maxWithdraw(ilk1, asset1_), amount1);
+        assertEq(conduitHarness.maxWithdraw(ilk1, asset2_), amount2);
 
         amount3 = _bound(amount3, 0, type(uint256).max - amount1);
 
-        conduitHarness.__setWithdrawableFunds(ilk1, asset1, amount1 + amount3);
+        conduitHarness.__setWithdrawableFunds(ilk1, asset1_, amount1 + amount3);
 
-        assertEq(conduitHarness.maxWithdraw(ilk1, asset1), amount1 + amount3);
+        assertEq(conduitHarness.maxWithdraw(ilk1, asset1_), amount1 + amount3);
     }
 
 }
