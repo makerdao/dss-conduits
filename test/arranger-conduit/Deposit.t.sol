@@ -6,95 +6,95 @@ import "./ConduitTestBase.sol";
 contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 
     function test_deposit_noIlkAuth() public {
-        asset.mint(operator, 100);
-
-        asset.approve(address(conduit), 100);
+        asset1.mint(buffer1, 100);
 
         vm.expectRevert("ArrangerConduit/not-authorized");
-        conduit.deposit(ilk, address(asset), 100);
+        conduit.deposit(ilk1, address(asset1), 100);
     }
 
+    // NOTE: This test doesn't apply really in practice because of buffer setup, but being thorough
     function test_deposit_insufficientApproveBoundary() public {
-        asset.mint(operator, 100);
+        asset1.mint(buffer1, 100);
 
-        vm.startPrank(operator);
+        vm.prank(buffer1);
+        asset1.approve(address(conduit), 99);
 
-        asset.approve(address(conduit), 99);
-
+        vm.prank(operator1);
         vm.expectRevert(stdError.arithmeticError);
-        conduit.deposit(ilk, address(asset), 100);
+        conduit.deposit(ilk1, address(asset1), 100);
 
-        asset.approve(address(conduit), 100);
+        vm.prank(buffer1);
+        asset1.approve(address(conduit), 100);
 
-        conduit.deposit(ilk, address(asset), 100);
+        vm.prank(operator1);
+        conduit.deposit(ilk1, address(asset1), 100);
     }
 
+    // NOTE: This test doesn't apply really in practice because of buffer setup, but being thorough
     function testFuzz_deposit_insufficientApproveBoundary(uint256 amount) public {
         vm.assume(amount != 0);
 
-        asset.mint(operator, amount);
+        asset1.mint(buffer1, amount);
 
-        vm.startPrank(operator);
+        vm.prank(buffer1);
+        asset1.approve(address(conduit), amount - 1);
 
-        asset.approve(address(conduit), amount - 1);
-
+        vm.prank(operator1);
         vm.expectRevert(stdError.arithmeticError);
-        conduit.deposit(ilk, address(asset), amount);
+        conduit.deposit(ilk1, address(asset1), amount);
 
-        asset.approve(address(conduit), amount);
+        vm.prank(buffer1);
+        asset1.approve(address(conduit), amount);
 
-        conduit.deposit(ilk, address(asset), amount);
+        vm.prank(operator1);
+        conduit.deposit(ilk1, address(asset1), amount);
     }
 
     function test_deposit_insufficientFundsBoundary() public {
-        asset.mint(operator, 99);
+        asset1.mint(buffer1, 99);
 
-        vm.startPrank(operator);
-
-        asset.approve(address(conduit), 100);
+        vm.startPrank(operator1);
 
         vm.expectRevert(stdError.arithmeticError);
-        conduit.deposit(ilk, address(asset), 100);
+        conduit.deposit(ilk1, address(asset1), 100);
 
-        asset.mint(operator, 1);
+        asset1.mint(buffer1, 1);
 
-        conduit.deposit(ilk, address(asset), 100);
+        conduit.deposit(ilk1, address(asset1), 100);
     }
 
     function testFuzz_deposit_insufficientFundsBoundary(uint256 amount) public {
         vm.assume(amount != 0);
 
-        asset.mint(operator, amount - 1);
+        asset1.mint(buffer1, amount - 1);
 
-        vm.startPrank(operator);
-
-        asset.approve(address(conduit), amount);
+        vm.startPrank(operator1);
 
         vm.expectRevert(stdError.arithmeticError);
-        conduit.deposit(ilk, address(asset), amount);
+        conduit.deposit(ilk1, address(asset1), amount);
 
-        asset.mint(operator, 1);
+        asset1.mint(buffer1, 1);
 
-        conduit.deposit(ilk, address(asset), amount);
+        conduit.deposit(ilk1, address(asset1), amount);
     }
 
     function test_deposit_noBufferRegistered() external {
-        asset.mint(operator, 100);
+        asset1.mint(operator1, 100);
 
-        registry.file(ilk, "buffer", address(0));
+        registry.file(ilk1, "buffer", address(0));
 
-        vm.startPrank(operator);
-        asset.approve(address(conduit), 100);
+        vm.startPrank(operator1);
+        asset1.approve(address(conduit), 100);
 
         vm.expectRevert("ArrangerConduit/no-buffer-registered");
-        conduit.deposit(ilk, address(asset), 100);
+        conduit.deposit(ilk1, address(asset1), 100);
 
         vm.stopPrank();
 
-        registry.file(ilk, "buffer", operator);
+        registry.file(ilk1, "buffer", operator1);
 
-        vm.prank(operator);
-        conduit.deposit(ilk, address(asset), 100);
+        vm.prank(operator1);
+        conduit.deposit(ilk1, address(asset1), 100);
     }
 
 }
@@ -102,110 +102,86 @@ contract ArrangerConduit_DepositFailureTests is ConduitAssetTestBase {
 contract ArrangerConduit_DepositTests is ConduitAssetTestBase {
 
     function test_deposit_singleIlk() external {
-        asset.mint(operator, 100);
-
-        vm.startPrank(operator);
-
-        asset.approve(address(conduit), 100);
-
-        assertEq(asset.balanceOf(operator),         100);
-        assertEq(asset.balanceOf(address(conduit)), 0);
-
-        assertEq(conduit.deposits(address(asset), ilk), 0);
-        assertEq(conduit.totalDeposits(address(asset)), 0);
-
-        conduit.deposit(ilk, address(asset), 100);
-
-        assertEq(asset.balanceOf(operator),         0);
-        assertEq(asset.balanceOf(address(conduit)), 100);
-
-        assertEq(conduit.deposits(address(asset), ilk), 100);
-        assertEq(conduit.totalDeposits(address(asset)), 100);
-
-        _assertInvariants(ilk, address(asset));
-    }
-
-    function testFuzz_deposit_singleIlk(uint256 amount) external {
-        asset.mint(operator, amount);
-
-        vm.startPrank(operator);
-
-        asset.approve(address(conduit), amount);
-
-        assertEq(asset.balanceOf(operator),         amount);
-        assertEq(asset.balanceOf(address(conduit)), 0);
-
-        assertEq(conduit.deposits(address(asset), ilk), 0);
-        assertEq(conduit.totalDeposits(address(asset)), 0);
-
-        conduit.deposit(ilk, address(asset), amount);
-
-        assertEq(asset.balanceOf(operator),         0);
-        assertEq(asset.balanceOf(address(conduit)), amount);
-
-        assertEq(conduit.deposits(address(asset), ilk), amount);
-        assertEq(conduit.totalDeposits(address(asset)), amount);
-
-        _assertInvariants(ilk, address(asset));
-    }
-
-    function test_deposit_multiIlk() external {
-        bytes32 ilk1 = "ilk1";
-        bytes32 ilk2 = "ilk2";
-
-        address operator1 = makeAddr("operator1");
-        address operator2 = makeAddr("operator2");
-
-        _setupOperatorRole(ilk1, operator1);
-        _setupOperatorRole(ilk2, operator2);
-
-        registry.file(ilk1, "buffer", operator1);
-        registry.file(ilk2, "buffer", operator2);
-
-        asset.mint(operator1, 100);
-        asset.mint(operator2, 300);
-
-        assertEq(asset.balanceOf(operator1),        100);
-        assertEq(asset.balanceOf(operator2),        300);
-        assertEq(asset.balanceOf(address(conduit)), 0);
-
-        assertEq(conduit.deposits(address(asset), ilk1), 0);
-        assertEq(conduit.deposits(address(asset), ilk2), 0);
-        assertEq(conduit.totalDeposits(address(asset)),  0);
+        asset1.mint(buffer1, 100);
 
         vm.startPrank(operator1);
 
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk1, address(asset), 100);
+        assertEq(asset1.balanceOf(buffer1),          100);
+        assertEq(asset1.balanceOf(address(conduit)), 0);
 
-        vm.stopPrank();
+        assertEq(conduit.deposits(address(asset1), ilk1), 0);
+        assertEq(conduit.totalDeposits(address(asset1)),  0);
 
-        assertEq(asset.balanceOf(operator1),        0);
-        assertEq(asset.balanceOf(operator2),        300);
-        assertEq(asset.balanceOf(address(conduit)), 100);
+        conduit.deposit(ilk1, address(asset1), 100);
 
-        assertEq(conduit.deposits(address(asset), ilk1), 100);
-        assertEq(conduit.deposits(address(asset), ilk2), 0);
-        assertEq(conduit.totalDeposits(address(asset)),  100);
+        assertEq(asset1.balanceOf(buffer1),          0);
+        assertEq(asset1.balanceOf(address(conduit)), 100);
 
-        _assertInvariants(ilk1, ilk2, address(asset));
+        assertEq(conduit.deposits(address(asset1), ilk1), 100);
+        assertEq(conduit.totalDeposits(address(asset1)),  100);
 
-        vm.startPrank(operator2);
+        _assertInvariants();
+    }
 
-        asset.approve(address(conduit), 300);
-        conduit.deposit(ilk2, address(asset), 300);
+    function testFuzz_deposit_singleIlk(uint256 amount) external {
+        asset1.mint(buffer1, amount);
 
-        vm.stopPrank();
+        vm.startPrank(operator1);
 
-        assertEq(asset.balanceOf(operator1),        0);
-        assertEq(asset.balanceOf(operator2),        0);
-        assertEq(asset.balanceOf(address(conduit)), 400);
+        assertEq(asset1.balanceOf(buffer1),          amount);
+        assertEq(asset1.balanceOf(address(conduit)), 0);
 
-        assertEq(conduit.deposits(address(asset), ilk1), 100);
-        assertEq(conduit.deposits(address(asset), ilk2), 300);
-        assertEq(conduit.totalDeposits(address(asset)),  400);
+        assertEq(conduit.deposits(address(asset1), ilk1), 0);
+        assertEq(conduit.totalDeposits(address(asset1)),  0);
 
-        _assertInvariants(ilk1, ilk2, address(asset));
+        conduit.deposit(ilk1, address(asset1), amount);
+
+        assertEq(asset1.balanceOf(buffer1),          0);
+        assertEq(asset1.balanceOf(address(conduit)), amount);
+
+        assertEq(conduit.deposits(address(asset1), ilk1), amount);
+        assertEq(conduit.totalDeposits(address(asset1)),  amount);
+
+        _assertInvariants();
+    }
+
+    function test_deposit_multiIlk() external {
+        asset1.mint(buffer1, 100);
+        asset1.mint(buffer2, 300);
+
+        assertEq(asset1.balanceOf(buffer1),          100);
+        assertEq(asset1.balanceOf(buffer2),          300);
+        assertEq(asset1.balanceOf(address(conduit)), 0);
+
+        assertEq(conduit.deposits(address(asset1), ilk1), 0);
+        assertEq(conduit.deposits(address(asset1), ilk2), 0);
+        assertEq(conduit.totalDeposits(address(asset1)),  0);
+
+        vm.prank(operator1);
+        conduit.deposit(ilk1, address(asset1), 100);
+
+        assertEq(asset1.balanceOf(buffer1),          0);
+        assertEq(asset1.balanceOf(buffer2),          300);
+        assertEq(asset1.balanceOf(address(conduit)), 100);
+
+        assertEq(conduit.deposits(address(asset1), ilk1), 100);
+        assertEq(conduit.deposits(address(asset1), ilk2), 0);
+        assertEq(conduit.totalDeposits(address(asset1)),  100);
+
+        _assertInvariants();
+
+        vm.prank(operator2);
+        conduit.deposit(ilk2, address(asset1), 300);
+
+        assertEq(asset1.balanceOf(buffer1),          0);
+        assertEq(asset1.balanceOf(buffer2),          0);
+        assertEq(asset1.balanceOf(address(conduit)), 400);
+
+        assertEq(conduit.deposits(address(asset1), ilk1), 100);
+        assertEq(conduit.deposits(address(asset1), ilk2), 300);
+        assertEq(conduit.totalDeposits(address(asset1)),  400);
+
+        _assertInvariants();
     }
 
 }

@@ -5,16 +5,15 @@ import { IArrangerConduit } from "../../src/interfaces/IArrangerConduit.sol";
 
 import "./ConduitTestBase.sol";
 
-contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
+contract ArrangerConduit_CancelFundRequestFailureTests is ConduitAssetTestBase {
 
     function test_cancelFundRequest_noIlkAuth() public {
-        asset.mint(operator, 100);
+        asset1.mint(buffer1, 100);
 
-        vm.startPrank(operator);
+        vm.startPrank(operator1);
 
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        conduit.deposit(ilk1, address(asset1), 100);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
         vm.stopPrank();
 
@@ -24,14 +23,10 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
     }
 
     function test_cancelFundRequest_notInitialized() public {
-        asset.mint(operator, 100);
+        asset1.mint(buffer1, 100);
 
-        vm.startPrank(operator);
-
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-
-        vm.stopPrank();
+        vm.prank(operator1);
+        conduit.deposit(ilk1, address(asset1), 100);
 
         vm.prank(arranger);
         vm.expectRevert(stdError.indexOOBError);
@@ -39,41 +34,35 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
     }
 
     function test_cancelFundRequest_completed() public {
-        asset.mint(operator, 100);
+        asset1.mint(buffer1, 100);
 
-        vm.startPrank(operator);
-
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-
-        vm.stopPrank();
+        vm.prank(operator1);
+        conduit.deposit(ilk1, address(asset1), 100);
 
         vm.prank(arranger);
-        conduit.drawFunds(address(asset), broker, 100);
+        conduit.drawFunds(address(asset1), broker1, 100);
 
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
-        vm.prank(broker);
-        asset.transfer(address(conduit), 100);
+        vm.prank(broker1);
+        asset1.transfer(address(conduit), 100);
 
         vm.prank(arranger);
         conduit.returnFunds(0, 100);
 
-        vm.prank(operator);
+        vm.prank(operator1);
         vm.expectRevert("ArrangerConduit/invalid-status");
         conduit.cancelFundRequest(0);
     }
 
     function test_cancelFundRequest_cancelled() public {
-        asset.mint(operator, 100);
+        asset1.mint(buffer1, 100);
 
-        vm.startPrank(operator);
+        vm.startPrank(operator1);
 
-        asset.approve(address(conduit), 100);
-
-        conduit.deposit(ilk, address(asset), 100);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        conduit.deposit(ilk1, address(asset1), 100);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
         conduit.cancelFundRequest(0);
 
         vm.expectRevert("ArrangerConduit/invalid-status");
@@ -82,31 +71,30 @@ contract ArrangerConduit_RequestFundsFailureTests is ConduitAssetTestBase {
 
 }
 
-contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
+contract ArrangerConduit_CancelFundRequestTests is ConduitAssetTestBase {
 
     function test_cancelFundRequest() public {
-        asset.mint(operator, 100);
+        asset1.mint(buffer1, 100);
 
-        vm.startPrank(operator);
+        vm.startPrank(operator1);
 
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        conduit.deposit(ilk1, address(asset1), 100);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
         IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
 
         assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.PENDING);
 
-        assertEq(fundRequest.asset,           address(asset));
-        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.asset,           address(asset1));
+        assertEq(fundRequest.ilk,             ilk1);
         assertEq(fundRequest.amountRequested, 100);
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 100);
+        assertEq(conduit.totalRequestedFunds(address(asset1)), 100);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
 
         conduit.cancelFundRequest(0);
 
@@ -114,16 +102,16 @@ contract ArrangerConduit_RequestFundsTests is ConduitAssetTestBase {
 
         assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.CANCELLED);
 
-        assertEq(fundRequest.asset,           address(asset));
-        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.asset,           address(asset1));
+        assertEq(fundRequest.ilk,             ilk1);
         assertEq(fundRequest.amountRequested, 100);
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  0);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
     }
 
 }

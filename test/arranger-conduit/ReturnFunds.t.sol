@@ -8,32 +8,22 @@ import "./ConduitTestBase.sol";
 contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
     function test_returnFunds_notArranger() public {
-        asset.mint(operator, 100);
+        _depositAndDrawFunds(100);
 
-        vm.startPrank(operator);
-
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-
-        vm.stopPrank();
-
-        vm.prank(arranger);
-        conduit.drawFunds(address(asset), broker, 100);
-
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
         vm.expectRevert("ArrangerConduit/not-arranger");
         conduit.returnFunds(0, 100);
     }
 
     function test_returnFunds_notPending_completed() external {
-        _depositAndDrawFunds(asset, operator, ilk, 100);
+        _depositAndDrawFunds(100);
 
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
-        asset.mint(address(conduit), 100);
+        asset1.mint(address(conduit), 100);
 
         vm.startPrank(arranger);
 
@@ -44,11 +34,11 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
     }
 
     function test_returnFunds_notPending_canceled() external {
-        _depositAndDrawFunds(asset, operator, ilk, 100);
+        _depositAndDrawFunds(100);
 
-        vm.startPrank(operator);
+        vm.startPrank(operator1);
 
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
         conduit.cancelFundRequest(0);
 
@@ -60,89 +50,79 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
     }
 
     function test_returnFunds_insufficientFundsBoundary() external {
-        _depositAndDrawFunds(asset, operator, ilk, 100);
+        _depositAndDrawFunds(100);
 
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
-        asset.mint(address(conduit), 99);
+        asset1.mint(address(conduit), 99);
 
         vm.startPrank(arranger);
         vm.expectRevert("ArrangerConduit/insufficient-funds");
         conduit.returnFunds(0, 100);
 
-        asset.mint(address(conduit), 1);
+        asset1.mint(address(conduit), 1);
 
         conduit.returnFunds(0, 100);
     }
 
     function test_returnFunds_insufficientFundsBoundaryWithWithdrawable() external {
-        _depositAndDrawFunds(asset, operator, ilk, 100);
+        _depositAndDrawFunds(100);
 
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 60, "info");
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 60, "info");
 
-        asset.mint(address(conduit), 99);
+        asset1.mint(address(conduit), 99);
 
         vm.prank(arranger);
         conduit.returnFunds(0, 60);
 
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 40, "info");
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 40, "info");
 
-        assertEq(conduit.availableFunds(address(asset)), 39);
+        assertEq(conduit.availableFunds(address(asset1)), 39);
 
         vm.startPrank(arranger);
 
         vm.expectRevert("ArrangerConduit/insufficient-funds");
         conduit.returnFunds(1, 40);
 
-        asset.mint(address(conduit), 1);
+        asset1.mint(address(conduit), 1);
 
-        assertEq(conduit.availableFunds(address(asset)), 40);
+        assertEq(conduit.availableFunds(address(asset1)), 40);
 
         conduit.returnFunds(1, 40);
     }
 
     function test_returnFunds_oneRequest_exact() external {
-        asset.mint(operator, 100);
+        _depositAndDrawFunds(100);
 
-        vm.startPrank(operator);
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-
-        vm.stopPrank();
-
-        vm.prank(arranger);
-        conduit.drawFunds(address(asset), broker, 100);
-
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
-
-        asset.mint(address(conduit), 100);
+        asset1.mint(address(conduit), 100);
 
         IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
 
         assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.PENDING);
 
-        assertEq(fundRequest.asset,           address(asset));
-        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.asset,           address(asset1));
+        assertEq(fundRequest.ilk,             ilk1);
         assertEq(fundRequest.amountRequested, 100);
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(asset.balanceOf(address(conduit)), 100);
+        assertEq(asset1.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 100);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  100);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  0);
 
-        assertEq(conduit.availableFunds(address(asset)), 100);
+        assertEq(conduit.availableFunds(address(asset1)), 100);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
 
         vm.prank(arranger);
         conduit.returnFunds(0, 100);
@@ -151,23 +131,23 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.COMPLETED);
 
-        assertEq(fundRequest.asset,           address(asset));
-        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.asset,           address(asset1));
+        assertEq(fundRequest.ilk,             ilk1);
         assertEq(fundRequest.amountRequested, 100);
         assertEq(fundRequest.amountFilled,    100);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(asset.balanceOf(address(conduit)), 100);
+        assertEq(asset1.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  0);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 100);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 100);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  100);
 
-        assertEq(conduit.availableFunds(address(asset)), 0);
+        assertEq(conduit.availableFunds(address(asset1)), 0);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
     }
 
     // NOTE: The above test has proven that returnFunds does not change any other values in the
@@ -176,22 +156,12 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
     //       for easier auditing.
 
     function test_returnFunds_oneRequest_under() external {
-        asset.mint(operator, 100);
+        _depositAndDrawFunds(100);
 
-        vm.startPrank(operator);
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-
-        vm.stopPrank();
-
-        vm.prank(arranger);
-        conduit.drawFunds(address(asset), broker, 100);
-
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
-
-        asset.mint(address(conduit), 40);
+        asset1.mint(address(conduit), 40);
 
         IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
 
@@ -200,17 +170,17 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 100);
         assertEq(fundRequest.amountFilled,    0);
 
-        assertEq(asset.balanceOf(address(conduit)), 40);
+        assertEq(asset1.balanceOf(address(conduit)), 40);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 100);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  100);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  0);
 
-        assertEq(conduit.availableFunds(address(asset)), 40);
+        assertEq(conduit.availableFunds(address(asset1)), 40);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
 
         vm.prank(arranger);
         conduit.returnFunds(0, 40);
@@ -222,41 +192,31 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 100);
         assertEq(fundRequest.amountFilled,    40);
 
-        assertEq(asset.balanceOf(address(conduit)), 40);
+        assertEq(asset1.balanceOf(address(conduit)), 40);
 
         // Goes to zero because amount is reduced by requestedAmount even on partial fills
-        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  0);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 40);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 40);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  40);
 
-        assertEq(conduit.availableFunds(address(asset)), 0);
+        assertEq(conduit.availableFunds(address(asset1)), 0);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
     }
 
     function test_returnFunds_oneIlk_twoRequests_exact_under() external {
-        asset.mint(operator, 100);
+        _depositAndDrawFunds(100);
 
-        vm.startPrank(operator);
+        vm.startPrank(operator1);
 
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-
-        vm.stopPrank();
-
-        vm.prank(arranger);
-        conduit.drawFunds(address(asset), broker, 100);
-
-        vm.startPrank(operator);
-
-        conduit.requestFunds(ilk, address(asset), 20, "info");
-        conduit.requestFunds(ilk, address(asset), 80, "info");
+        conduit.requestFunds(ilk1, address(asset1), 20, "info");
+        conduit.requestFunds(ilk1, address(asset1), 80, "info");
 
         vm.stopPrank();
 
-        asset.mint(address(conduit), 20);
+        asset1.mint(address(conduit), 20);
 
         IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
 
@@ -272,17 +232,17 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 80);
         assertEq(fundRequest.amountFilled,    0);
 
-        assertEq(asset.balanceOf(address(conduit)), 20);
+        assertEq(asset1.balanceOf(address(conduit)), 20);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 100);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  100);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  0);
 
-        assertEq(conduit.availableFunds(address(asset)), 20);
+        assertEq(conduit.availableFunds(address(asset1)), 20);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
 
         vm.prank(arranger);
         conduit.returnFunds(0, 20);
@@ -294,19 +254,19 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 20);
         assertEq(fundRequest.amountFilled,    20);
 
-        assertEq(asset.balanceOf(address(conduit)), 20);
+        assertEq(asset1.balanceOf(address(conduit)), 20);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 80);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 80);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 80);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  80);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 20);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 20);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 20);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  20);
 
-        assertEq(conduit.availableFunds(address(asset)), 0);
+        assertEq(conduit.availableFunds(address(asset1)), 0);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
 
-        asset.mint(address(conduit), 40);
+        asset1.mint(address(conduit), 40);
 
         vm.prank(arranger);
         conduit.returnFunds(1, 40);
@@ -318,60 +278,40 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 80);
         assertEq(fundRequest.amountFilled,    40);
 
-        assertEq(asset.balanceOf(address(conduit)), 60);
+        assertEq(asset1.balanceOf(address(conduit)), 60);
 
         // Goes to zero because amount is reduced by requestedAmount even on partial fills
-        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  0);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 60);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 60);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 60);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  60);
 
-        assertEq(conduit.availableFunds(address(asset)), 0);
+        assertEq(conduit.availableFunds(address(asset1)), 0);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
     }
 
     function test_returnFunds_twoIlks_twoRequests_under_over() external {
-        bytes32 ilk1 = "ilk1";
-        bytes32 ilk2 = "ilk2";
-
-        address operator1 = makeAddr("operator1");
-        address operator2 = makeAddr("operator2");
-
-        _setupOperatorRole(ilk1, operator1);
-        _setupOperatorRole(ilk2, operator2);
-
-        registry.file(ilk1, "buffer", operator1);
-        registry.file(ilk2, "buffer", operator2);
-
-        asset.mint(operator1, 40);
-        asset.mint(operator2, 60);
-
-        vm.startPrank(operator1);
-
-        asset.approve(address(conduit), 40);
-        conduit.deposit(ilk1, address(asset), 40);
-
-        vm.stopPrank();
-
-        vm.startPrank(operator2);
-
-        asset.approve(address(conduit), 60);
-        conduit.deposit(ilk2, address(asset), 60);
-
-        vm.stopPrank();
-
-        vm.prank(arranger);
-        conduit.drawFunds(address(asset), broker, 100);
+        asset1.mint(buffer1, 40);
+        asset1.mint(buffer2, 60);
 
         vm.prank(operator1);
-        conduit.requestFunds(ilk1, address(asset), 40, "info");
+        conduit.deposit(ilk1, address(asset1), 40);
 
         vm.prank(operator2);
-        conduit.requestFunds(ilk2, address(asset), 60, "info");
+        conduit.deposit(ilk2, address(asset1), 60);
 
-        asset.mint(address(conduit), 20);
+        vm.prank(arranger);
+        conduit.drawFunds(address(asset1), broker1, 100);
+
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 40, "info");
+
+        vm.prank(operator2);
+        conduit.requestFunds(ilk2, address(asset1), 60, "info");
+
+        asset1.mint(address(conduit), 20);
 
         IArrangerConduit.FundRequest memory fundRequest = conduit.getFundRequest(0);
 
@@ -380,19 +320,19 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 40);
         assertEq(fundRequest.amountFilled,    0);
 
-        assertEq(asset.balanceOf(address(conduit)), 20);
+        assertEq(asset1.balanceOf(address(conduit)), 20);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk1), 40);
-        assertEq(conduit.requestedFunds(address(asset), ilk2), 60);
-        assertEq(conduit.totalRequestedFunds(address(asset)),  100);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 40);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 60);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  100);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 0);
-        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 0);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)),  0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  0);
 
-        assertEq(conduit.availableFunds(address(asset)), 20);
+        assertEq(conduit.availableFunds(address(asset1)), 20);
 
-        _assertInvariants(ilk1, ilk2, address(asset));
+        _assertInvariants();
 
         vm.prank(arranger);
         conduit.returnFunds(0, 20);
@@ -404,22 +344,22 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 40);
         assertEq(fundRequest.amountFilled,    20);
 
-        assertEq(asset.balanceOf(address(conduit)), 20);
+        assertEq(asset1.balanceOf(address(conduit)), 20);
 
         // Gets reduced by full ilk1 request
-        assertEq(conduit.requestedFunds(address(asset), ilk1), 0);
-        assertEq(conduit.requestedFunds(address(asset), ilk2), 60);
-        assertEq(conduit.totalRequestedFunds(address(asset)),  60);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 60);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  60);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 20);
-        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 0);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)),  20);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 20);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  20);
 
-        assertEq(conduit.availableFunds(address(asset)), 0);
+        assertEq(conduit.availableFunds(address(asset1)), 0);
 
-        _assertInvariants(ilk1, ilk2, address(asset));
+        _assertInvariants();
 
-        asset.mint(address(conduit), 80);
+        asset1.mint(address(conduit), 80);
 
         vm.prank(arranger);
         conduit.returnFunds(1, 80);
@@ -431,54 +371,30 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(fundRequest.amountRequested, 60);
         assertEq(fundRequest.amountFilled,    80);
 
-        assertEq(asset.balanceOf(address(conduit)), 100);
+        assertEq(asset1.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk1), 0);
-        assertEq(conduit.requestedFunds(address(asset), ilk2), 0);
-        assertEq(conduit.totalRequestedFunds(address(asset)),  0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk2), 0);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  0);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk1), 20);
-        assertEq(conduit.withdrawableFunds(address(asset), ilk2), 80);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)),  100);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 20);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk2), 80);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  100);
 
-        assertEq(conduit.availableFunds(address(asset)), 0);
+        assertEq(conduit.availableFunds(address(asset1)), 0);
 
-        _assertInvariants(ilk1, ilk2, address(asset));
+        _assertInvariants();
     }
 
     // NOTE: This test performs one bulk transfer of assets at the beginning to battle test
     //       accounting under that scenario.
     function test_returnFunds_twoIlks_twoAssets_outOfOrder_over_under_under_under() external {
-        bytes32 ilk1 = "ilk1";
-        bytes32 ilk2 = "ilk2";
-
-        address broker1 = makeAddr("broker1");
-        address broker2 = makeAddr("broker2");
-
-        address operator1 = makeAddr("operator1");
-        address operator2 = makeAddr("operator2");
-
-        _setupOperatorRole(ilk1, operator1);
-        _setupOperatorRole(ilk2, operator2);
-
-        registry.file(ilk1, "buffer", operator1);
-        registry.file(ilk2, "buffer", operator2);
-
-        MockERC20 asset1 = new MockERC20("asset1", "asset1", 18);
-        MockERC20 asset2 = new MockERC20("asset2", "asset2", 18);
-
-        conduit.setBroker(broker1, address(asset1), true);
-        conduit.setBroker(broker2, address(asset2), true);
-
-        asset1.mint(operator1, 40);
-        asset1.mint(operator2, 60);
-        asset2.mint(operator1, 100);
-        asset2.mint(operator2, 300);
+        asset1.mint(buffer1, 40);
+        asset1.mint(buffer2, 60);
+        asset2.mint(buffer1, 100);
+        asset2.mint(buffer2, 300);
 
         vm.startPrank(operator1);
-
-        asset1.approve(address(conduit), 40);
-        asset2.approve(address(conduit), 100);
 
         conduit.deposit(ilk1, address(asset1), 40);
         conduit.deposit(ilk1, address(asset2), 100);
@@ -486,9 +402,6 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         vm.stopPrank();
 
         vm.startPrank(operator2);
-
-        asset1.approve(address(conduit), 60);
-        asset2.approve(address(conduit), 300);
 
         conduit.deposit(ilk2, address(asset1), 60);
         conduit.deposit(ilk2, address(asset2), 300);
@@ -580,8 +493,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(conduit.availableFunds(address(asset1)), 100);
         assertEq(conduit.availableFunds(address(asset2)), 400);
 
-        _assertInvariants(ilk1, ilk2, address(asset1));
-        _assertInvariants(ilk1, ilk2, address(asset2));
+        _assertInvariants();
 
         /**************************************************************************/
         /*** Return funds for FundRequest 2 BEFORE FundRequest 0 (Over request) ***/
@@ -628,8 +540,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(conduit.availableFunds(address(asset1)), 30);
         assertEq(conduit.availableFunds(address(asset2)), 400);
 
-        _assertInvariants(ilk1, ilk2, address(asset1));
-        _assertInvariants(ilk1, ilk2, address(asset2));
+        _assertInvariants();
 
         /***************************************************************************/
         /*** Return funds for FundRequest 3 BEFORE FundRequest 2 (Under request) ***/
@@ -676,8 +587,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(conduit.availableFunds(address(asset1)), 30);
         assertEq(conduit.availableFunds(address(asset2)), 250);
 
-        _assertInvariants(ilk1, ilk2, address(asset1));
-        _assertInvariants(ilk1, ilk2, address(asset2));
+        _assertInvariants();
 
         /******************************************************/
         /*** Return funds for FundRequest 0 (Under request) ***/
@@ -712,8 +622,7 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(conduit.totalWithdrawableFunds(address(asset1)), 100);
         assertEq(conduit.totalWithdrawableFunds(address(asset2)), 150);
 
-        _assertInvariants(ilk1, ilk2, address(asset1));
-        _assertInvariants(ilk1, ilk2, address(asset2));
+        _assertInvariants();
 
         assertEq(conduit.availableFunds(address(asset1)), 0);
         assertEq(conduit.availableFunds(address(asset2)), 250);
@@ -754,18 +663,16 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
         assertEq(conduit.availableFunds(address(asset1)), 0);
         assertEq(conduit.availableFunds(address(asset2)), 190);
 
-        _assertInvariants(ilk1, ilk2, address(asset1));
-        _assertInvariants(ilk1, ilk2, address(asset2));
+        _assertInvariants();
     }
 
     function test_returnFundsWithoutDrawing() external {
-        asset.mint(operator, 100);
+        asset1.mint(buffer1, 100);
 
-        vm.startPrank(operator);
+        vm.startPrank(operator1);
 
-        asset.approve(address(conduit), 100);
-        conduit.deposit(ilk, address(asset), 100);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        conduit.deposit(ilk1, address(asset1), 100);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
         vm.stopPrank();
 
@@ -773,23 +680,23 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.PENDING);
 
-        assertEq(fundRequest.asset,           address(asset));
-        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.asset,           address(asset1));
+        assertEq(fundRequest.ilk,             ilk1);
         assertEq(fundRequest.amountRequested, 100);
         assertEq(fundRequest.amountFilled,    0);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(asset.balanceOf(address(conduit)), 100);
+        assertEq(asset1.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 100);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 100);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 100);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  100);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 0);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  0);
 
-        assertEq(conduit.availableFunds(address(asset)), 100);
+        assertEq(conduit.availableFunds(address(asset1)), 100);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
 
         vm.prank(arranger);
         conduit.returnFunds(0, 100);
@@ -798,23 +705,23 @@ contract ArrangerConduit_ReturnFundsTests is ConduitAssetTestBase {
 
         assertTrue(fundRequest.status == IArrangerConduit.StatusEnum.COMPLETED);
 
-        assertEq(fundRequest.asset,           address(asset));
-        assertEq(fundRequest.ilk,             ilk);
+        assertEq(fundRequest.asset,           address(asset1));
+        assertEq(fundRequest.ilk,             ilk1);
         assertEq(fundRequest.amountRequested, 100);
         assertEq(fundRequest.amountFilled,    100);
         assertEq(fundRequest.info,            "info");
 
-        assertEq(asset.balanceOf(address(conduit)), 100);
+        assertEq(asset1.balanceOf(address(conduit)), 100);
 
-        assertEq(conduit.requestedFunds(address(asset), ilk), 0);
-        assertEq(conduit.totalRequestedFunds(address(asset)), 0);
+        assertEq(conduit.requestedFunds(address(asset1), ilk1), 0);
+        assertEq(conduit.totalRequestedFunds(address(asset1)),  0);
 
-        assertEq(conduit.withdrawableFunds(address(asset), ilk), 100);
-        assertEq(conduit.totalWithdrawableFunds(address(asset)), 100);
+        assertEq(conduit.withdrawableFunds(address(asset1), ilk1), 100);
+        assertEq(conduit.totalWithdrawableFunds(address(asset1)),  100);
 
-        assertEq(conduit.availableFunds(address(asset)), 0);
+        assertEq(conduit.availableFunds(address(asset1)), 0);
 
-        _assertInvariants(ilk, address(asset));
+        _assertInvariants();
     }
 
 }
