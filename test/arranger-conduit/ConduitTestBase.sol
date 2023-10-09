@@ -132,7 +132,7 @@ contract ConduitAssetTestBase is ConduitTestBase {
     }
 
     function _setupOperatorRole(bytes32 ilk_, address operator_) internal {
-        // Ensure address(this) can always set for a new ilk1
+        // Ensure address(this) can always set for a new ilk
         roles.setIlkAdmin(ilk_, address(this));
 
         roles.setUserRole(ilk_, operator_, ROLE, true);
