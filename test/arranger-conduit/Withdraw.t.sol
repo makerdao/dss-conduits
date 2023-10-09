@@ -20,26 +20,26 @@ contract ArrangerConduit_WithdrawTests is ConduitAssetTestBase {
     }
 
     function test_withdraw_noBufferRegistered() external {
-        _depositAndDrawFunds(asset, operator, ilk, 100);
+        _depositAndDrawFunds(100);
 
-        vm.prank(operator);
-        conduit.requestFunds(ilk, address(asset), 100, "info");
+        vm.prank(operator1);
+        conduit.requestFunds(ilk1, address(asset1), 100, "info");
 
-        asset.mint(address(conduit), 100);
+        asset1.mint(address(conduit), 100);
 
         vm.prank(arranger);
         conduit.returnFunds(0, 100);
 
-        registry.file(ilk, "buffer", address(0));
+        registry.file(ilk1, "buffer", address(0));
 
-        vm.prank(operator);
+        vm.prank(operator1);
         vm.expectRevert("ArrangerConduit/no-buffer-registered");
-        conduit.withdraw(ilk, address(asset), 100);
+        conduit.withdraw(ilk1, address(asset1), 100);
 
-        registry.file(ilk, "buffer", operator);
+        registry.file(ilk1, "buffer", operator1);
 
-        vm.prank(operator);
-        conduit.withdraw(ilk, address(asset), 100);
+        vm.prank(operator1);
+        conduit.withdraw(ilk1, address(asset1), 100);
     }
 
     function test_withdraw_moreThanWithdrawable() external {
