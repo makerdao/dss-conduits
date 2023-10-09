@@ -61,6 +61,7 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
         require(msg.sender == arranger, "ArrangerConduit/not-arranger");
         _;
     }
+
     /**********************************************************************************************/
     /*** Administrative Functions                                                               ***/
     /**********************************************************************************************/

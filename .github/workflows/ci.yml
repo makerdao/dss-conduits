@@ -35,6 +35,17 @@ jobs:
       - name: Run tests
         run: FOUNDRY_PROFILE=ci forge test
 
+  test-unbounded-invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run tests
+        run: FOUNDRY_PROFILE=unbounded-ci forge test --mt invariant
+
   coverage:
     runs-on: ubuntu-latest
     steps:
