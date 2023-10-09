@@ -88,6 +88,8 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
 
         address source = RegistryLike(registry).buffers(ilk);
 
+        require(source != address(0), "ArrangerConduit/no-buffer-registered");
+
         IERC20Like(asset).transferFrom(source, address(this), amount);
 
         emit Deposit(ilk, asset, source, amount);
@@ -107,6 +109,8 @@ contract ArrangerConduit is UpgradeableProxied, IArrangerConduit {
         totalWithdrawals[asset] += amount;
 
         address destination = RegistryLike(registry).buffers(ilk);
+
+        require(destination != address(0), "ArrangerConduit/no-buffer-registered");
 
         IERC20Like(asset).transfer(destination, amount);
 
