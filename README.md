@@ -11,6 +11,8 @@
 
 The Conduit is a smart contract that facilitates the deployment of funds to yield bearing strategies as part of the DSS Allocator System. The Conduit has a standard interface, defined in the `dss-allocator` repo [here](https://github.com/makerdao/dss-allocator/blob/dev/src/interfaces/IAllocatorConduit.sol). There are intended to be many Conduit implementations, each with a different use case. All Conduits can be found in the `src` directory.
 
+For technical documentation and further information on specific Conduits, please see the [wiki](https://github.com/makerdao/dss-conduits/wiki/Arranger-Conduit).
+
 ## Upgradeability
 
 Since Conduits will likely require maintenance as their desired usage evolves, they will be upgradeable contracts, using [`upgradeable-proxy`](https://github.com/marsfoundation/upgradeable-proxy) for upgradeable logic. This is a non-transparent proxy contract that gives upgrade rights to the PauseProxy.
