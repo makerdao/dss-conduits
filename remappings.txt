@@ -1,0 +1,2 @@
+dss-allocator/=lib/dss-allocator/src/
+upgradeable-proxy/=lib/upgradeable-proxy/src/

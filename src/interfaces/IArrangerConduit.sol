@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-import { IAllocatorConduit } from "lib/dss-allocator/src/IAllocatorConduit.sol";
+import { IAllocatorConduit } from "dss-allocator/IAllocatorConduit.sol";
 
 /**
  *  @title IArrangerConduit

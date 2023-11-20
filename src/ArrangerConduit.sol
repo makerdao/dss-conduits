@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.13;
 
-//import { UpgradeableProxied } from "upgradeable-proxy/UpgradeableProxied.sol";
-import { UpgradeableProxied } from "lib/upgradeable-proxy/src/UpgradeableProxied.sol"; // TODO: get it to work with the original code
+import { UpgradeableProxied } from "upgradeable-proxy/UpgradeableProxied.sol";
 
 import { IArrangerConduit } from "./interfaces/IArrangerConduit.sol";
 
