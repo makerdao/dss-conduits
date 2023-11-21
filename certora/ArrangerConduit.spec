@@ -29,7 +29,6 @@ methods {
     function maxWithdraw(bytes32, address) external returns (uint256) envfree;
     function getFundRequestsLength() external returns (uint256) envfree;
      
-
     function gem.balanceOf(address) external returns (uint256) envfree;
     function gem.allowance(address, address) external returns (uint256) envfree;  
 
@@ -143,7 +142,6 @@ rule storageAffected(method f) {
 
     assert withdrawalsAfter != withdrawalsBefore => f.selector == sig:withdraw(bytes32, address, uint256).selector, "withdrawals changed in an unexpected function";
 }
-
 
 // Verify correct storage changes for non reverting file
 rule file_address(bytes32 what, address data) {
@@ -415,7 +413,6 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
         "other request params not as before";
 }
 
-// TODO: keep investigating why this is failing
 // Verify revert rules on requestFunds
 rule requestFunds_revert(bytes32 ilk, address asset, uint256 amount, string info) {
     env e;
@@ -427,13 +424,7 @@ rule requestFunds_revert(bytes32 ilk, address asset, uint256 amount, string info
     mathint totalRequestedFunds = totalRequestedFunds(asset);
     mathint numRequests = getFundRequestsLength();
 
-    // TODO: remove these once this rule failure is clear
-    require numRequests < 100;
-    require requestedFunds == 0;
-    require totalRequestedFunds == 0;
-    require amount < 1000;
-    require info.length == 22;
- 
+    clearStorage(e); 
     requestFunds@withrevert(e, ilk, asset, amount, info);
 
     bool revert1 = e.msg.value > 0;
@@ -488,7 +479,7 @@ rule cancelFundRequest(uint256 fundRequestId) {
         "request params not as before";
 }
 
-// TODO: keep investigating why this is failing
+// TODO: figure out why this is still not working
 // Verify revert rules on cancelFundRequest
 rule cancelFundRequest_revert(uint256 fundRequestId) {
     env e;
@@ -506,15 +497,7 @@ rule cancelFundRequest_revert(uint256 fundRequestId) {
     mathint amountRequested = fundRequestAmountRequested(fundRequestId);
     mathint status = fundRequestStatus(fundRequestId);
 
-    //mathint numRequests = getFundRequestsLength();
-
-    // TODO: remove these once this rule failure is clear
-    //require numRequests < 100;
-    //require requestedFunds == 0;
-    //require totalRequestedFunds == 0;
-    //require amount < 1000;
-    //require info.length == 22;
- 
+    clearStorage(e); 
     cancelFundRequest@withrevert(e, fundRequestId);
 
     bool revert1 = e.msg.value > 0;
@@ -628,7 +611,42 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
         "request params not as before";
 }
 
-// TODO: returnFunds_revert
+// Verify revert rules on returnFunds
+rule returnFunds_revert(uint256 fundRequestId, uint256 returnAmount) {
+    env e;
+
+    address arranger = arranger();
+    address asset = fundRequestAsset(fundRequestId);
+    bytes32 ilk = fundRequestIlk(fundRequestId);
+    mathint amountRequested = fundRequestAmountRequested(fundRequestId);
+   
+    mathint status = fundRequestStatus(fundRequestId);
+    mathint balanceOfConduit = gem.balanceOf(currentContract);
+
+    mathint withdrawableFunds = withdrawableFunds(asset, ilk);
+    mathint totalWithdrawableFunds = totalWithdrawableFunds(asset);
+
+    mathint requestedFunds = requestedFunds(asset, ilk);
+    mathint totalRequestedFunds = totalRequestedFunds(asset);
+
+    clearStorage(e); 
+    returnFunds@withrevert(e, fundRequestId, returnAmount);
+
+    bool revert1 = e.msg.value > 0;
+    bool revert2 = arranger != e.msg.sender;
+    bool revert3 = status != 1;
+    bool revert4 = balanceOfConduit - totalWithdrawableFunds < to_mathint(returnAmount);
+    bool revert5 = totalWithdrawableFunds > balanceOfConduit;
+    bool revert6 = withdrawableFunds + to_mathint(returnAmount) > max_uint256;
+    bool revert7 = totalWithdrawableFunds + to_mathint(returnAmount) > max_uint256;
+    bool revert8 = requestedFunds < amountRequested;
+    bool revert9 = totalRequestedFunds < amountRequested;
+
+    assert lastReverted <=> revert1 || revert2 || revert3 ||
+                            revert4 || revert5 || revert6 ||
+                            revert7 || revert8 || revert9,
+                            "Revert rules failed";
+}
 
 // Verify variables change together
 rule changeTogether(method f) {
@@ -677,10 +695,10 @@ rule statusChanges(method f) {
     mathint statusAfter = fundRequestStatus(anyIndex);
     bool statusChanged = statusBefore != statusAfter;
 
-    assert statusBefore == 0 => !statusChanged || statusAfter == 1; // UNINITIALIZED to PENDING
-    assert statusBefore == 1 => !statusChanged || statusAfter == 2 || statusAfter == 3; // PENDING to CANCELLED or COMPLETED
-    assert statusBefore == 2 => !statusChanged; // CANCELLED can't change 
-    assert statusBefore == 3 => !statusChanged; // COMPLETED can't change
+    assert statusBefore == 0 => !statusChanged || statusAfter == 1, "status changed from UNINITIALIZED to something other than PENDING";
+    assert statusBefore == 1 => !statusChanged || statusAfter == 2 || statusAfter == 3, "status changed from PENDING to something other than CANCELLED or COMPLETED";
+    assert statusBefore == 2 => !statusChanged, "status changed from CANCELLED";
+    assert statusBefore == 3 => !statusChanged, "status changed from COMPLETED";
 }
 
 
