@@ -95,7 +95,7 @@ rule storageAffected(method f) {
     mathint withdrawableFundsAfter = withdrawableFunds(anyAddr, anyIlk);
     mathint withdrawalsAfter = withdrawals(anyAddr, anyIlk);
 
-    assert wardsAfter != wardsBefore => f.selector == sig:UpgradeableProxy.rely(address).selector || f.selector == sig:UpgradeableProxy.deny(address).selector, "wards[x] changed in an unexpected function";
+    assert wardsAfter == wardsBefore, "wards changed unexpectedly through the proxied contract";
 
     assert statusAfter != statusBefore
         || assetAfter != assetBefore
