@@ -21,22 +21,24 @@ methods {
     function totalWithdrawableFunds(address) external returns (uint256) envfree;
     function totalWithdrawals(address) external returns (uint256) envfree;
     function isBroker(address, address) external returns (bool) envfree;
+    function arranger() external returns (address) envfree;
     function deposits(address, bytes32) external returns (uint256) envfree;
     function requestedFunds(address, bytes32) external returns (uint256) envfree;
     function withdrawableFunds(address, bytes32) external returns (uint256) envfree;
     function withdrawals(address, bytes32) external returns (uint256) envfree;
     function maxWithdraw(bytes32, address) external returns (uint256) envfree;
     function getFundRequestsLength() external returns (uint256) envfree;
-    
+     
+
     function gem.balanceOf(address) external returns (uint256) envfree;
     function gem.allowance(address, address) external returns (uint256) envfree;  
 
+    function _.balanceOf(address) external => DISPATCHER(true) UNRESOLVED; // this is needed for drawFunds_revert (for the contract logic)
     function _.transfer(address, uint256) external => DISPATCHER(true) UNRESOLVED;
     function _.transferFrom(address, address, uint256) external => DISPATCHER(true) UNRESOLVED;    
 
     function registry.buffers(bytes32) external returns (address) envfree;
     function roles.canCall(bytes32, address, address, bytes4) external returns (bool) envfree;
-
 }
 
 definition min(mathint x, mathint y) returns mathint = x < y ? x : y;
@@ -525,6 +527,58 @@ rule cancelFundRequest_revert(uint256 fundRequestId) {
                             revert4 || revert5, "Revert rules failed";
 
 }
+
+// Verify correct storage changes for non reverting requestFunds
+rule drawFunds(address asset, address destination, uint256 amount) {
+    env e;
+
+    require asset == gem;
+    require currentContract != destination;
+    
+    mathint balanceOfConduitBefore = gem.balanceOf(currentContract);
+    mathint balanceOfDestinationBefore = gem.balanceOf(destination);
+
+    require balanceOfConduitBefore + balanceOfDestinationBefore <= max_uint256;
+
+    drawFunds(e, asset, destination, amount);
+
+    mathint balanceOfConduitAfter = gem.balanceOf(currentContract);
+    mathint balanceOfDestinationAfter = gem.balanceOf(destination);
+
+    assert balanceOfConduitAfter == balanceOfConduitBefore - amount, "balance of conduit did not decrease by amount";
+    assert balanceOfDestinationAfter == balanceOfDestinationBefore + amount, "balance of destination did not increase by amount";
+}
+
+// Verify revert rules on drawFunds
+rule drawFunds_revert(address asset, address destination, uint256 amount) {
+    env e;
+
+    require asset == gem;
+    require currentContract != destination;
+    
+    mathint balanceOfConduit = gem.balanceOf(currentContract);
+    mathint totalWithdrawableFunds = totalWithdrawableFunds(asset);
+    
+    bool isBroker = isBroker(destination, asset);
+    address arranger = arranger();
+
+    drawFunds@withrevert(e, asset, destination, amount);
+
+    bool revert1 = e.msg.value > 0;
+    bool revert2 = !isBroker;
+    bool revert3 = arranger != e.msg.sender;
+    bool revert4 = totalWithdrawableFunds > balanceOfConduit;
+    bool revert5 = to_mathint(amount) > balanceOfConduit - totalWithdrawableFunds;
+    bool revert6 = balanceOfConduit < to_mathint(amount);
+
+    assert lastReverted <=> revert1 || revert2 || revert3 ||
+                            revert4 || revert5 || revert6
+                            , "Revert rules failed";
+
+}
+
+// rule returnFunds(uint256 fundRequestId, uint256 returnAmount)
+
 
 
 
