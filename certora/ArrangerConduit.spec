@@ -443,6 +443,7 @@ rule requestFunds_revert(bytes32 ilk, address asset, uint256 amount, string info
                             revert4, "Revert rules failed";
 } 
 
+// Verify correct storage changes for non reverting requestFunds
 rule cancelFundRequest(uint256 fundRequestId) {
     env e;
 
@@ -483,6 +484,46 @@ rule cancelFundRequest(uint256 fundRequestId) {
         && amountFilledAfter == amountFilledBefore
         && infoHashAfter == infoHashBefore,
         "request params not as before";
+}
+
+// TODO: keep investigating why this is failing
+// Verify revert rules on cancelFundRequest
+rule cancelFundRequest_revert(uint256 fundRequestId) {
+    env e;
+
+    address asset = fundRequestAsset(fundRequestId);
+    bytes32 ilk = fundRequestIlk(fundRequestId);
+    
+    require asset == gem;
+
+    requestedFunds(asset, ilk);
+
+    bool canCall = roles.canCall(ilk, e.msg.sender, currentContract, to_bytes4(0x933d9476)); // cancelFundRequest(uint256)
+    mathint requestedFunds = requestedFunds(asset, ilk);
+    mathint totalRequestedFunds = totalRequestedFunds(asset);
+    mathint amountRequested = fundRequestAmountRequested(fundRequestId);
+    mathint status = fundRequestStatus(fundRequestId);
+
+    //mathint numRequests = getFundRequestsLength();
+
+    // TODO: remove these once this rule failure is clear
+    //require numRequests < 100;
+    //require requestedFunds == 0;
+    //require totalRequestedFunds == 0;
+    //require amount < 1000;
+    //require info.length == 22;
+ 
+    cancelFundRequest@withrevert(e, fundRequestId);
+
+    bool revert1 = e.msg.value > 0;
+    bool revert2 = !canCall;
+    bool revert3 = requestedFunds < amountRequested;
+    bool revert4 = totalRequestedFunds < amountRequested;
+    bool revert5 = status != 1; // PENDING
+
+    assert lastReverted <=> revert1 || revert2 || revert3 ||
+                            revert4 || revert5, "Revert rules failed";
+
 }
 
 
