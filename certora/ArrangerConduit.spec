@@ -476,7 +476,7 @@ rule cancelFundRequest(uint256 fundRequestId) {
     bytes32 infoHashAfter = fundRequestInfoHash(anyIndex);
 
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
-    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - amountRequestedBefore, "requestedFunds did not decrease by amount";
+    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - amountRequestedBefore, "cancelFundRequest did not decrease by amount";
     assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - amountRequestedBefore, "totalRequestedFunds did not decrease by amount";
     assert anyIndex == fundRequestId => statusAfter == 2, "cancelFundRequest did not change status to cancelled";
     assert anyIndex != fundRequestId => statusAfter == statusBefore, "cancelFundRequest on another index changed status";
@@ -577,7 +577,116 @@ rule drawFunds_revert(address asset, address destination, uint256 amount) {
 
 }
 
-// rule returnFunds(uint256 fundRequestId, uint256 returnAmount)
+// Verify correct storage changes for non reverting returnFunds
+rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
+    env e;
+
+    uint256 anyIndex;
+
+    mathint statusBefore = fundRequestStatus(anyIndex);
+    address assetBefore = fundRequestAsset(anyIndex);
+    bytes32 ilkBefore = fundRequestIlk(anyIndex);
+    mathint amountRequestedBefore = fundRequestAmountRequested(anyIndex);
+    mathint amountFilledBefore = fundRequestAmountFilled(anyIndex);
+    bytes32 infoHashBefore = fundRequestInfoHash(anyIndex);
+
+    mathint requestedFundsBefore = requestedFunds(assetBefore, ilkBefore);
+    mathint totalRequestedFundsBefore = totalRequestedFunds(assetBefore);
+    mathint withdrawableFundsBefore = withdrawableFunds(assetBefore, ilkBefore);
+    mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(assetBefore);
+
+    mathint numRequestsBefore = getFundRequestsLength();
+
+    returnFunds(e, fundRequestId, returnAmount);
+
+    mathint requestedFundsAfter = requestedFunds(assetBefore, ilkBefore);
+    mathint totalRequestedFundsAfter= totalRequestedFunds(assetBefore);
+    mathint numRequestsAfter = getFundRequestsLength();
+
+    mathint statusAfter= fundRequestStatus(anyIndex);
+    address assetAfter = fundRequestAsset(anyIndex);
+    bytes32 ilkAfter = fundRequestIlk(anyIndex);
+    mathint amountRequestedAfter = fundRequestAmountRequested(anyIndex);
+    mathint amountFilledAfter = fundRequestAmountFilled(anyIndex);
+    bytes32 infoHashAfter = fundRequestInfoHash(anyIndex);
+    mathint withdrawableFundsAfter = withdrawableFunds(assetBefore, ilkBefore);
+    mathint totalWithdrawableFundsAfter = totalWithdrawableFunds(assetBefore);
+
+    assert numRequestsAfter == numRequestsBefore, "num requests changed";
+    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - amountRequestedBefore, "returnFunds did not decrease by amount";
+    assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - amountRequestedBefore, "totalRequestedFunds did not decrease by amount";
+    assert anyIndex == fundRequestId => withdrawableFundsAfter == withdrawableFundsBefore + returnAmount, "withdrawableFunds did not increase by returnAmount";
+    assert anyIndex == fundRequestId => totalWithdrawableFundsAfter == totalWithdrawableFundsBefore + returnAmount, "totalWithdrawableFunds did not increase by returnAmount";
+    assert anyIndex == fundRequestId => statusAfter == 3, "returnFunds did not change status to completed";
+    assert anyIndex != fundRequestId => statusAfter == statusBefore, "returnFunds on another index changed status";
+    assert anyIndex == fundRequestId => amountFilledAfter == to_mathint(returnAmount), "returnFunds did not change amountFilled to returnAmount";    
+    assert anyIndex != fundRequestId => amountFilledAfter == amountFilledBefore, "returnFunds on another index changed amountFilled";        
+    assert assetAfter == assetBefore
+        && ilkAfter == ilkBefore
+        && amountRequestedAfter == amountRequestedBefore
+        && infoHashAfter == infoHashBefore,
+        "request params not as before";
+}
+
+// TODO: returnFunds_revert
+
+// Verify variables change together
+rule changeTogether(method f) {
+    env e;
+
+    bytes32 anyIlk;
+    address anyAsset;
+
+    mathint depositsBefore = deposits(anyAsset, anyIlk);
+    mathint requestedFundsBefore = requestedFunds(anyAsset, anyIlk);
+    mathint withdrawableFundsBefore = withdrawableFunds(anyAsset, anyIlk);
+    mathint withdrawalsBefore = withdrawals(anyAsset, anyIlk);
+    mathint totalDepositsBefore = totalDeposits(anyAsset);
+    mathint totalRequestedFundsBefore = totalRequestedFunds(anyAsset);
+    mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(anyAsset);
+    mathint totalWithdrawalsBefore = totalWithdrawals(anyAsset);
+
+    calldataarg args;
+    f(e, args);
+
+    mathint depositsDiff = deposits(anyAsset, anyIlk) - depositsBefore;
+    mathint requestedFundsDiff = requestedFunds(anyAsset, anyIlk) - requestedFundsBefore;
+    mathint withdrawableFundsDiff = withdrawableFunds(anyAsset, anyIlk) - withdrawableFundsBefore;
+    mathint withdrawalsDiff = withdrawals(anyAsset, anyIlk) - withdrawalsBefore;
+    mathint totalDepositsDiff = totalDeposits(anyAsset) - totalDepositsBefore;
+    mathint totalRequestedFundsDiff= totalRequestedFunds(anyAsset) - totalRequestedFundsBefore;
+    mathint totalWithdrawableFundsDiff = totalWithdrawableFunds(anyAsset) - totalWithdrawableFundsBefore;
+    mathint totalWithdrawalsDiff = totalWithdrawals(anyAsset) - totalWithdrawalsBefore;
+
+    assert depositsDiff != 0 => depositsDiff == totalDepositsDiff, "deposits and totalDeposit diff differed";
+    assert requestedFundsDiff != 0 => requestedFundsDiff == totalRequestedFundsDiff, "requestedFunds and totaRequestedFundsdiff differed";
+    assert withdrawableFundsDiff != 0 => withdrawableFundsDiff == totalWithdrawableFundsDiff, "withdrawableFunds and totalWithdrawableFunds diff differed";
+    assert withdrawalsDiff != 0 => withdrawalsDiff == totalWithdrawalsDiff, "withdrawals and totalWithdrawals diff differed";
+}
+
+// Verify request status change as allowed 
+rule statusChanges(method f) {
+    env e;
+    uint256 anyIndex;
+
+    mathint statusBefore = fundRequestStatus(anyIndex);
+
+    calldataarg args;
+    f(e, args);
+
+    mathint statusAfter = fundRequestStatus(anyIndex);
+    bool statusChanged = statusBefore != statusAfter;
+
+    assert statusBefore == 0 => !statusChanged || statusAfter == 1; // UNINITIALIZED to PENDING
+    assert statusBefore == 1 => !statusChanged || statusAfter == 2 || statusAfter == 3; // PENDING to CANCELLED or COMPLETED
+    assert statusBefore == 2 => !statusChanged; // CANCELLED can't change 
+    assert statusBefore == 3 => !statusChanged; // COMPLETED can't change
+}
+
+
+
+
+
 
 
 
