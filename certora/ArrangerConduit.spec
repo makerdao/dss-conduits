@@ -64,15 +64,9 @@ definition min(mathint x, mathint y) returns mathint = x < y ? x : y;
  * - the first 32-bytes are even and the value of the last byte >= 64, or
  * - the first 32-bytes are odd but as an integer they are less than 65.
  *
- * The solution is to have a ghost variable, that checks the encoding is legal.
+ * One solution is to require that there are no illegal strings in storage, using
+ * a hook.
  */
-
-/** 
- * Ghost variable indicating that the string is legally encoded. Note that if the string
- * is not legally encoded, then the Solidity would revert, and the ghost would
- * revert as well. So we must set it as false beforehand.
- */
-ghost bool legalStr;
 
 
 /** This hook is called whenever the `info` field of a `FundRequest` in `fundRequests`
@@ -97,7 +91,7 @@ hook Sload bytes32 str fundRequests[INDEX uint256 index].(offset 128) STORAGE {
     require to_bytes32(read) == str;
     mathint strLen = (read % 256) / 2;  // The string length for short strings only
     bool isOdd = read % 2 == 1;
-    legalStr = (read > 64 && isOdd) || (strLen <= 31 && !isOdd);
+    require (read > 64 && isOdd) || (strLen <= 31 && !isOdd);
 }
 
 // -----------------------------------------------------------------------------
@@ -482,18 +476,15 @@ rule requestFunds_revert(bytes32 ilk, address asset, uint256 amount, string info
     mathint totalRequestedFunds = totalRequestedFunds(asset);
     mathint numRequests = getFundRequestsLength();
 
-    legalStr = false;
-
     requestFunds@withrevert(e, ilk, asset, amount, info);
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = !canCall;
     bool revert3 = requestedFunds + amount > max_uint256;
     bool revert4 = totalRequestedFunds + amount > max_uint256;
-    bool revert5 = !legalStr;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
-                            revert4 || revert5, "Revert rules failed";
+                            revert4, "Revert rules failed";
 } 
 
 // Verify correct storage changes for non reverting requestFunds
@@ -555,8 +546,6 @@ rule cancelFundRequest_revert(uint256 fundRequestId) {
     mathint amountRequested = fundRequestAmountRequested(fundRequestId);
     mathint status = fundRequestStatus(fundRequestId);
 
-    legalStr = false;
-
     cancelFundRequest@withrevert(e, fundRequestId);
 
     bool revert1 = e.msg.value > 0;
@@ -564,11 +553,9 @@ rule cancelFundRequest_revert(uint256 fundRequestId) {
     bool revert3 = requestedFunds < amountRequested;
     bool revert4 = totalRequestedFunds < amountRequested;
     bool revert5 = status != 1; // PENDING
-    bool revert6 = !legalStr;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
-                            revert4 || revert5 || revert6,
-                            "Revert rules failed";
+                            revert4 || revert5, "Revert rules failed";
 
 }
 
@@ -697,7 +684,6 @@ rule returnFunds_revert(uint256 fundRequestId, uint256 returnAmount) {
     bool revert7 = totalWithdrawableFunds + to_mathint(returnAmount) > max_uint256;
     bool revert8 = requestedFunds < amountRequested;
     bool revert9 = totalRequestedFunds < amountRequested;
-    bool revert10 = !legalStr;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
                             revert4 || revert5 || revert6 ||
