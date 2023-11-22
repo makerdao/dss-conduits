@@ -28,16 +28,17 @@ methods {
     function withdrawals(address, bytes32) external returns (uint256) envfree;
     function maxWithdraw(bytes32, address) external returns (uint256) envfree;
     function getFundRequestsLength() external returns (uint256) envfree;
-     
+ 
+    // needed for resolving calls in the spec
     function gem.balanceOf(address) external returns (uint256) envfree;
     function gem.allowance(address, address) external returns (uint256) envfree;  
-
-    function _.balanceOf(address) external => DISPATCHER(true) UNRESOLVED; // this is needed for drawFunds_revert (for the contract logic)
-    function _.transfer(address, uint256) external => DISPATCHER(true) UNRESOLVED;
-    function _.transferFrom(address, address, uint256) external => DISPATCHER(true) UNRESOLVED;    
-
     function registry.buffers(bytes32) external returns (address) envfree;
     function roles.canCall(bytes32, address, address, bytes4) external returns (bool) envfree;
+
+    // needed for resolving calls in the contract
+    function _.balanceOf(address) external => DISPATCHER(true) UNRESOLVED;
+    function _.transfer(address, uint256) external => DISPATCHER(true) UNRESOLVED;
+    function _.transferFrom(address, address, uint256) external => DISPATCHER(true) UNRESOLVED;    
 }
 
 definition min(mathint x, mathint y) returns mathint = x < y ? x : y;
@@ -104,7 +105,6 @@ rule storageAffected(method f) {
         || infoHashAfter != infoHashBefore
         => f.selector == sig:requestFunds(bytes32, address, uint256, string).selector
         || f.selector == sig:cancelFundRequest(uint256).selector
-        || f.selector == sig:cancelFundRequest(uint256).selector
         || f.selector == sig:returnFunds(uint256, uint256).selector
         , "fundRequests list content changed in an unexpected function";
 
@@ -115,7 +115,6 @@ rule storageAffected(method f) {
 
     assert totalRequestedFundsAfter != totalRequestedFundsBefore =>
         f.selector == sig:requestFunds(bytes32, address, uint256, string).selector
-        || f.selector == sig:cancelFundRequest(uint256).selector
         || f.selector == sig:cancelFundRequest(uint256).selector
         || f.selector == sig:returnFunds(uint256, uint256).selector
         , "totalRequestedFunds changed in an unexpected function";
@@ -128,9 +127,9 @@ rule storageAffected(method f) {
     assert totalWithdrawalsAfter != totalWithdrawalsBefore => f.selector == sig:withdraw(bytes32, address, uint256).selector, "totalWithdrawals changed in an unexpected function";
     assert isBrokerAfter != isBrokerBefore => f.selector == sig:setBroker(address, address, bool).selector, "isBroker changed in an unexpected function";
     assert depositsAfter != depositsBefore => f.selector == sig:deposit(bytes32, address, uint256).selector, "deposits changed in an unexpected function";
+
     assert requestedFundsAfter != requestedFundsBefore =>
         f.selector == sig:requestFunds(bytes32, address, uint256, string).selector
-        || f.selector == sig:cancelFundRequest(uint256).selector
         || f.selector == sig:cancelFundRequest(uint256).selector
         || f.selector == sig:returnFunds(uint256, uint256).selector
         , "requestedFunds changed in an unexpected function";
@@ -209,9 +208,9 @@ rule setBroker(address usr, address asset, bool valid) {
     bool isBrokerOtherUsrAfter = isBroker(otherUsr, asset);
     bool isBrokerOtherAssetAfter = isBroker(usr, otherAsset);
 
-    assert isBrokerUsrAfter == valid, "setBroker did not set broker to usr";
-    assert isBrokerOtherUsrAfter == isBrokerOtherUsrBefore, "setBroker did not keep unchanged the rest of brokers";
-    assert isBrokerOtherAssetAfter == isBrokerOtherAssetBefore, "setBroker did not keep unchanged the rest of assets";
+    assert isBrokerUsrAfter == valid, "setBroker did not set broker to valid";
+    assert isBrokerOtherUsrAfter == isBrokerOtherUsrBefore, "setBroker did not keep unchanged the rest of brokers for the same asset";
+    assert isBrokerOtherAssetAfter == isBrokerOtherAssetBefore, "setBroker did not keep unchanged the rest of brokers for other assets";
 }
 
 // Verify revert rules on setBroker
@@ -241,10 +240,10 @@ rule deposit(bytes32 ilk, address asset, uint256 amount) {
 
     mathint balanceOfBufferBefore = gem.balanceOf(buffer);
     mathint balanceOfConduitBefore = gem.balanceOf(currentContract);
-    require balanceOfBufferBefore + balanceOfConduitBefore <= max_uint256;
-
     mathint depositsBefore = deposits(asset, ilk);
     mathint totalDepositsBefore = totalDeposits(asset);
+
+    require balanceOfBufferBefore + balanceOfConduitBefore <= max_uint256;
 
     deposit(e, ilk, asset, amount);
 
@@ -253,8 +252,8 @@ rule deposit(bytes32 ilk, address asset, uint256 amount) {
     mathint depositsAfter = deposits(asset, ilk);
     mathint totalDepositsAfter = totalDeposits(asset);
 
-    assert balanceOfBufferAfter == balanceOfBufferBefore - amount, "deposit did not decrease balanceOf(buffer) by amount";
-    assert balanceOfConduitAfter == balanceOfConduitBefore + amount, "deposit did not increase balanceOf(conduit) by amount";
+    assert balanceOfBufferAfter == balanceOfBufferBefore - amount, "deposit did not decrease balance of buffer by amount";
+    assert balanceOfConduitAfter == balanceOfConduitBefore + amount, "deposit did not increase balance of conduit by amount";
     assert depositsAfter == depositsBefore + amount, "deposit did not increase deposits by amount";
     assert totalDepositsAfter == totalDepositsBefore + amount, "deposit did not increase totalDeposits by amount";
 }
@@ -270,7 +269,7 @@ rule deposit_revert(bytes32 ilk, address asset, uint256 amount) {
 
     bool canCall = roles.canCall(ilk, e.msg.sender, currentContract, to_bytes4(0xd954863c)); // deposit(bytes32,address,uint256)
     mathint balanceOfBuffer = gem.balanceOf(buffer);
-    mathint allowanceBuffer = gem.allowance(e, buffer, currentContract);
+    mathint allowanceBuffer = gem.allowance(buffer, currentContract);
     mathint deposits = deposits(asset, ilk);
     mathint totalDeposits= totalDeposits(asset);
 
@@ -301,11 +300,12 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
 
     mathint balanceOfBufferBefore = gem.balanceOf(buffer);
     mathint balanceOfConduitBefore = gem.balanceOf(currentContract);
-    require balanceOfBufferBefore + balanceOfConduitBefore <= max_uint256;
     mathint withdrawableFundsBefore = withdrawableFunds(asset, ilk);
     mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(asset);
     mathint withdrawalsBefore = withdrawals(asset, ilk);
     mathint totalWithdrawalsBefore = totalWithdrawals(asset);
+
+    require balanceOfBufferBefore + balanceOfConduitBefore <= max_uint256;
 
     mathint amount = min(maxAmount, maxWithdraw(ilk, asset)); 
     withdraw(e, ilk, asset, maxAmount);
@@ -336,7 +336,6 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
 
     bool canCall = roles.canCall(ilk, e.msg.sender, currentContract, to_bytes4(0xa6fb97d1)); // withdraw(bytes32,address,uint256)
     mathint balanceOfConduit = gem.balanceOf(currentContract);
-
     mathint withdrawals = withdrawals(asset, ilk);
     mathint totalWithdrawals = totalWithdrawals(asset);
     mathint withdrawableFunds = withdrawableFunds(asset, ilk);
@@ -401,7 +400,7 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
         && amountRequestedAfter == to_mathint(amount)
         && amountFilledAfter == 0
         && infoHashAfter == hash(info),
-        "request params not as expected";
+        "the new request params are not as expected";
 
     assert numRequestsBefore != to_mathint(anyIndex) =>
         statusAfter == statusBefore
@@ -410,7 +409,7 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
         && amountRequestedAfter == amountRequestedBefore
         && amountFilledAfter == amountFilledBefore
         && infoHashAfter == infoHashBefore,
-        "other request params not as before";
+        "other request params are not as before";
 }
 
 // Verify revert rules on requestFunds
@@ -469,14 +468,14 @@ rule cancelFundRequest(uint256 fundRequestId) {
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
     assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - amountRequestedBefore, "cancelFundRequest did not decrease by amount";
     assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - amountRequestedBefore, "totalRequestedFunds did not decrease by amount";
-    assert anyIndex == fundRequestId => statusAfter == 2, "cancelFundRequest did not change status to cancelled";
+    assert anyIndex == fundRequestId => statusAfter == 2, "cancelFundRequest did not change status to CANCELLED";
     assert anyIndex != fundRequestId => statusAfter == statusBefore, "cancelFundRequest on another index changed status";
     assert assetAfter == assetBefore
         && ilkAfter == ilkBefore
         && amountRequestedAfter == amountRequestedBefore
         && amountFilledAfter == amountFilledBefore
         && infoHashAfter == infoHashBefore,
-        "request params not as before";
+        "other request params not as before";
 }
 
 // TODO: figure out why this is still not working
@@ -488,8 +487,6 @@ rule cancelFundRequest_revert(uint256 fundRequestId) {
     bytes32 ilk = fundRequestIlk(fundRequestId);
     
     require asset == gem;
-
-    requestedFunds(asset, ilk);
 
     bool canCall = roles.canCall(ilk, e.msg.sender, currentContract, to_bytes4(0x933d9476)); // cancelFundRequest(uint256)
     mathint requestedFunds = requestedFunds(asset, ilk);
@@ -577,7 +574,6 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     mathint totalRequestedFundsBefore = totalRequestedFunds(assetBefore);
     mathint withdrawableFundsBefore = withdrawableFunds(assetBefore, ilkBefore);
     mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(assetBefore);
-
     mathint numRequestsBefore = getFundRequestsLength();
 
     returnFunds(e, fundRequestId, returnAmount);
@@ -600,7 +596,7 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - amountRequestedBefore, "totalRequestedFunds did not decrease by amount";
     assert anyIndex == fundRequestId => withdrawableFundsAfter == withdrawableFundsBefore + returnAmount, "withdrawableFunds did not increase by returnAmount";
     assert anyIndex == fundRequestId => totalWithdrawableFundsAfter == totalWithdrawableFundsBefore + returnAmount, "totalWithdrawableFunds did not increase by returnAmount";
-    assert anyIndex == fundRequestId => statusAfter == 3, "returnFunds did not change status to completed";
+    assert anyIndex == fundRequestId => statusAfter == 3, "returnFunds did not change status to COMPLETED";
     assert anyIndex != fundRequestId => statusAfter == statusBefore, "returnFunds on another index changed status";
     assert anyIndex == fundRequestId => amountFilledAfter == to_mathint(returnAmount), "returnFunds did not change amountFilled to returnAmount";    
     assert anyIndex != fundRequestId => amountFilledAfter == amountFilledBefore, "returnFunds on another index changed amountFilled";        
@@ -608,7 +604,7 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
         && ilkAfter == ilkBefore
         && amountRequestedAfter == amountRequestedBefore
         && infoHashAfter == infoHashBefore,
-        "request params not as before";
+        "other request params not as before";
 }
 
 // Verify revert rules on returnFunds
@@ -619,13 +615,10 @@ rule returnFunds_revert(uint256 fundRequestId, uint256 returnAmount) {
     address asset = fundRequestAsset(fundRequestId);
     bytes32 ilk = fundRequestIlk(fundRequestId);
     mathint amountRequested = fundRequestAmountRequested(fundRequestId);
-   
     mathint status = fundRequestStatus(fundRequestId);
     mathint balanceOfConduit = gem.balanceOf(currentContract);
-
     mathint withdrawableFunds = withdrawableFunds(asset, ilk);
     mathint totalWithdrawableFunds = totalWithdrawableFunds(asset);
-
     mathint requestedFunds = requestedFunds(asset, ilk);
     mathint totalRequestedFunds = totalRequestedFunds(asset);
 
@@ -634,7 +627,7 @@ rule returnFunds_revert(uint256 fundRequestId, uint256 returnAmount) {
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = arranger != e.msg.sender;
-    bool revert3 = status != 1;
+    bool revert3 = status != 1; // PENDING
     bool revert4 = balanceOfConduit - totalWithdrawableFunds < to_mathint(returnAmount);
     bool revert5 = totalWithdrawableFunds > balanceOfConduit;
     bool revert6 = withdrawableFunds + to_mathint(returnAmount) > max_uint256;
@@ -693,21 +686,10 @@ rule statusChanges(method f) {
     f(e, args);
 
     mathint statusAfter = fundRequestStatus(anyIndex);
-    bool statusChanged = statusBefore != statusAfter;
+    bool statusSame = statusBefore == statusAfter;
 
-    assert statusBefore == 0 => !statusChanged || statusAfter == 1, "status changed from UNINITIALIZED to something other than PENDING";
-    assert statusBefore == 1 => !statusChanged || statusAfter == 2 || statusAfter == 3, "status changed from PENDING to something other than CANCELLED or COMPLETED";
-    assert statusBefore == 2 => !statusChanged, "status changed from CANCELLED";
-    assert statusBefore == 3 => !statusChanged, "status changed from COMPLETED";
+    assert statusBefore == 0 => statusSame || statusAfter == 1, "status changed from UNINITIALIZED to something other than PENDING";
+    assert statusBefore == 1 => statusSame || statusAfter == 2 || statusAfter == 3, "status changed from PENDING to something other than CANCELLED or COMPLETED";
+    assert statusBefore == 2 => statusSame, "status changed from CANCELLED";
+    assert statusBefore == 3 => statusSame, "status changed from COMPLETED";
 }
-
-
-
-
-
-
-
-
-
-
-
