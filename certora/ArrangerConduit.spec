@@ -43,6 +43,65 @@ methods {
 
 definition min(mathint x, mathint y) returns mathint = x < y ? x : y;
 
+// -----------------------------------------------------------------------------
+/**
+ * Verifying the string encoding
+ * =============================
+ * Whenever Solidity reads a string from storage, it verifies that it is properly
+ * encoded, otherwise it reverts. Note that this occurs also when writing a string
+ * to the storage.
+ * The encoding of a string is as follows:
+ * 1. If the first 32-bytes are even (the very last bit is 0) then:
+ *    - The length of the string is less than 32 bytes
+ *    - The first 31 bytes contain the string
+ *    - The last byte is twice the length of the string
+ * 2. If the first 32-bytes are odd (the very last bit is 1) then:
+ *    - The length of the string is 32 bytes or more
+ *    - The first 32-bytes are twice the length of the string plus 1!
+ *    - The string itself is in the following bytes
+ *
+ * So, an encoding is illegal if either:
+ * - the first 32-bytes are even and the value of the last byte >= 64, or
+ * - the first 32-bytes are odd but as an integer they are less than 65.
+ *
+ * The solution is to have a ghost variable, that checks the encoding is legal.
+ */
+
+/** 
+ * Ghost variable indicating that the string is legally encoded. Note that if the string
+ * is not legally encoded, then the Solidity would revert, and the ghost would
+ * revert as well. So we must set it as false beforehand.
+ */
+ghost bool legalStr;
+
+
+/** This hook is called whenever the `info` field of a `FundRequest` in `fundRequests`
+ *  is read. To be precise, whenever the first 32 bytes of `info` are read.
+ *  To create the hook we needed to find the offset of `info` in the `FundRequest`
+ *  struct, here is the calculation:
+    struct FundRequest {
+        StatusEnum status; // 1 byte
+        address    asset;  // 20 bytes
+        bytes32    ilk;  // 32 bytes
+        uint256    amountRequested; // 32 bytes
+        uint256    amountFilled;  // 32 bytes
+        string     info;
+    }
+  * The storage is 32-bytes aligned. If each field gets 32-bytes, then the offset
+  * would be 32 * 5 = 160. If the `status` and `asset` fields are packed together,
+  * then the offset would be 32 * 4 = 128.
+  * Trial and error shows the offset is 128.
+*/
+hook Sload bytes32 str fundRequests[INDEX uint256 index].(offset 128) STORAGE {
+    uint256 read;
+    require to_bytes32(read) == str;
+    mathint strLen = (read % 256) / 2;  // The string length for short strings only
+    bool isOdd = read % 2 == 1;
+    legalStr = (read > 64 && isOdd) || (strLen <= 31 && !isOdd);
+}
+
+// -----------------------------------------------------------------------------
+
 // Verify that each storage layout is only modified in the corresponding functions
 rule storageAffected(method f) {
     env e;
@@ -423,16 +482,18 @@ rule requestFunds_revert(bytes32 ilk, address asset, uint256 amount, string info
     mathint totalRequestedFunds = totalRequestedFunds(asset);
     mathint numRequests = getFundRequestsLength();
 
-    clearStorage(e); 
+    legalStr = false;
+
     requestFunds@withrevert(e, ilk, asset, amount, info);
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = !canCall;
     bool revert3 = requestedFunds + amount > max_uint256;
     bool revert4 = totalRequestedFunds + amount > max_uint256;
+    bool revert5 = !legalStr;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
-                            revert4, "Revert rules failed";
+                            revert4 || revert5, "Revert rules failed";
 } 
 
 // Verify correct storage changes for non reverting requestFunds
@@ -494,7 +555,8 @@ rule cancelFundRequest_revert(uint256 fundRequestId) {
     mathint amountRequested = fundRequestAmountRequested(fundRequestId);
     mathint status = fundRequestStatus(fundRequestId);
 
-    clearStorage(e); 
+    legalStr = false;
+
     cancelFundRequest@withrevert(e, fundRequestId);
 
     bool revert1 = e.msg.value > 0;
@@ -502,9 +564,11 @@ rule cancelFundRequest_revert(uint256 fundRequestId) {
     bool revert3 = requestedFunds < amountRequested;
     bool revert4 = totalRequestedFunds < amountRequested;
     bool revert5 = status != 1; // PENDING
+    bool revert6 = !legalStr;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
-                            revert4 || revert5, "Revert rules failed";
+                            revert4 || revert5 || revert6,
+                            "Revert rules failed";
 
 }
 
@@ -622,7 +686,6 @@ rule returnFunds_revert(uint256 fundRequestId, uint256 returnAmount) {
     mathint requestedFunds = requestedFunds(asset, ilk);
     mathint totalRequestedFunds = totalRequestedFunds(asset);
 
-    clearStorage(e); 
     returnFunds@withrevert(e, fundRequestId, returnAmount);
 
     bool revert1 = e.msg.value > 0;
@@ -634,6 +697,7 @@ rule returnFunds_revert(uint256 fundRequestId, uint256 returnAmount) {
     bool revert7 = totalWithdrawableFunds + to_mathint(returnAmount) > max_uint256;
     bool revert8 = requestedFunds < amountRequested;
     bool revert9 = totalRequestedFunds < amountRequested;
+    bool revert10 = !legalStr;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
                             revert4 || revert5 || revert6 ||

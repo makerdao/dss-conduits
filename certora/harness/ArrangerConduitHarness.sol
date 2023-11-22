@@ -32,20 +32,5 @@ contract ArrangerConduitHarness is ArrangerConduit {
   function hash(string memory data) external view returns (bytes32) {
       return keccak256(abi.encodePacked(data));
   }
-
-
-  // WorkAround:
-  // Without it the issue is that before writing the new string info into the storage, Solidity requires
-  // the value originally stored in there also encodes a valid string (valid according to the ABI).
-  // In general, pure Solidity code (without assembly) shouldn't cause any such problem.
-  // However, the Prover does not assume this, and allows for a case where the storage is in a "dirty" state,
-  // i.e. holds an invalid encoding of a string. This "dirty" state is what causes a revert.
-  // The solution found so far is "cleaning" the storage before calling requestFunds.
-  // We do this by pushing and then popping an empty struct into fundRequests
-  
-  function clearStorage() external {
-    FundRequest memory emptyRequest;
-    fundRequests.push(emptyRequest);
-    fundRequests.pop();
-  }  
 }
+
