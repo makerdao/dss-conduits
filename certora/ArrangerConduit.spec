@@ -2,7 +2,7 @@
 
 using AllocatorRoles as roles;
 using AllocatorRegistry as registry;
-using GemMock as gem;
+using MockERC20 as gem;
 using Auxiliar as aux;
 
 methods {
