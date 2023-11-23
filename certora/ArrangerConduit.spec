@@ -3,10 +3,10 @@
 using AllocatorRoles as roles;
 using AllocatorRegistry as registry;
 using GemMock as gem;
+using Auxiliar as aux;
 
 methods {
     function wards(address) external returns (uint256) envfree;
-    function hash(string) external returns (bytes32) envfree;
     function arranger() external returns (address) envfree;
     function registry() external returns (address) envfree;
     function roles() external returns (address) envfree;
@@ -29,6 +29,7 @@ methods {
     function gem.allowance(address, address) external returns (uint256) envfree;  
     function registry.buffers(bytes32) external returns (address) envfree;
     function roles.canCall(bytes32, address, address, bytes4) external returns (bool) envfree;
+    function aux.hashString(string) external returns (bytes32) envfree;
 
     // needed for resolving calls in the contract
     function _.balanceOf(address) external => DISPATCHER(true) UNRESOLVED;
@@ -102,9 +103,8 @@ rule storageAffected(method f) {
 
     mathint wardsBefore = wards(anyAddr);
 
-
     IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
-    bytes32 infoHashBefore = hash(requestBefore.info);
+    bytes32 infoHashBefore = aux.hashString(requestBefore.info);
 
     address arrangerBefore = arranger();
     address registryBefore = registry();
@@ -125,7 +125,7 @@ rule storageAffected(method f) {
     mathint wardsAfter = wards(anyAddr);
 
     IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
-    bytes32 infoHashAfter = hash(requestAfter.info);
+    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
 
     address arrangerAfter= arranger();
     address registryAfter= registry();
@@ -415,7 +415,7 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     mathint numRequestsBefore = getFundRequestsLength();
 
     IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
-    bytes32 infoHashBefore = hash(requestBefore.info);
+    bytes32 infoHashBefore = aux.hashString(requestBefore.info);
 
     requestFunds(e, ilk, asset, amount, info);
 
@@ -424,7 +424,7 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     mathint numRequestsAfter = getFundRequestsLength();
 
     IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
-    bytes32 infoHashAfter = hash(requestAfter.info);
+    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
 
     assert requestedFundsAfter == requestedFundsBefore + amount, "requestedFunds did not increase by amount";
     assert totalRequestedFundsAfter == totalRequestedFundsBefore + amount, "totalRequestedFunds did not increase by amount";
@@ -436,7 +436,7 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
         && requestAfter.ilk == ilk
         && requestAfter.amountRequested == amount
         && requestAfter.amountFilled == 0
-        && infoHashAfter == hash(info),
+        && infoHashAfter == aux.hashString(info),
         "the new request params are not as expected";
 
     assert numRequestsBefore != to_mathint(anyIndex) =>
@@ -478,7 +478,7 @@ rule cancelFundRequest(uint256 fundRequestId) {
     uint256 anyIndex;
 
     IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
-    bytes32 infoHashBefore = hash(requestBefore.info);
+    bytes32 infoHashBefore = aux.hashString(requestBefore.info);
 
     mathint requestedFundsBefore = requestedFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalRequestedFundsBefore = totalRequestedFunds(requestBefore.asset);
@@ -491,7 +491,7 @@ rule cancelFundRequest(uint256 fundRequestId) {
     mathint numRequestsAfter = getFundRequestsLength();
 
     IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
-    bytes32 infoHashAfter = hash(requestAfter.info);
+    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
 
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
     assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "cancelFundRequest did not decrease by amount";
@@ -588,7 +588,7 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     uint256 anyIndex;
 
     IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
-    bytes32 infoHashBefore = hash(requestBefore.info);
+    bytes32 infoHashBefore = aux.hashString(requestBefore.info);
 
     mathint requestedFundsBefore = requestedFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalRequestedFundsBefore = totalRequestedFunds(requestBefore.asset);
@@ -603,7 +603,7 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     mathint numRequestsAfter = getFundRequestsLength();
 
     IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
-    bytes32 infoHashAfter = hash(requestAfter.info);
+    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
 
     mathint withdrawableFundsAfter = withdrawableFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalWithdrawableFundsAfter = totalWithdrawableFunds(requestBefore.asset);
