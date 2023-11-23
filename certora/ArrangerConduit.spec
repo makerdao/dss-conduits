@@ -6,12 +6,6 @@ using GemMock as gem;
 
 methods {
     function wards(address) external returns (uint256) envfree;
-    function fundRequestStatus(uint256) external returns(uint256) envfree;
-    function fundRequestAsset(uint256) external returns (address) envfree;
-    function fundRequestIlk(uint256) external returns (bytes32) envfree;
-    function fundRequestAmountRequested(uint256) external returns (uint256) envfree;
-    function fundRequestAmountFilled(uint256) external returns (uint256) envfree;
-    function fundRequestInfoHash(uint256) external returns (bytes32) envfree;
     function hash(string) external returns (bytes32) envfree;
     function arranger() external returns (address) envfree;
     function registry() external returns (address) envfree;
@@ -28,6 +22,7 @@ methods {
     function withdrawals(address, bytes32) external returns (uint256) envfree;
     function maxWithdraw(bytes32, address) external returns (uint256) envfree;
     function getFundRequestsLength() external returns (uint256) envfree;
+    function getFundRequest(uint256) external returns (IArrangerConduit.FundRequest) envfree;
  
     // needed for resolving calls in the spec
     function gem.balanceOf(address) external returns (uint256) envfree;
@@ -106,12 +101,11 @@ rule storageAffected(method f) {
     uint256 anyIndex;
 
     mathint wardsBefore = wards(anyAddr);
-    mathint statusBefore = fundRequestStatus(anyIndex);
-    address assetBefore = fundRequestAsset(anyIndex);
-    bytes32 ilkBefore = fundRequestIlk(anyIndex);
-    mathint amountRequestedBefore = fundRequestAmountRequested(anyIndex);
-    mathint amountFilledBefore = fundRequestAmountFilled(anyIndex);
-    bytes32 infoHashBefore = fundRequestInfoHash(anyIndex);
+
+
+    IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
+    bytes32 infoHashBefore = hash(requestBefore.info);
+
     address arrangerBefore = arranger();
     address registryBefore = registry();
     address rolesBefore = roles();
@@ -129,12 +123,10 @@ rule storageAffected(method f) {
     f(e, args);
 
     mathint wardsAfter = wards(anyAddr);
-    mathint statusAfter = fundRequestStatus(anyIndex);
-    address assetAfter = fundRequestAsset(anyIndex);
-    bytes32 ilkAfter = fundRequestIlk(anyIndex);
-    mathint amountRequestedAfter = fundRequestAmountRequested(anyIndex);
-    mathint amountFilledAfter = fundRequestAmountFilled(anyIndex);
-    bytes32 infoHashAfter = fundRequestInfoHash(anyIndex);
+
+    IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
+    bytes32 infoHashAfter = hash(requestAfter.info);
+
     address arrangerAfter= arranger();
     address registryAfter= registry();
     address rolesAfter = roles();
@@ -150,11 +142,11 @@ rule storageAffected(method f) {
 
     assert wardsAfter == wardsBefore, "wards changed unexpectedly through the proxied contract";
 
-    assert statusAfter != statusBefore
-        || assetAfter != assetBefore
-        || ilkAfter != ilkBefore
-        || amountRequestedAfter != amountRequestedBefore
-        || amountFilledAfter != amountFilledBefore
+    assert requestAfter.status != requestBefore.status
+        || requestAfter.asset != requestBefore.asset
+        || requestAfter.ilk != requestBefore.ilk
+        || requestAfter.amountRequested != requestBefore.amountRequested
+        || requestAfter.amountFilled != requestBefore.amountFilled
         || infoHashAfter != infoHashBefore
         => f.selector == sig:requestFunds(bytes32, address, uint256, string).selector
         || f.selector == sig:cancelFundRequest(uint256).selector
@@ -422,12 +414,8 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     mathint totalRequestedFundsBefore = totalRequestedFunds(asset);
     mathint numRequestsBefore = getFundRequestsLength();
 
-    mathint statusBefore = fundRequestStatus(anyIndex);
-    address assetBefore = fundRequestAsset(anyIndex);
-    bytes32 ilkBefore = fundRequestIlk(anyIndex);
-    mathint amountRequestedBefore = fundRequestAmountRequested(anyIndex);
-    mathint amountFilledBefore = fundRequestAmountFilled(anyIndex);
-    bytes32 infoHashBefore = fundRequestInfoHash(anyIndex);
+    IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
+    bytes32 infoHashBefore = hash(requestBefore.info);
 
     requestFunds(e, ilk, asset, amount, info);
 
@@ -435,32 +423,28 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     mathint totalRequestedFundsAfter= totalRequestedFunds(asset);
     mathint numRequestsAfter = getFundRequestsLength();
 
-    mathint statusAfter= fundRequestStatus(anyIndex);
-    address assetAfter = fundRequestAsset(anyIndex);
-    bytes32 ilkAfter = fundRequestIlk(anyIndex);
-    mathint amountRequestedAfter = fundRequestAmountRequested(anyIndex);
-    mathint amountFilledAfter = fundRequestAmountFilled(anyIndex);
-    bytes32 infoHashAfter = fundRequestInfoHash(anyIndex);
+    IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
+    bytes32 infoHashAfter = hash(requestAfter.info);
 
     assert requestedFundsAfter == requestedFundsBefore + amount, "requestedFunds did not increase by amount";
     assert totalRequestedFundsAfter == totalRequestedFundsBefore + amount, "totalRequestedFunds did not increase by amount";
     assert numRequestsAfter == numRequestsBefore + 1, "num request did not increase by 1";
 
     assert numRequestsBefore == to_mathint(anyIndex) =>
-        statusAfter == 1 // PENDING
-        && assetAfter == asset
-        && ilkAfter == ilk
-        && amountRequestedAfter == to_mathint(amount)
-        && amountFilledAfter == 0
+        requestAfter.status == IArrangerConduit.StatusEnum.PENDING
+        && requestAfter.asset == asset
+        && requestAfter.ilk == ilk
+        && requestAfter.amountRequested == amount
+        && requestAfter.amountFilled == 0
         && infoHashAfter == hash(info),
         "the new request params are not as expected";
 
     assert numRequestsBefore != to_mathint(anyIndex) =>
-        statusAfter == statusBefore
-        && assetAfter == assetBefore
-        && ilkAfter == ilkBefore
-        && amountRequestedAfter == amountRequestedBefore
-        && amountFilledAfter == amountFilledBefore
+        requestAfter.status == requestBefore.status
+        && requestAfter.asset == requestBefore.asset
+        && requestAfter.ilk == requestBefore.ilk
+        && requestAfter.amountRequested == requestBefore.amountRequested
+        && requestAfter.amountFilled == requestBefore.amountFilled
         && infoHashAfter == infoHashBefore,
         "other request params are not as before";
 }
@@ -493,39 +477,31 @@ rule cancelFundRequest(uint256 fundRequestId) {
 
     uint256 anyIndex;
 
-    mathint statusBefore = fundRequestStatus(anyIndex);
-    address assetBefore = fundRequestAsset(anyIndex);
-    bytes32 ilkBefore = fundRequestIlk(anyIndex);
-    mathint amountRequestedBefore = fundRequestAmountRequested(anyIndex);
-    mathint amountFilledBefore = fundRequestAmountFilled(anyIndex);
-    bytes32 infoHashBefore = fundRequestInfoHash(anyIndex);
+    IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
+    bytes32 infoHashBefore = hash(requestBefore.info);
 
-    mathint requestedFundsBefore = requestedFunds(assetBefore, ilkBefore);
-    mathint totalRequestedFundsBefore = totalRequestedFunds(assetBefore);
+    mathint requestedFundsBefore = requestedFunds(requestBefore.asset, requestBefore.ilk);
+    mathint totalRequestedFundsBefore = totalRequestedFunds(requestBefore.asset);
     mathint numRequestsBefore = getFundRequestsLength();
 
     cancelFundRequest(e, fundRequestId);
 
-    mathint requestedFundsAfter = requestedFunds(assetBefore, ilkBefore);
-    mathint totalRequestedFundsAfter= totalRequestedFunds(assetBefore);
+    mathint requestedFundsAfter = requestedFunds(requestBefore.asset, requestBefore.ilk);
+    mathint totalRequestedFundsAfter= totalRequestedFunds(requestBefore.asset);
     mathint numRequestsAfter = getFundRequestsLength();
 
-    mathint statusAfter= fundRequestStatus(anyIndex);
-    address assetAfter = fundRequestAsset(anyIndex);
-    bytes32 ilkAfter = fundRequestIlk(anyIndex);
-    mathint amountRequestedAfter = fundRequestAmountRequested(anyIndex);
-    mathint amountFilledAfter = fundRequestAmountFilled(anyIndex);
-    bytes32 infoHashAfter = fundRequestInfoHash(anyIndex);
+    IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
+    bytes32 infoHashAfter = hash(requestAfter.info);
 
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
-    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - amountRequestedBefore, "cancelFundRequest did not decrease by amount";
-    assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - amountRequestedBefore, "totalRequestedFunds did not decrease by amount";
-    assert anyIndex == fundRequestId => statusAfter == 2, "cancelFundRequest did not change status to CANCELLED";
-    assert anyIndex != fundRequestId => statusAfter == statusBefore, "cancelFundRequest on another index changed status";
-    assert assetAfter == assetBefore
-        && ilkAfter == ilkBefore
-        && amountRequestedAfter == amountRequestedBefore
-        && amountFilledAfter == amountFilledBefore
+    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "cancelFundRequest did not decrease by amount";
+    assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amount";
+    assert anyIndex == fundRequestId => requestAfter.status == IArrangerConduit.StatusEnum.CANCELLED, "cancelFundRequest did not change status to CANCELLED";
+    assert anyIndex != fundRequestId => requestAfter.status == requestBefore.status, "cancelFundRequest on another index changed status";
+    assert requestAfter.asset == requestBefore.asset
+        && requestAfter.ilk == requestBefore.ilk
+        && requestAfter.amountRequested == requestBefore.amountRequested
+        && requestAfter.amountFilled == requestBefore.amountFilled
         && infoHashAfter == infoHashBefore,
         "other request params not as before";
 }
@@ -535,24 +511,21 @@ rule cancelFundRequest(uint256 fundRequestId) {
 rule cancelFundRequest_revert(uint256 fundRequestId) {
     env e;
 
-    address asset = fundRequestAsset(fundRequestId);
-    bytes32 ilk = fundRequestIlk(fundRequestId);
+    IArrangerConduit.FundRequest request = getFundRequest(fundRequestId);
+
+    require request.asset == gem;
+
+    bool canCall = roles.canCall(request.ilk, e.msg.sender, currentContract, to_bytes4(0x933d9476)); // cancelFundRequest(uint256)
+    mathint requestedFunds = requestedFunds(request.asset, request.ilk);
+    mathint totalRequestedFunds = totalRequestedFunds(request.asset);
     
-    require asset == gem;
-
-    bool canCall = roles.canCall(ilk, e.msg.sender, currentContract, to_bytes4(0x933d9476)); // cancelFundRequest(uint256)
-    mathint requestedFunds = requestedFunds(asset, ilk);
-    mathint totalRequestedFunds = totalRequestedFunds(asset);
-    mathint amountRequested = fundRequestAmountRequested(fundRequestId);
-    mathint status = fundRequestStatus(fundRequestId);
-
     cancelFundRequest@withrevert(e, fundRequestId);
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = !canCall;
-    bool revert3 = requestedFunds < amountRequested;
-    bool revert4 = totalRequestedFunds < amountRequested;
-    bool revert5 = status != 1; // PENDING
+    bool revert3 = requestedFunds < to_mathint(request.amountRequested);
+    bool revert4 = totalRequestedFunds < to_mathint(request.amountRequested);
+    bool revert5 = request.status != IArrangerConduit.StatusEnum.PENDING;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
                             revert4 || revert5, "Revert rules failed";
@@ -614,46 +587,39 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
 
     uint256 anyIndex;
 
-    mathint statusBefore = fundRequestStatus(anyIndex);
-    address assetBefore = fundRequestAsset(anyIndex);
-    bytes32 ilkBefore = fundRequestIlk(anyIndex);
-    mathint amountRequestedBefore = fundRequestAmountRequested(anyIndex);
-    mathint amountFilledBefore = fundRequestAmountFilled(anyIndex);
-    bytes32 infoHashBefore = fundRequestInfoHash(anyIndex);
+    IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
+    bytes32 infoHashBefore = hash(requestBefore.info);
 
-    mathint requestedFundsBefore = requestedFunds(assetBefore, ilkBefore);
-    mathint totalRequestedFundsBefore = totalRequestedFunds(assetBefore);
-    mathint withdrawableFundsBefore = withdrawableFunds(assetBefore, ilkBefore);
-    mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(assetBefore);
+    mathint requestedFundsBefore = requestedFunds(requestBefore.asset, requestBefore.ilk);
+    mathint totalRequestedFundsBefore = totalRequestedFunds(requestBefore.asset);
+    mathint withdrawableFundsBefore = withdrawableFunds(requestBefore.asset, requestBefore.ilk);
+    mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(requestBefore.asset);
     mathint numRequestsBefore = getFundRequestsLength();
 
     returnFunds(e, fundRequestId, returnAmount);
 
-    mathint requestedFundsAfter = requestedFunds(assetBefore, ilkBefore);
-    mathint totalRequestedFundsAfter= totalRequestedFunds(assetBefore);
+    mathint requestedFundsAfter = requestedFunds(requestBefore.asset, requestBefore.ilk);
+    mathint totalRequestedFundsAfter= totalRequestedFunds(requestBefore.asset);
     mathint numRequestsAfter = getFundRequestsLength();
 
-    mathint statusAfter= fundRequestStatus(anyIndex);
-    address assetAfter = fundRequestAsset(anyIndex);
-    bytes32 ilkAfter = fundRequestIlk(anyIndex);
-    mathint amountRequestedAfter = fundRequestAmountRequested(anyIndex);
-    mathint amountFilledAfter = fundRequestAmountFilled(anyIndex);
-    bytes32 infoHashAfter = fundRequestInfoHash(anyIndex);
-    mathint withdrawableFundsAfter = withdrawableFunds(assetBefore, ilkBefore);
-    mathint totalWithdrawableFundsAfter = totalWithdrawableFunds(assetBefore);
+    IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
+    bytes32 infoHashAfter = hash(requestAfter.info);
+
+    mathint withdrawableFundsAfter = withdrawableFunds(requestBefore.asset, requestBefore.ilk);
+    mathint totalWithdrawableFundsAfter = totalWithdrawableFunds(requestBefore.asset);
 
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
-    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - amountRequestedBefore, "returnFunds did not decrease by amount";
-    assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - amountRequestedBefore, "totalRequestedFunds did not decrease by amount";
+    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "returnFunds did not decrease by amount";
+    assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amount";
     assert anyIndex == fundRequestId => withdrawableFundsAfter == withdrawableFundsBefore + returnAmount, "withdrawableFunds did not increase by returnAmount";
     assert anyIndex == fundRequestId => totalWithdrawableFundsAfter == totalWithdrawableFundsBefore + returnAmount, "totalWithdrawableFunds did not increase by returnAmount";
-    assert anyIndex == fundRequestId => statusAfter == 3, "returnFunds did not change status to COMPLETED";
-    assert anyIndex != fundRequestId => statusAfter == statusBefore, "returnFunds on another index changed status";
-    assert anyIndex == fundRequestId => amountFilledAfter == to_mathint(returnAmount), "returnFunds did not change amountFilled to returnAmount";    
-    assert anyIndex != fundRequestId => amountFilledAfter == amountFilledBefore, "returnFunds on another index changed amountFilled";        
-    assert assetAfter == assetBefore
-        && ilkAfter == ilkBefore
-        && amountRequestedAfter == amountRequestedBefore
+    assert anyIndex == fundRequestId => requestAfter.status == IArrangerConduit.StatusEnum.COMPLETED, "returnFunds did not change status to COMPLETED";
+    assert anyIndex != fundRequestId => requestAfter.status == requestBefore.status, "returnFunds on another index changed status";
+    assert anyIndex == fundRequestId => requestAfter.amountFilled == returnAmount, "returnFunds did not change amountFilled to returnAmount";
+    assert anyIndex != fundRequestId => requestAfter.amountFilled == requestBefore.amountFilled, "returnFunds on another index changed amountFilled";
+    assert requestAfter.asset == requestBefore.asset
+        && requestAfter.ilk == requestBefore.ilk
+        && requestAfter.amountRequested == requestBefore.amountRequested
         && infoHashAfter == infoHashBefore,
         "other request params not as before";
 }
@@ -663,27 +629,26 @@ rule returnFunds_revert(uint256 fundRequestId, uint256 returnAmount) {
     env e;
 
     address arranger = arranger();
-    address asset = fundRequestAsset(fundRequestId);
-    bytes32 ilk = fundRequestIlk(fundRequestId);
-    mathint amountRequested = fundRequestAmountRequested(fundRequestId);
-    mathint status = fundRequestStatus(fundRequestId);
+   
+    IArrangerConduit.FundRequest request = getFundRequest(fundRequestId);
+
     mathint balanceOfConduit = gem.balanceOf(currentContract);
-    mathint withdrawableFunds = withdrawableFunds(asset, ilk);
-    mathint totalWithdrawableFunds = totalWithdrawableFunds(asset);
-    mathint requestedFunds = requestedFunds(asset, ilk);
-    mathint totalRequestedFunds = totalRequestedFunds(asset);
+    mathint withdrawableFunds = withdrawableFunds(request.asset, request.ilk);
+    mathint totalWithdrawableFunds = totalWithdrawableFunds(request.asset);
+    mathint requestedFunds = requestedFunds(request.asset, request.ilk);
+    mathint totalRequestedFunds = totalRequestedFunds(request.asset);
 
     returnFunds@withrevert(e, fundRequestId, returnAmount);
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = arranger != e.msg.sender;
-    bool revert3 = status != 1; // PENDING
+    bool revert3 = request.status != IArrangerConduit.StatusEnum.PENDING;
     bool revert4 = balanceOfConduit - totalWithdrawableFunds < to_mathint(returnAmount);
     bool revert5 = totalWithdrawableFunds > balanceOfConduit;
     bool revert6 = withdrawableFunds + to_mathint(returnAmount) > max_uint256;
     bool revert7 = totalWithdrawableFunds + to_mathint(returnAmount) > max_uint256;
-    bool revert8 = requestedFunds < amountRequested;
-    bool revert9 = totalRequestedFunds < amountRequested;
+    bool revert8 = requestedFunds < to_mathint(request.amountRequested);
+    bool revert9 = totalRequestedFunds < to_mathint(request.amountRequested);
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
                             revert4 || revert5 || revert6 ||
@@ -730,16 +695,16 @@ rule statusChanges(method f) {
     env e;
     uint256 anyIndex;
 
-    mathint statusBefore = fundRequestStatus(anyIndex);
+    IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
 
     calldataarg args;
     f(e, args);
 
-    mathint statusAfter = fundRequestStatus(anyIndex);
-    bool statusSame = statusBefore == statusAfter;
+    IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
+    bool statusSame = requestBefore.status == requestAfter.status;
 
-    assert statusBefore == 0 => statusSame || statusAfter == 1, "status changed from UNINITIALIZED to something other than PENDING";
-    assert statusBefore == 1 => statusSame || statusAfter == 2 || statusAfter == 3, "status changed from PENDING to something other than CANCELLED or COMPLETED";
-    assert statusBefore == 2 => statusSame, "status changed from CANCELLED";
-    assert statusBefore == 3 => statusSame, "status changed from COMPLETED";
+    assert requestBefore.status == IArrangerConduit.StatusEnum.UNINITIALIZED => statusSame || requestAfter.status == IArrangerConduit.StatusEnum.PENDING, "status changed from UNINITIALIZED to something other than PENDING";
+    assert requestBefore.status == IArrangerConduit.StatusEnum.PENDING => statusSame || requestAfter.status == IArrangerConduit.StatusEnum.CANCELLED || requestAfter.status == IArrangerConduit.StatusEnum.COMPLETED, "status changed from PENDING to something other than CANCELLED or COMPLETED";
+    assert requestBefore.status == IArrangerConduit.StatusEnum.CANCELLED => statusSame, "status changed from CANCELLED";
+    assert requestBefore.status == IArrangerConduit.StatusEnum.COMPLETED => statusSame, "status changed from COMPLETED";
 }
