@@ -15,7 +15,6 @@ methods {
     function totalWithdrawableFunds(address) external returns (uint256) envfree;
     function totalWithdrawals(address) external returns (uint256) envfree;
     function isBroker(address, address) external returns (bool) envfree;
-    function arranger() external returns (address) envfree;
     function deposits(address, bytes32) external returns (uint256) envfree;
     function requestedFunds(address, bytes32) external returns (uint256) envfree;
     function withdrawableFunds(address, bytes32) external returns (uint256) envfree;
@@ -316,7 +315,7 @@ rule deposit_revert(bytes32 ilk, address asset, uint256 amount) {
     mathint balanceOfBuffer = gem.balanceOf(buffer);
     mathint allowanceBuffer = gem.allowance(buffer, currentContract);
     mathint deposits = deposits(asset, ilk);
-    mathint totalDeposits= totalDeposits(asset);
+    mathint totalDeposits = totalDeposits(asset);
 
     deposit@withrevert(e, ilk, asset, amount);
 
@@ -359,13 +358,13 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
     mathint balanceOfConduitAfter = gem.balanceOf(currentContract);
     mathint withdrawableFundsAfter = withdrawableFunds(asset, ilk);
     mathint totalWithdrawableFundsAfter = totalWithdrawableFunds(asset);
-    mathint withdrawalsAfter= withdrawals(asset, ilk);
+    mathint withdrawalsAfter = withdrawals(asset, ilk);
     mathint totalWithdrawalsAfter = totalWithdrawals(asset);
 
     assert balanceOfBufferAfter == balanceOfBufferBefore + amount, "balance of buffer did not increase by amount";
     assert balanceOfConduitAfter == balanceOfConduitBefore - amount, "balance of conduit did not decrease by amount";
     assert withdrawableFundsAfter == withdrawableFundsBefore - amount, "withdrawableFunds did not decrease by amount";
-    assert totalWithdrawableFundsAfter == totalWithdrawableFundsBefore- amount, "totalWithdrawableFunds did not decrease by amount";
+    assert totalWithdrawableFundsAfter == totalWithdrawableFundsBefore - amount, "totalWithdrawableFunds did not decrease by amount";
     assert withdrawalsAfter == withdrawalsBefore + amount, "withdrawals did not increase by amount";
     assert totalWithdrawalsAfter == totalWithdrawalsBefore + amount, "totalWithdrawals did not increase by amount";
 }
@@ -386,7 +385,7 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
     mathint withdrawableFunds = withdrawableFunds(asset, ilk);
     mathint totalWithdrawableFunds = totalWithdrawableFunds(asset);
 
-    mathint amount = min(maxAmount, maxWithdraw(ilk, asset)); 
+    mathint amount = min(maxAmount, maxWithdraw(ilk, asset));
     withdraw@withrevert(e, ilk, asset, maxAmount);
 
     bool revert1 = e.msg.value > 0;
