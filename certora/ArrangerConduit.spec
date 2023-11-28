@@ -76,10 +76,8 @@ definition min(mathint x, mathint y) returns mathint = x < y ? x : y;
         uint256    amountFilled;  // 32 bytes
         string     info;
     }
-  * The storage is 32-bytes aligned. If each field gets 32-bytes, then the offset
-  * would be 32 * 5 = 160. If the `status` and `asset` fields are packed together,
-  * then the offset would be 32 * 4 = 128.
-  * Trial and error shows the offset is 128.
+  * The storage is 32-bytes aligned.
+  * Since the `status` and `asset` fields are packed together the offset is 32 * 4 = 128.
 */
 hook Sload bytes32 str fundRequests[INDEX uint256 index].(offset 128) STORAGE {
     uint256 read;
