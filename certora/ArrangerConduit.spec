@@ -232,27 +232,23 @@ rule file_address_revert(bytes32 what, address data) {
 }
 
 // Verify correct storage changes for non reverting setBroker
+// Verify correct storage changes for non reverting setBroker
 rule setBroker(address usr, address asset, bool valid) {
     env e;
 
     address otherUsr;
-    require otherUsr != usr;
-
     address otherAsset;
-    require otherAsset != asset;
+    require otherUsr != usr || otherAsset != asset;
     
-    bool isBrokerOtherUsrBefore = isBroker(otherUsr, asset);
-    bool isBrokerOtherAssetBefore = isBroker(usr, otherAsset);
+    bool isBrokerOtherBefore = isBroker(otherUsr, otherAsset);
     
     setBroker(e, usr, asset, valid);
 
     bool isBrokerUsrAfter = isBroker(usr, asset);
-    bool isBrokerOtherUsrAfter = isBroker(otherUsr, asset);
-    bool isBrokerOtherAssetAfter = isBroker(usr, otherAsset);
+    bool isBrokerOtherAfter = isBroker(otherUsr, otherAsset);
 
-    assert isBrokerUsrAfter == valid, "setBroker did not set broker to valid";
-    assert isBrokerOtherUsrAfter == isBrokerOtherUsrBefore, "setBroker did not keep unchanged the rest of brokers for the same asset";
-    assert isBrokerOtherAssetAfter == isBrokerOtherAssetBefore, "setBroker did not keep unchanged the rest of brokers for other assets";
+    assert isBrokerUsrAfter == valid, "setBroker did not set brokers[usr][asset] to valid";
+    assert isBrokerOtherAfter == isBrokerOtherBefore, "setBroker did not keep unchanged the rest of brokers[x][y]";
 }
 
 // Verify revert rules on setBroker
