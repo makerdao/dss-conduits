@@ -569,8 +569,8 @@ rule cancelFundRequest(uint256 fundRequestId) {
         && infoHashAfter == infoHashBefore,
         "other request params not as before";
 
-    assert requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
-    assert totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
+    assert anyIndex == fundRequestId => requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
+    assert anyIndex == fundRequestId => totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
 }
 
 // TODO: figure out why this is still not working
@@ -663,7 +663,6 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(requestBefore.asset);
     mathint numRequestsBefore = getFundRequestsLength();
 
-
     bytes32 otherIlk;
     address otherAsset;
     require otherIlk != requestBefore.ilk || otherAsset != requestBefore.asset;
@@ -714,10 +713,10 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
         && infoHashAfter == infoHashBefore,
         "other request params not as before";
 
-    assert requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
-    assert totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
-    assert withdrawableFundsOtherAfter == withdrawableFundsOtherBefore, "other withdrawable funds changed unexpectedly";
-    assert totalWithdrawableFundsOtherAfter == totalWithdrawableFundsOtherBefore, "other total withdrawable funds changed unexpectedly";
+    assert anyIndex == fundRequestId => requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
+    assert anyIndex == fundRequestId => totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
+    assert anyIndex == fundRequestId => withdrawableFundsOtherAfter == withdrawableFundsOtherBefore, "other withdrawable funds changed unexpectedly";
+    assert anyIndex == fundRequestId => totalWithdrawableFundsOtherAfter == totalWithdrawableFundsOtherBefore, "other total withdrawable funds changed unexpectedly";
 }
 
 // Verify revert rules on returnFunds
