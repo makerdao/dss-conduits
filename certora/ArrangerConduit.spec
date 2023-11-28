@@ -281,6 +281,15 @@ rule deposit(bytes32 ilk, address asset, uint256 amount) {
     mathint depositsBefore = deposits(asset, ilk);
     mathint totalDepositsBefore = totalDeposits(asset);
 
+    bytes32 otherIlk;
+    address otherAsset;
+    require otherIlk != ilk || otherAsset != asset;
+    mathint depositsOtherBefore = deposits(otherAsset, otherIlk);
+
+    address otherAsset2;
+    require otherAsset2 != asset;
+    mathint totalDepositsOtherBefore = totalDeposits(otherAsset2); 
+
     require balanceOfBufferBefore + balanceOfConduitBefore <= max_uint256;
 
     deposit(e, ilk, asset, amount);
@@ -290,10 +299,16 @@ rule deposit(bytes32 ilk, address asset, uint256 amount) {
     mathint depositsAfter = deposits(asset, ilk);
     mathint totalDepositsAfter = totalDeposits(asset);
 
+    mathint depositsOtherAfter= deposits(otherAsset, otherIlk);
+    mathint totalDepositsOtherAfter = totalDeposits(otherAsset2); 
+
     assert balanceOfBufferAfter == balanceOfBufferBefore - amount, "deposit did not decrease balance of buffer by amount";
     assert balanceOfConduitAfter == balanceOfConduitBefore + amount, "deposit did not increase balance of conduit by amount";
     assert depositsAfter == depositsBefore + amount, "deposit did not increase deposits by amount";
     assert totalDepositsAfter == totalDepositsBefore + amount, "deposit did not increase totalDeposits by amount";
+
+    assert depositsOtherAfter == depositsOtherBefore, "other deposits changed unexpectedly";
+    assert totalDepositsOtherAfter == totalDepositsOtherBefore, "other total deposits changed unexpectedly";
 }
 
 // Verify revert rules on deposit
@@ -343,6 +358,24 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
     mathint withdrawalsBefore = withdrawals(asset, ilk);
     mathint totalWithdrawalsBefore = totalWithdrawals(asset);
 
+    bytes32 otherIlk;
+    address otherAsset;
+    require otherIlk != ilk || otherAsset != asset;
+    mathint withdrawableFundsOtherBefore = withdrawableFunds(otherAsset, otherIlk);
+
+    address otherAsset2;
+    require otherAsset2 != asset;
+    mathint totalWithdrawableFundsOtherBefore = totalWithdrawableFunds(otherAsset2);
+
+    bytes32 otherIlk2;
+    address otherAsset3;
+    require otherIlk2 != ilk || otherAsset3 != asset;
+    mathint withdrawalsOtherBefore = withdrawals(otherAsset3, otherIlk2);
+
+    address otherAsset4;
+    require otherAsset4 != asset;
+    mathint totalWithdrawalsOtherBefore = totalWithdrawals(otherAsset4);
+
     require balanceOfBufferBefore + balanceOfConduitBefore <= max_uint256;
 
     mathint amount = min(maxAmount, maxWithdraw(ilk, asset)); 
@@ -355,13 +388,24 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
     mathint withdrawalsAfter = withdrawals(asset, ilk);
     mathint totalWithdrawalsAfter = totalWithdrawals(asset);
 
+    mathint withdrawableFundsOtherAfter = withdrawableFunds(otherAsset, otherIlk);
+    mathint totalWithdrawableFundsOtherAfter = totalWithdrawableFunds(otherAsset2);
+    mathint withdrawalsOtherAfter = withdrawals(otherAsset3, otherIlk2);
+    mathint totalWithdrawalsOtherAfter = totalWithdrawals(otherAsset4);
+
     assert balanceOfBufferAfter == balanceOfBufferBefore + amount, "balance of buffer did not increase by amount";
     assert balanceOfConduitAfter == balanceOfConduitBefore - amount, "balance of conduit did not decrease by amount";
     assert withdrawableFundsAfter == withdrawableFundsBefore - amount, "withdrawableFunds did not decrease by amount";
     assert totalWithdrawableFundsAfter == totalWithdrawableFundsBefore - amount, "totalWithdrawableFunds did not decrease by amount";
     assert withdrawalsAfter == withdrawalsBefore + amount, "withdrawals did not increase by amount";
     assert totalWithdrawalsAfter == totalWithdrawalsBefore + amount, "totalWithdrawals did not increase by amount";
+
+    assert withdrawableFundsOtherAfter == withdrawableFundsOtherBefore, "other withdrawable funds changed unexpectedly";
+    assert totalWithdrawableFundsOtherAfter == totalWithdrawableFundsOtherBefore, "other total withdrawable funds changed unexpectedly";
+    assert withdrawalsOtherAfter == withdrawalsOtherBefore, "other withdrawals changed unexpectedly";
+    assert totalWithdrawalsOtherAfter == totalWithdrawalsOtherAfter, "other total withdrawals changed unexpectedly";
 }
+
 
 // Verify revert rules on withdraw
 rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
@@ -407,6 +451,15 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     mathint totalRequestedFundsBefore = totalRequestedFunds(asset);
     mathint numRequestsBefore = getFundRequestsLength();
 
+    bytes32 otherIlk;
+    address otherAsset;
+    require otherIlk != ilk || otherAsset != asset;
+    mathint requestedFundsOtherBefore = requestedFunds(otherAsset, otherIlk);
+
+    address otherAsset2;
+    require otherAsset2 != asset;
+    mathint totalRequestedFundsOtherBefore = totalRequestedFunds(otherAsset2); 
+
     IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
     bytes32 infoHashBefore = aux.hashString(requestBefore.info);
 
@@ -415,6 +468,9 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     mathint requestedFundsAfter = requestedFunds(asset, ilk);
     mathint totalRequestedFundsAfter= totalRequestedFunds(asset);
     mathint numRequestsAfter = getFundRequestsLength();
+
+    mathint requestedFundsOtherAfter = requestedFunds(otherAsset, otherIlk);
+    mathint totalRequestedFundsOtherAfter = totalRequestedFunds(otherAsset2); 
 
     IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
     bytes32 infoHashAfter = aux.hashString(requestAfter.info);
@@ -440,6 +496,9 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
         && requestAfter.amountFilled == requestBefore.amountFilled
         && infoHashAfter == infoHashBefore,
         "other request params are not as before";
+
+    assert requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
+    assert totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
 }
 
 // Verify revert rules on requestFunds
@@ -477,11 +536,23 @@ rule cancelFundRequest(uint256 fundRequestId) {
     mathint totalRequestedFundsBefore = totalRequestedFunds(requestBefore.asset);
     mathint numRequestsBefore = getFundRequestsLength();
 
+    bytes32 otherIlk;
+    address otherAsset;
+    require otherIlk != requestBefore.ilk || otherAsset != requestBefore.asset;
+    mathint requestedFundsOtherBefore = requestedFunds(otherAsset, otherIlk);
+
+    address otherAsset2;
+    require otherAsset2 != requestBefore.asset;
+    mathint totalRequestedFundsOtherBefore = totalRequestedFunds(otherAsset2); 
+
     cancelFundRequest(e, fundRequestId);
 
     mathint requestedFundsAfter = requestedFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalRequestedFundsAfter= totalRequestedFunds(requestBefore.asset);
     mathint numRequestsAfter = getFundRequestsLength();
+
+    mathint requestedFundsOtherAfter = requestedFunds(otherAsset, otherIlk);
+    mathint totalRequestedFundsOtherAfter = totalRequestedFunds(otherAsset2); 
 
     IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
     bytes32 infoHashAfter = aux.hashString(requestAfter.info);
@@ -497,6 +568,9 @@ rule cancelFundRequest(uint256 fundRequestId) {
         && requestAfter.amountFilled == requestBefore.amountFilled
         && infoHashAfter == infoHashBefore,
         "other request params not as before";
+
+    assert requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
+    assert totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
 }
 
 // TODO: figure out why this is still not working
@@ -589,6 +663,25 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(requestBefore.asset);
     mathint numRequestsBefore = getFundRequestsLength();
 
+
+    bytes32 otherIlk;
+    address otherAsset;
+    require otherIlk != requestBefore.ilk || otherAsset != requestBefore.asset;
+    mathint requestedFundsOtherBefore = requestedFunds(otherAsset, otherIlk);
+
+    address otherAsset2;
+    require otherAsset2 != requestBefore.asset;
+    mathint totalRequestedFundsOtherBefore = totalRequestedFunds(otherAsset2);
+
+    bytes32 otherIlk2;
+    address otherAsset3;
+    require otherIlk2 != requestBefore.ilk || otherAsset3 != requestBefore.asset;
+    mathint withdrawableFundsOtherBefore = withdrawableFunds(otherAsset3, otherIlk2);
+
+    address otherAsset4;
+    require otherAsset4 != requestBefore.asset;
+    mathint totalWithdrawableFundsOtherBefore = totalWithdrawableFunds(otherAsset4);
+
     returnFunds(e, fundRequestId, returnAmount);
 
     mathint requestedFundsAfter = requestedFunds(requestBefore.asset, requestBefore.ilk);
@@ -600,6 +693,11 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
 
     mathint withdrawableFundsAfter = withdrawableFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalWithdrawableFundsAfter = totalWithdrawableFunds(requestBefore.asset);
+
+    mathint requestedFundsOtherAfter = requestedFunds(otherAsset, otherIlk);
+    mathint totalRequestedFundsOtherAfter= totalRequestedFunds(otherAsset2);
+    mathint withdrawableFundsOtherAfter = withdrawableFunds(otherAsset3, otherIlk2);
+    mathint totalWithdrawableFundsOtherAfter = totalWithdrawableFunds(otherAsset4);
 
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
     assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "returnFunds did not decrease by amount";
@@ -615,6 +713,11 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
         && requestAfter.amountRequested == requestBefore.amountRequested
         && infoHashAfter == infoHashBefore,
         "other request params not as before";
+
+    assert requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
+    assert totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
+    assert withdrawableFundsOtherAfter == withdrawableFundsOtherBefore, "other withdrawable funds changed unexpectedly";
+    assert totalWithdrawableFundsOtherAfter == totalWithdrawableFundsOtherBefore, "other total withdrawable funds changed unexpectedly";
 }
 
 // Verify revert rules on returnFunds
