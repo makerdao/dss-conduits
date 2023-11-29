@@ -330,11 +330,11 @@ rule deposit_revert(bytes32 ilk, address asset, uint256 amount) {
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = !canCall;
-    bool revert3 = balanceOfBuffer < to_mathint(amount);
-    bool revert4 = allowanceBuffer < to_mathint(amount);
-    bool revert5 = deposits + amount > max_uint256;
-    bool revert6 = totalDeposits + amount > max_uint256;
-    bool revert7 = buffer == 0;
+    bool revert3 = deposits + amount > max_uint256;
+    bool revert4 = totalDeposits + amount > max_uint256;
+    bool revert5 = buffer == 0;
+    bool revert6 = balanceOfBuffer < to_mathint(amount);
+    bool revert7 = allowanceBuffer < to_mathint(amount);
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
                             revert4 || revert5 || revert6 ||
@@ -428,12 +428,12 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = !canCall;
-    bool revert3 = balanceOfConduit < amount;
-    bool revert4 = withdrawals + amount > max_uint256;
-    bool revert5 = totalWithdrawals + amount > max_uint256;
-    bool revert6 = withdrawableFunds < amount;
-    bool revert7 = totalWithdrawableFunds < amount;
-    bool revert8 = buffer == 0;
+    bool revert3 = withdrawableFunds < amount;
+    bool revert4 = totalWithdrawableFunds < amount;
+    bool revert5 = withdrawals + amount > max_uint256;
+    bool revert6 = totalWithdrawals + amount > max_uint256; 
+    bool revert7 = buffer == 0;
+    bool revert8 = balanceOfConduit < amount;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
                             revert4 || revert5 || revert6 ||
@@ -590,9 +590,9 @@ rule cancelFundRequest_revert(uint256 fundRequestId) {
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = !canCall;
-    bool revert3 = requestedFunds < to_mathint(request.amountRequested);
-    bool revert4 = totalRequestedFunds < to_mathint(request.amountRequested);
-    bool revert5 = request.status != IArrangerConduit.StatusEnum.PENDING;
+    bool revert3 = request.status != IArrangerConduit.StatusEnum.PENDING;
+    bool revert4 = requestedFunds < to_mathint(request.amountRequested);
+    bool revert5 = totalRequestedFunds < to_mathint(request.amountRequested);
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
                             revert4 || revert5, "Revert rules failed";
@@ -636,10 +636,10 @@ rule drawFunds_revert(address asset, address destination, uint256 amount) {
     drawFunds@withrevert(e, asset, destination, amount);
 
     bool revert1 = e.msg.value > 0;
-    bool revert2 = !isBroker;
-    bool revert3 = arranger != e.msg.sender;
-    bool revert4 = totalWithdrawableFunds > balanceOfConduit;
-    bool revert5 = to_mathint(amount) > balanceOfConduit - totalWithdrawableFunds;
+    bool revert2 = arranger != e.msg.sender;
+    bool revert3 = totalWithdrawableFunds > balanceOfConduit;
+    bool revert4 = to_mathint(amount) > balanceOfConduit - totalWithdrawableFunds;
+    bool revert5 = !isBroker;
     bool revert6 = balanceOfConduit < to_mathint(amount);
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
