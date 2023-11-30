@@ -626,11 +626,9 @@ rule drawFunds_revert(address asset, address destination, uint256 amount) {
     bool revert3 = totalWithdrawableFunds > balanceOfConduit;
     bool revert4 = to_mathint(amount) > balanceOfConduit - totalWithdrawableFunds;
     bool revert5 = !isBroker;
-    bool revert6 = balanceOfConduit < to_mathint(amount);
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
-                            revert4 || revert5 || revert6
-                            , "Revert rules failed";
+                            revert4 || revert5, "Revert rules failed";
 
 }
 
