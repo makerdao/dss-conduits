@@ -421,16 +421,15 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
 
     bool revert1 = e.msg.value > 0;
     bool revert2 = !canCall;
-    bool revert3 = withdrawableFunds < amount;
-    bool revert4 = totalWithdrawableFunds < amount;
-    bool revert5 = withdrawals + amount > max_uint256;
-    bool revert6 = totalWithdrawals + amount > max_uint256; 
-    bool revert7 = buffer == 0;
-    bool revert8 = balanceOfConduit < amount;
+    bool revert3 = totalWithdrawableFunds < amount;
+    bool revert4 = withdrawals + amount > max_uint256;
+    bool revert5 = totalWithdrawals + amount > max_uint256;
+    bool revert6 = buffer == 0;
+    bool revert7 = balanceOfConduit < amount;
 
     assert lastReverted <=> revert1 || revert2 || revert3 ||
                             revert4 || revert5 || revert6 ||
-                            revert7 || revert8, "Revert rules failed";
+                            revert7, "Revert rules failed";
 }
 
 // Verify correct storage changes for non reverting requestFunds
