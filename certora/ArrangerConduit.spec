@@ -436,7 +436,6 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
 rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     env e;
 
-    require asset == gem;
     uint256 anyIndex;
 
     mathint requestedFundsBefore = requestedFunds(asset, ilk);
@@ -458,7 +457,7 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     requestFunds(e, ilk, asset, amount, info);
 
     mathint requestedFundsAfter = requestedFunds(asset, ilk);
-    mathint totalRequestedFundsAfter= totalRequestedFunds(asset);
+    mathint totalRequestedFundsAfter = totalRequestedFunds(asset);
     mathint numRequestsAfter = getFundRequestsLength();
 
     mathint requestedFundsOtherAfter = requestedFunds(otherAsset, otherIlk);
@@ -496,8 +495,6 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
 // Verify revert rules on requestFunds
 rule requestFunds_revert(bytes32 ilk, address asset, uint256 amount, string info) {
     env e;
-
-    require asset == gem;
 
     bool canCall = roles.canCall(ilk, e.msg.sender, currentContract, to_bytes4(0xd2543ccb)); // requestFunds(bytes32,address,uint256,string)
     mathint requestedFunds = requestedFunds(asset, ilk);
@@ -565,14 +562,11 @@ rule cancelFundRequest(uint256 fundRequestId) {
     assert anyIndex == fundRequestId => totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
 }
 
-// TODO: figure out why this is still not working
 // Verify revert rules on cancelFundRequest
 rule cancelFundRequest_revert(uint256 fundRequestId) {
     env e;
 
     IArrangerConduit.FundRequest request = getFundRequest(fundRequestId);
-
-    require request.asset == gem;
 
     bool canCall = roles.canCall(request.ilk, e.msg.sender, currentContract, to_bytes4(0x933d9476)); // cancelFundRequest(uint256)
     mathint requestedFunds = requestedFunds(request.asset, request.ilk);
