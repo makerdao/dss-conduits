@@ -298,7 +298,7 @@ rule deposit(bytes32 ilk, address asset, uint256 amount) {
     mathint depositsAfter = deposits(asset, ilk);
     mathint totalDepositsAfter = totalDeposits(asset);
 
-    mathint depositsOtherAfter= deposits(otherAsset, otherIlk);
+    mathint depositsOtherAfter = deposits(otherAsset, otherIlk);
     mathint totalDepositsOtherAfter = totalDeposits(otherAsset2); 
 
     assert balanceOfBufferAfter == balanceOfBufferBefore - amount, "deposit did not decrease balance of buffer by amount";
