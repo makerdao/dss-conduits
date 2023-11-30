@@ -516,15 +516,17 @@ rule requestFunds_revert(bytes32 ilk, address asset, uint256 amount, string info
 rule cancelFundRequest(uint256 fundRequestId) {
     env e;
 
-    uint256 anyIndex;
+    // general check
+    mathint numRequestsBefore = getFundRequestsLength();
 
-    IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
+    // actual (asset,ilk) for actual request Id before
+    IArrangerConduit.FundRequest requestBefore = getFundRequest(fundRequestId);
     bytes32 infoHashBefore = aux.hashString(requestBefore.info);
 
     mathint requestedFundsBefore = requestedFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalRequestedFundsBefore = totalRequestedFunds(requestBefore.asset);
-    mathint numRequestsBefore = getFundRequestsLength();
 
+    // other (asset,ilk) for actual request Id before
     bytes32 otherIlk;
     address otherAsset;
     require otherIlk != requestBefore.ilk || otherAsset != requestBefore.asset;
@@ -534,32 +536,60 @@ rule cancelFundRequest(uint256 fundRequestId) {
     require otherAsset2 != requestBefore.asset;
     mathint totalRequestedFundsOtherBefore = totalRequestedFunds(otherAsset2); 
 
+    // other request Id before
+    uint256 otherIndex;
+    require otherIndex != fundRequestId;
+
+    IArrangerConduit.FundRequest requestOtherBefore = getFundRequest(otherIndex);
+    bytes32 infoHashOtherBefore = aux.hashString(requestOtherBefore.info);
+
     cancelFundRequest(e, fundRequestId);
+
+    // general check
+    mathint numRequestsAfter = getFundRequestsLength();
+
+    // actual (asset,ilk) for actual request Id after
+    IArrangerConduit.FundRequest requestAfter = getFundRequest(fundRequestId);
+    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
 
     mathint requestedFundsAfter = requestedFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalRequestedFundsAfter= totalRequestedFunds(requestBefore.asset);
-    mathint numRequestsAfter = getFundRequestsLength();
 
+    // other (asset,ilk) for actual request Id before
     mathint requestedFundsOtherAfter = requestedFunds(otherAsset, otherIlk);
     mathint totalRequestedFundsOtherAfter = totalRequestedFunds(otherAsset2); 
 
-    IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
-    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
+    // other request Id after
+    IArrangerConduit.FundRequest requestOtherAfter = getFundRequest(otherIndex);
+    bytes32 infoHashOtherAfter = aux.hashString(requestOtherBefore.info);
 
+    // general asserts
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
-    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "cancelFundRequest did not decrease by amount";
-    assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amount";
-    assert anyIndex == fundRequestId => requestAfter.status == IArrangerConduit.StatusEnum.CANCELLED, "cancelFundRequest did not change status to CANCELLED";
-    assert anyIndex != fundRequestId => requestAfter.status == requestBefore.status, "cancelFundRequest on another index changed status";
+
+    // asserts on actual (asset,ilk) for actual request Id
+    assert requestAfter.status == IArrangerConduit.StatusEnum.CANCELLED, "cancelFundRequest did not change status to CANCELLED";
     assert requestAfter.asset == requestBefore.asset
         && requestAfter.ilk == requestBefore.ilk
         && requestAfter.amountRequested == requestBefore.amountRequested
         && requestAfter.amountFilled == requestBefore.amountFilled
         && infoHashAfter == infoHashBefore,
-        "other request params not as before";
+        "unrelated request params not as before";
 
-    assert anyIndex == fundRequestId => requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
-    assert anyIndex == fundRequestId => totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
+    assert requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "cancelFundRequest did not decrease by amount";
+    assert totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amount";
+
+    // asserts on actual (asset,ilk) for another request Id
+    assert requestOtherAfter.status == requestOtherBefore.status
+        && requestOtherAfter.asset == requestOtherBefore.asset
+        && requestOtherAfter.ilk == requestOtherBefore.ilk
+        && requestOtherAfter.amountRequested == requestOtherBefore.amountRequested
+        && requestOtherAfter.amountFilled == requestOtherBefore.amountFilled
+        && infoHashOtherAfter == infoHashOtherBefore,
+        "unrelated request params not as before for another request Id";
+
+    // asserts on other (asset,ilk) for actual request Id
+    assert requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
+    assert totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
 }
 
 // Verify revert rules on cancelFundRequest
@@ -635,65 +665,93 @@ rule drawFunds_revert(address asset, address destination, uint256 amount) {
 rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     env e;
 
-    uint256 anyIndex;
+    // general check
+    mathint numRequestsBefore = getFundRequestsLength();
 
-    IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
-    bytes32 infoHashBefore = aux.hashString(requestBefore.info);
+    // actual (asset,ilk) for actual request Id before
+    IArrangerConduit.FundRequest requestBefore = getFundRequest(fundRequestId);
+    bytes32 infoHashBefore = aux.hashString(requestBefore.info);   
 
     mathint requestedFundsBefore = requestedFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalRequestedFundsBefore = totalRequestedFunds(requestBefore.asset);
     mathint withdrawableFundsBefore = withdrawableFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalWithdrawableFundsBefore = totalWithdrawableFunds(requestBefore.asset);
-    mathint numRequestsBefore = getFundRequestsLength();
 
+    // other (asset,ilk) for actual request Id before
     bytes32 otherIlk;
     address otherAsset;
     require otherIlk != requestBefore.ilk || otherAsset != requestBefore.asset;
-    mathint requestedFundsOtherBefore = requestedFunds(otherAsset, otherIlk);
 
     address otherAsset2;
     require otherAsset2 != requestBefore.asset;
-    mathint totalRequestedFundsOtherBefore = totalRequestedFunds(otherAsset2);
 
+    mathint requestedFundsOtherBefore = requestedFunds(otherAsset, otherIlk);
+    mathint totalRequestedFundsOtherBefore = totalRequestedFunds(otherAsset2);
     mathint withdrawableFundsOtherBefore = withdrawableFunds(otherAsset, otherIlk);
     mathint totalWithdrawableFundsOtherBefore = totalWithdrawableFunds(otherAsset2);
 
+    // other request Id before
+    uint256 otherIndex;
+    require otherIndex != fundRequestId;
+
+    IArrangerConduit.FundRequest requestOtherBefore = getFundRequest(otherIndex);
+    bytes32 infoHashOtherBefore = aux.hashString(requestOtherBefore.info);
+
     returnFunds(e, fundRequestId, returnAmount);
+
+    // general check
+    mathint numRequestsAfter = getFundRequestsLength();
+
+    // actual (asset,ilk) for actual request Id after
+    IArrangerConduit.FundRequest requestAfter = getFundRequest(fundRequestId);
+    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
 
     mathint requestedFundsAfter = requestedFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalRequestedFundsAfter= totalRequestedFunds(requestBefore.asset);
-    mathint numRequestsAfter = getFundRequestsLength();
-
-    IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
-    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
-
     mathint withdrawableFundsAfter = withdrawableFunds(requestBefore.asset, requestBefore.ilk);
     mathint totalWithdrawableFundsAfter = totalWithdrawableFunds(requestBefore.asset);
 
+    // other (asset,ilk) for actual request Id after
     mathint requestedFundsOtherAfter = requestedFunds(otherAsset, otherIlk);
     mathint totalRequestedFundsOtherAfter= totalRequestedFunds(otherAsset2);
     mathint withdrawableFundsOtherAfter = withdrawableFunds(otherAsset, otherIlk);
     mathint totalWithdrawableFundsOtherAfter = totalWithdrawableFunds(otherAsset2);
 
+    // other request Id after
+    IArrangerConduit.FundRequest requestOtherAfter = getFundRequest(otherIndex);
+    bytes32 infoHashOtherAfter = aux.hashString(requestOtherAfter.info);
+
+    // general asserts
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
-    assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "returnFunds did not decrease by amount";
-    assert anyIndex == fundRequestId => totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amount";
-    assert anyIndex == fundRequestId => withdrawableFundsAfter == withdrawableFundsBefore + returnAmount, "withdrawableFunds did not increase by returnAmount";
-    assert anyIndex == fundRequestId => totalWithdrawableFundsAfter == totalWithdrawableFundsBefore + returnAmount, "totalWithdrawableFunds did not increase by returnAmount";
-    assert anyIndex == fundRequestId => requestAfter.status == IArrangerConduit.StatusEnum.COMPLETED, "returnFunds did not change status to COMPLETED";
-    assert anyIndex != fundRequestId => requestAfter.status == requestBefore.status, "returnFunds on another index changed status";
-    assert anyIndex == fundRequestId => requestAfter.amountFilled == returnAmount, "returnFunds did not change amountFilled to returnAmount";
-    assert anyIndex != fundRequestId => requestAfter.amountFilled == requestBefore.amountFilled, "returnFunds on another index changed amountFilled";
+
+    // asserts on actual (asset,ilk) for actual request Id
+    assert requestAfter.status == IArrangerConduit.StatusEnum.COMPLETED, "returnFunds did not change status to COMPLETED";
+    assert requestAfter.amountFilled == returnAmount, "returnFunds did not change amountFilled to returnAmount";
     assert requestAfter.asset == requestBefore.asset
         && requestAfter.ilk == requestBefore.ilk
         && requestAfter.amountRequested == requestBefore.amountRequested
         && infoHashAfter == infoHashBefore,
-        "other request params not as before";
+        "request params not as before";
 
-    assert anyIndex == fundRequestId => requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
-    assert anyIndex == fundRequestId => totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
-    assert anyIndex == fundRequestId => withdrawableFundsOtherAfter == withdrawableFundsOtherBefore, "other withdrawable funds changed unexpectedly";
-    assert anyIndex == fundRequestId => totalWithdrawableFundsOtherAfter == totalWithdrawableFundsOtherBefore, "other total withdrawable funds changed unexpectedly";
+    assert requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "returnFunds did not decrease by amount";
+    assert totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amount";
+    assert withdrawableFundsAfter == withdrawableFundsBefore + returnAmount, "withdrawableFunds did not increase by returnAmount";
+    assert totalWithdrawableFundsAfter == totalWithdrawableFundsBefore + returnAmount, "totalWithdrawableFunds did not increase by returnAmount";
+
+    // asserts on other (asset,ilk) for actual request Id
+    assert requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
+    assert totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
+    assert withdrawableFundsOtherAfter == withdrawableFundsOtherBefore, "other withdrawable funds changed unexpectedly";
+    assert totalWithdrawableFundsOtherAfter == totalWithdrawableFundsOtherBefore, "other total withdrawable funds changed unexpectedly";
+
+    // asserts on other request Id
+    assert requestOtherAfter.status == requestOtherBefore.status
+        && requestOtherAfter.asset == requestOtherBefore.asset
+        && requestOtherAfter.ilk == requestOtherBefore.ilk
+        && requestOtherAfter.amountRequested == requestOtherBefore.amountRequested
+        && requestOtherAfter.amountFilled == requestOtherBefore.amountFilled
+        && infoHashOtherAfter == infoHashOtherBefore,
+        "other request Id request params not as before";
 }
 
 // Verify revert rules on returnFunds
