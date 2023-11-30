@@ -602,10 +602,8 @@ rule drawFunds(address asset, address destination, uint256 amount) {
     mathint balanceOfDestinationAfter = gem.balanceOf(destination);
 
     assert currentContract != destination => balanceOfConduitAfter == balanceOfConduitBefore - amount, "balance of conduit did not decrease by amount";
-    assert currentContract == destination => balanceOfConduitAfter == balanceOfConduitBefore, "balance of conduit changed";
     assert currentContract != destination => balanceOfDestinationAfter == balanceOfDestinationBefore + amount, "balance of destination did not increase by amount";
-    assert currentContract == destination => balanceOfDestinationAfter == balanceOfDestinationBefore, "balance of destination changed";
-
+    assert currentContract == destination => balanceOfConduitAfter == balanceOfConduitBefore, "balance of conduit changed";
 }
 
 // Verify revert rules on drawFunds
