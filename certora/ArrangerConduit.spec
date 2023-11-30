@@ -396,7 +396,7 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
     assert withdrawableFundsOtherAfter == withdrawableFundsOtherBefore, "other withdrawable funds changed unexpectedly";
     assert totalWithdrawableFundsOtherAfter == totalWithdrawableFundsOtherBefore, "other total withdrawable funds changed unexpectedly";
     assert withdrawalsOtherAfter == withdrawalsOtherBefore, "other withdrawals changed unexpectedly";
-    assert totalWithdrawalsOtherAfter == totalWithdrawalsOtherAfter, "other total withdrawals changed unexpectedly";
+    assert totalWithdrawalsOtherAfter == totalWithdrawalsOtherBefore, "other total withdrawals changed unexpectedly";
 }
 
 
