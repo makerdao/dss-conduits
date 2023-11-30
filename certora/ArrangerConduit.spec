@@ -399,7 +399,6 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
     assert totalWithdrawalsOtherAfter == totalWithdrawalsOtherBefore, "other total withdrawals changed unexpectedly";
 }
 
-
 // Verify revert rules on withdraw
 rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
     env e;
