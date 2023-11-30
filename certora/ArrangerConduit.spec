@@ -590,7 +590,6 @@ rule drawFunds(address asset, address destination, uint256 amount) {
     env e;
 
     require asset == gem;
-    require currentContract != destination;
     
     mathint balanceOfConduitBefore = gem.balanceOf(currentContract);
     mathint balanceOfDestinationBefore = gem.balanceOf(destination);
@@ -602,8 +601,11 @@ rule drawFunds(address asset, address destination, uint256 amount) {
     mathint balanceOfConduitAfter = gem.balanceOf(currentContract);
     mathint balanceOfDestinationAfter = gem.balanceOf(destination);
 
-    assert balanceOfConduitAfter == balanceOfConduitBefore - amount, "balance of conduit did not decrease by amount";
-    assert balanceOfDestinationAfter == balanceOfDestinationBefore + amount, "balance of destination did not increase by amount";
+    assert currentContract != destination => balanceOfConduitAfter == balanceOfConduitBefore - amount, "balance of conduit did not decrease by amount";
+    assert currentContract == destination => balanceOfConduitAfter == balanceOfConduitBefore, "balance of conduit changed";
+    assert currentContract != destination => balanceOfDestinationAfter == balanceOfDestinationBefore + amount, "balance of destination did not increase by amount";
+    assert currentContract == destination => balanceOfDestinationAfter == balanceOfDestinationBefore, "balance of destination changed";
+
 }
 
 // Verify revert rules on drawFunds
@@ -611,7 +613,6 @@ rule drawFunds_revert(address asset, address destination, uint256 amount) {
     env e;
 
     require asset == gem;
-    require currentContract != destination;
     
     mathint balanceOfConduit = gem.balanceOf(currentContract);
     mathint totalWithdrawableFunds = totalWithdrawableFunds(asset);
