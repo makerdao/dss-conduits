@@ -644,7 +644,7 @@ rule drawFunds(address asset, address destination, uint256 amount) {
     mathint balanceOfConduitBefore = gem.balanceOf(currentContract);
     mathint balanceOfDestinationBefore = gem.balanceOf(destination);
 
-    require balanceOfConduitBefore + balanceOfDestinationBefore <= max_uint256;
+    require currentContract == destination || balanceOfConduitBefore + balanceOfDestinationBefore <= max_uint256;
 
     drawFunds(e, asset, destination, amount);
 
