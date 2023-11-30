@@ -484,7 +484,7 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     bytes32 infoHashOtherAfter = aux.hashString(requestOtherAfter.info);
 
     // general asserts
-    assert to_mathint(numRequestsAfter) == to_mathint(numRequestsBefore + 1), "num request did not increase by 1";
+    assert to_mathint(numRequestsAfter) == numRequestsBefore + 1, "num request did not increase by 1";
 
     // asserts on actual (asset,ilk) for actual request
     assert requestedFundsAfter == requestedFundsBefore + amount, "requestedFunds did not increase by amount";
