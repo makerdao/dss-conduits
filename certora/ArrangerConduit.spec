@@ -19,7 +19,6 @@ methods {
     function requestedFunds(address, bytes32) external returns (uint256) envfree;
     function withdrawableFunds(address, bytes32) external returns (uint256) envfree;
     function withdrawals(address, bytes32) external returns (uint256) envfree;
-    function maxWithdraw(bytes32, address) external returns (uint256) envfree;
     function getFundRequestsLength() external returns (uint256) envfree;
     function getFundRequest(uint256) external returns (IArrangerConduit.FundRequest) envfree;
  
@@ -372,7 +371,7 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
 
     require balanceOfBufferBefore + balanceOfConduitBefore <= max_uint256;
 
-    mathint amount = min(maxAmount, maxWithdraw(ilk, asset)); 
+    mathint amount = min(maxAmount, withdrawableFundsBefore); 
     withdraw(e, ilk, asset, maxAmount);
 
     mathint balanceOfBufferAfter = gem.balanceOf(buffer);
@@ -417,7 +416,7 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
     mathint withdrawableFunds = withdrawableFunds(asset, ilk);
     mathint totalWithdrawableFunds = totalWithdrawableFunds(asset);
 
-    mathint amount = min(maxAmount, maxWithdraw(ilk, asset));
+    mathint amount = min(maxAmount, withdrawableFunds);
     withdraw@withrevert(e, ilk, asset, maxAmount);
 
     bool revert1 = e.msg.value > 0;
