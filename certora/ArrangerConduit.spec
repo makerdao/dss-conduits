@@ -367,14 +367,8 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
     require otherAsset2 != asset;
     mathint totalWithdrawableFundsOtherBefore = totalWithdrawableFunds(otherAsset2);
 
-    bytes32 otherIlk2;
-    address otherAsset3;
-    require otherIlk2 != ilk || otherAsset3 != asset;
-    mathint withdrawalsOtherBefore = withdrawals(otherAsset3, otherIlk2);
-
-    address otherAsset4;
-    require otherAsset4 != asset;
-    mathint totalWithdrawalsOtherBefore = totalWithdrawals(otherAsset4);
+    mathint withdrawalsOtherBefore = withdrawals(otherAsset, otherIlk);
+    mathint totalWithdrawalsOtherBefore = totalWithdrawals(otherAsset2);
 
     require balanceOfBufferBefore + balanceOfConduitBefore <= max_uint256;
 
@@ -390,8 +384,8 @@ rule withdraw(bytes32 ilk, address asset, uint256 maxAmount) {
 
     mathint withdrawableFundsOtherAfter = withdrawableFunds(otherAsset, otherIlk);
     mathint totalWithdrawableFundsOtherAfter = totalWithdrawableFunds(otherAsset2);
-    mathint withdrawalsOtherAfter = withdrawals(otherAsset3, otherIlk2);
-    mathint totalWithdrawalsOtherAfter = totalWithdrawals(otherAsset4);
+    mathint withdrawalsOtherAfter = withdrawals(otherAsset, otherIlk);
+    mathint totalWithdrawalsOtherAfter = totalWithdrawals(otherAsset2);
 
     assert balanceOfBufferAfter == balanceOfBufferBefore + amount, "balance of buffer did not increase by amount";
     assert balanceOfConduitAfter == balanceOfConduitBefore - amount, "balance of conduit did not decrease by amount";
@@ -672,14 +666,8 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     require otherAsset2 != requestBefore.asset;
     mathint totalRequestedFundsOtherBefore = totalRequestedFunds(otherAsset2);
 
-    bytes32 otherIlk2;
-    address otherAsset3;
-    require otherIlk2 != requestBefore.ilk || otherAsset3 != requestBefore.asset;
-    mathint withdrawableFundsOtherBefore = withdrawableFunds(otherAsset3, otherIlk2);
-
-    address otherAsset4;
-    require otherAsset4 != requestBefore.asset;
-    mathint totalWithdrawableFundsOtherBefore = totalWithdrawableFunds(otherAsset4);
+    mathint withdrawableFundsOtherBefore = withdrawableFunds(otherAsset, otherIlk);
+    mathint totalWithdrawableFundsOtherBefore = totalWithdrawableFunds(otherAsset2);
 
     returnFunds(e, fundRequestId, returnAmount);
 
@@ -695,8 +683,8 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
 
     mathint requestedFundsOtherAfter = requestedFunds(otherAsset, otherIlk);
     mathint totalRequestedFundsOtherAfter= totalRequestedFunds(otherAsset2);
-    mathint withdrawableFundsOtherAfter = withdrawableFunds(otherAsset3, otherIlk2);
-    mathint totalWithdrawableFundsOtherAfter = totalWithdrawableFunds(otherAsset4);
+    mathint withdrawableFundsOtherAfter = withdrawableFunds(otherAsset, otherIlk);
+    mathint totalWithdrawableFundsOtherAfter = totalWithdrawableFunds(otherAsset2);
 
     assert numRequestsAfter == numRequestsBefore, "num requests changed";
     assert anyIndex == fundRequestId => requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "returnFunds did not decrease by amount";
