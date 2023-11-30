@@ -435,42 +435,62 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
 rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     env e;
 
-    uint256 anyIndex;
+    // general check before
+    uint256 numRequestsBefore = getFundRequestsLength();
+
+    // actual (asset,ilk) for actual request before
+    IArrangerConduit.FundRequest requestBefore = getFundRequest(numRequestsBefore);
+    bytes32 infoHashBefore = aux.hashString(requestBefore.info);
 
     mathint requestedFundsBefore = requestedFunds(asset, ilk);
     mathint totalRequestedFundsBefore = totalRequestedFunds(asset);
-    mathint numRequestsBefore = getFundRequestsLength();
 
+    // other (asset,ilk) before
     bytes32 otherIlk;
     address otherAsset;
     require otherIlk != ilk || otherAsset != asset;
-    mathint requestedFundsOtherBefore = requestedFunds(otherAsset, otherIlk);
 
     address otherAsset2;
     require otherAsset2 != asset;
+
+    mathint requestedFundsOtherBefore = requestedFunds(otherAsset, otherIlk);
     mathint totalRequestedFundsOtherBefore = totalRequestedFunds(otherAsset2); 
 
-    IArrangerConduit.FundRequest requestBefore = getFundRequest(anyIndex);
-    bytes32 infoHashBefore = aux.hashString(requestBefore.info);
+    // other request before
+    uint256 otherIndex;
+    require otherIndex != numRequestsBefore;
+
+    IArrangerConduit.FundRequest requestOtherBefore = getFundRequest(otherIndex);
+    bytes32 infoHashOtherBefore = aux.hashString(requestOtherBefore.info);
 
     requestFunds(e, ilk, asset, amount, info);
 
+    // general check after
+    uint256 numRequestsAfter = getFundRequestsLength();
+
+    // actual (asset,ilk) for actual request after
+    IArrangerConduit.FundRequest requestAfter = getFundRequest(numRequestsBefore);
+    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
+
     mathint requestedFundsAfter = requestedFunds(asset, ilk);
     mathint totalRequestedFundsAfter = totalRequestedFunds(asset);
-    mathint numRequestsAfter = getFundRequestsLength();
 
+    // other (asset,ilk) before
     mathint requestedFundsOtherAfter = requestedFunds(otherAsset, otherIlk);
     mathint totalRequestedFundsOtherAfter = totalRequestedFunds(otherAsset2); 
 
-    IArrangerConduit.FundRequest requestAfter = getFundRequest(anyIndex);
-    bytes32 infoHashAfter = aux.hashString(requestAfter.info);
+    // other request after
+    IArrangerConduit.FundRequest requestOtherAfter = getFundRequest(otherIndex);
+    bytes32 infoHashOtherAfter = aux.hashString(requestOtherAfter.info);
 
+    // general asserts
+    assert to_mathint(numRequestsAfter) == to_mathint(numRequestsBefore + 1), "num request did not increase by 1";
+
+    // asserts on actual (asset,ilk) for actual request
     assert requestedFundsAfter == requestedFundsBefore + amount, "requestedFunds did not increase by amount";
     assert totalRequestedFundsAfter == totalRequestedFundsBefore + amount, "totalRequestedFunds did not increase by amount";
-    assert numRequestsAfter == numRequestsBefore + 1, "num request did not increase by 1";
 
-    assert numRequestsBefore == to_mathint(anyIndex) =>
-        requestAfter.status == IArrangerConduit.StatusEnum.PENDING
+    assert requestAfter.status == IArrangerConduit.StatusEnum.PENDING
         && requestAfter.asset == asset
         && requestAfter.ilk == ilk
         && requestAfter.amountRequested == amount
@@ -478,15 +498,16 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
         && infoHashAfter == aux.hashString(info),
         "the new request params are not as expected";
 
-    assert numRequestsBefore != to_mathint(anyIndex) =>
-        requestAfter.status == requestBefore.status
-        && requestAfter.asset == requestBefore.asset
-        && requestAfter.ilk == requestBefore.ilk
-        && requestAfter.amountRequested == requestBefore.amountRequested
-        && requestAfter.amountFilled == requestBefore.amountFilled
-        && infoHashAfter == infoHashBefore,
-        "other request params are not as before";
+    // asserts on other request
+    assert requestOtherAfter.status == requestOtherBefore.status
+        && requestOtherAfter.asset == requestOtherBefore.asset
+        && requestOtherAfter.ilk == requestOtherBefore.ilk
+        && requestOtherAfter.amountRequested == requestOtherBefore.amountRequested
+        && requestOtherAfter.amountFilled == requestOtherBefore.amountFilled
+        && infoHashOtherAfter == infoHashOtherBefore,
+        "unrelated request params are not as before";
 
+    // asserts on other (asset,ilk)
     assert requestedFundsOtherAfter == requestedFundsOtherBefore, "other requested funds changed unexpectedly";
     assert totalRequestedFundsOtherAfter == totalRequestedFundsOtherBefore, "other total requested funds changed unexpectedly";
 }
@@ -515,7 +536,7 @@ rule requestFunds_revert(bytes32 ilk, address asset, uint256 amount, string info
 rule cancelFundRequest(uint256 fundRequestId) {
     env e;
 
-    // general check
+    // general check before
     mathint numRequestsBefore = getFundRequestsLength();
 
     // actual (asset,ilk) for actual request Id before
@@ -544,7 +565,7 @@ rule cancelFundRequest(uint256 fundRequestId) {
 
     cancelFundRequest(e, fundRequestId);
 
-    // general check
+    // general check after
     mathint numRequestsAfter = getFundRequestsLength();
 
     // actual (asset,ilk) for actual request Id after
@@ -664,7 +685,7 @@ rule drawFunds_revert(address asset, address destination, uint256 amount) {
 rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
     env e;
 
-    // general check
+    // general check before
     mathint numRequestsBefore = getFundRequestsLength();
 
     // actual (asset,ilk) for actual request Id before
@@ -698,7 +719,7 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
 
     returnFunds(e, fundRequestId, returnAmount);
 
-    // general check
+    // general check after
     mathint numRequestsAfter = getFundRequestsLength();
 
     // actual (asset,ilk) for actual request Id after
