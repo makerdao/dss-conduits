@@ -593,8 +593,8 @@ rule cancelFundRequest(uint256 fundRequestId) {
         && infoHashAfter == infoHashBefore,
         "unrelated request params not as before";
 
-    assert requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "cancelFundRequest did not decrease by amount";
-    assert totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amount";
+    assert requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "requestedFunds did not decrease by amountRequested";
+    assert totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amountRequested";
 
     // asserts on actual (asset,ilk) for another request Id
     assert requestOtherAfter.status == requestOtherBefore.status
@@ -751,8 +751,8 @@ rule returnFunds(uint256 fundRequestId, uint256 returnAmount) {
         && infoHashAfter == infoHashBefore,
         "request params not as before";
 
-    assert requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "returnFunds did not decrease by amount";
-    assert totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amount";
+    assert requestedFundsAfter == requestedFundsBefore - requestBefore.amountRequested, "requestedFunds did not decrease by amountRequested";
+    assert totalRequestedFundsAfter == totalRequestedFundsBefore - requestBefore.amountRequested, "totalRequestedFunds did not decrease by amountRequested";
     assert withdrawableFundsAfter == withdrawableFundsBefore + returnAmount, "withdrawableFunds did not increase by returnAmount";
     assert totalWithdrawableFundsAfter == totalWithdrawableFundsBefore + returnAmount, "totalWithdrawableFunds did not increase by returnAmount";
 
@@ -791,8 +791,8 @@ rule returnFunds_revert(uint256 fundRequestId, uint256 returnAmount) {
     bool revert1 = e.msg.value > 0;
     bool revert2 = arranger != e.msg.sender;
     bool revert3 = request.status != IArrangerConduit.StatusEnum.PENDING;
-    bool revert4 = balanceOfConduit - totalWithdrawableFunds < to_mathint(returnAmount);
-    bool revert5 = totalWithdrawableFunds > balanceOfConduit;
+    bool revert4 = totalWithdrawableFunds > balanceOfConduit;
+    bool revert5 = balanceOfConduit - totalWithdrawableFunds < to_mathint(returnAmount);
     bool revert6 = withdrawableFunds + to_mathint(returnAmount) > max_uint256;
     bool revert7 = totalWithdrawableFunds + to_mathint(returnAmount) > max_uint256;
     bool revert8 = requestedFunds < to_mathint(request.amountRequested);
