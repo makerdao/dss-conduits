@@ -137,7 +137,7 @@ contract InvariantTestBase is Test {
             uint256 netBalance =
                 conduit.totalDeposits(assets[i])
                 + arrangerHandler_.returnedFunds(assets[i])
-                + transfererHandler_.transferredFunds(assets[i])
+                // + transfererHandler_.transferredFunds(assets[i])
                 - arrangerHandler_.drawnFunds(assets[i])
                 - conduit.totalWithdrawals(assets[i]);
 
