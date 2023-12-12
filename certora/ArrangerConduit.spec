@@ -78,6 +78,17 @@ definition min(mathint x, mathint y) returns mathint = x < y ? x : y;
   * The storage is 32-bytes aligned.
   * Since the `status` and `asset` fields are packed together the offset is 32 * 4 = 128.
 */
+
+/** On top of the above, the Certora tool currently can not handle properly hashing of
+*   strings with a length that is not a multiple of 32 (masking out the extra bytes in
+*   the last word). Therefor we also add a `require info.length % 32 == 0`;
+*
+*   Another thing to note is that the code has an implicit loop in it - when copying the
+*   string to storage for example. The copying is done in batches of 32 bytes.
+*   For example, if loop_iter is 3 then the loop's length is either 0, 32, 64 or 96.
+*/
+
+
 hook Sload bytes32 str fundRequests[INDEX uint256 index].(offset 128) STORAGE {
     uint256 read;
     require to_bytes32(read) == str;
@@ -434,6 +445,8 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
 // Verify correct storage changes for non reverting requestFunds
 rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     env e;
+    
+    require info.length % 32 == 0; // See explanation for the in the header on the top
 
     // general check before
     uint256 numRequestsBefore = getFundRequestsLength();
@@ -492,8 +505,8 @@ rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
         && requestAfter.asset == asset
         && requestAfter.ilk == ilk
         && requestAfter.amountRequested == amount
-        && requestAfter.amountFilled == 0,
-        // && infoHashAfter == aux.hashString(info), // TODO: figure out why this is failing
+        && requestAfter.amountFilled == 0
+        && infoHashAfter == aux.hashString(info),
         "the new request params are not as expected";
 
     // asserts on other request
