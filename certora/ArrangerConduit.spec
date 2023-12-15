@@ -80,8 +80,8 @@ definition min(mathint x, mathint y) returns mathint = x < y ? x : y;
 */
 
 /** On top of the above, the Certora tool currently can not handle properly hashing of
-*   strings with a length that is not a multiple of 32 (masking out the extra bytes in
-*   the last word). Therefor we also add a `require info.length % 32 == 0`;
+*   strings with a length that is not a multiple of 32 (which would require masking out the extra bytes in
+*   the last word). Therefore we also add a `require info.length % 32 == 0`;
 *
 *   Another thing to note is that the code has an implicit loop in it - when copying the
 *   string to storage for example. The copying is done in batches of 32 bytes.
@@ -446,7 +446,7 @@ rule withdraw_revert(bytes32 ilk, address asset, uint256 maxAmount) {
 rule requestFunds(bytes32 ilk, address asset, uint256 amount, string info) {
     env e;
     
-    require info.length % 32 == 0; // See explanation for the in the header on the top
+    require info.length % 32 == 0; // See explanation for that in the header on the top
 
     // general check before
     uint256 numRequestsBefore = getFundRequestsLength();
